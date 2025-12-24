@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理学基礎実験：Posner手がかり課題（高精度計測版）</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* カーソル非表示クラス */
+        .cursor-none { cursor: none; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const { useState, useEffect, useRef, useCallback, useLayoutEffect } = React;
+
+        // --- アイコンコンポーネント (SVG) ---
+        const Icon = ({ children, size = 24, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {children}
+            </svg>
+        );
+
+        const Activity = (props) => <Icon {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></Icon>;
+        const ArrowLeft = (props) => <Icon {...props}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></Icon>;
+        const ArrowRight = (props) => <Icon {...props}><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></Icon>;
+        const Plus = (props) => <Icon {...props}><path d="M5 12h14"/><path d="M12 5v14"/></Icon>;
+        const Play = (props) => <Icon {...props}><polygon points="5 3 19 12 5 21 5 3"/></Icon>;
+        const BookOpen = (props) => <Icon {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></Icon>;
+        const Download = (props) => <Icon {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></Icon>;
+        const Save = (props) => <Icon {...props}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></Icon>;
+        const Check = (props) => <Icon {...props}><polyline points="20 6 9 17 4 12"/></Icon>;
+        const AlertCircle = (props) => <Icon {...props}><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></Icon>;
+        const Users = (props) => <Icon {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+        const Lock = (props) => <Icon {...props}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Icon>;
+
+
+        // --- Firebase設定 ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let auth, db;
+        if (firebaseConfig) {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+
+        // 実験設定
+        const TRIALS_COUNT = 20; 
+        const CUE_VALIDITY_RATE = 0.80; 
+        const FIXATION_DURATION = 1000; 
+        const CUE_Target_SOA = 200; 
+
+        // 状態管理定数
+        const STAGE = {
+            WELCOME: 'welcome',
+            INSTRUCTION: 'instruction',
+            FIXATION: 'fixation',
+            CUE: 'cue',
+            TARGET: 'target',
+            FINISHED: 'finished',
+        };
+
+        const PosnerTask = () => {
+            const [user, setUser] = useState(null);
+            const [isSaving, setIsSaving] = useState(false);
+            const [saveStatus, setSaveStatus] = useState(null);
+
+            const [stage, setStage] = useState(STAGE.WELCOME);
+            const [subjectId, setSubjectId] = useState('');
+            const [groupName, setGroupName] = useState('Default_Class');
+            const [saveDestination, setSaveDestination] = useState('public');
+
+            const [trials, setTrials] = useState([]);
+            const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
+            const [results, setResults] = useState([]);
+            const [currentTrial, setCurrentTrial] = useState(null);
+            
+            // --- 高精度計測用のRef ---
+            const startTimeRef = useRef(0); // ターゲット描画推定時刻
+            const requestRef = useRef(null); // rAF ID保持用
+            const sequenceStartTimeRef = useRef(0); // ステージ遷移の基準時刻
+
+            // Auth 初期化
+            useEffect(() => {
+                if (!auth) return;
+                
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Auth failed:", error);
+                    }
+                };
+                initAuth();
+                
+                const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+                    setUser(currentUser);
+                });
+                return () => unsubscribe();
+            }, []);
+
+            const generateTrials = () => {
+                let newTrials = [];
+                const validCount = Math.floor(TRIALS_COUNT * CUE_VALIDITY_RATE);
+                const invalidCount = TRIALS_COUNT - validCount;
+
+                for (let i = 0; i < validCount; i++) {
+                    const direction = Math.random() < 0.5 ? 'left' : 'right';
+                    newTrials.push({
+                        id: i,
+                        condition: 'valid',
+                        cueDir: direction,
+                        targetLoc: direction, 
+                    });
+                }
+
+                for (let i = 0; i < invalidCount; i++) {
+                    const direction = Math.random() < 0.5 ? 'left' : 'right';
+                    newTrials.push({
+                        id: validCount + i,
+                        condition: 'invalid',
+                        cueDir: direction,
+                        targetLoc: direction === 'left' ? 'right' : 'left',
+                    });
+                }
+
+                for (let i = newTrials.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [newTrials[i], newTrials[j]] = [newTrials[j], newTrials[i]];
+                }
+
+                setTrials(newTrials);
+                setResults([]);
+                setCurrentTrialIndex(0);
+                setSaveStatus(null);
+            };
+
+            const startExperiment = () => {
+                if (!subjectId.trim()) {
+                    alert("参加者IDを入力してください");
+                    return;
+                }
+                if (!groupName.trim()) {
+                    alert("グループ名を入力してください");
+                    return;
+                }
+                generateTrials();
+                setStage(STAGE.INSTRUCTION);
+            };
+
+            // --- 高精度タイマーによるステージ制御 ---
+            
+            // 指定時間経過後に次のステージへ遷移する関数 (setTimeoutの代わり)
+            const scheduleNextStage = (nextStage, durationMs) => {
+                sequenceStartTimeRef.current = performance.now();
+                
+                const loop = (timestamp) => {
+                    const elapsed = timestamp - sequenceStartTimeRef.current;
+                    if (elapsed >= durationMs) {
+                        setStage(nextStage);
+                        // ループ終了（次のuseEffectでまた管理される）
+                    } else {
+                        requestRef.current = requestAnimationFrame(loop);
+                    }
+                };
+                requestRef.current = requestAnimationFrame(loop);
+            };
+
+            // ステージ変更時の副作用（タイマーセット）
+            useEffect(() => {
+                // クリーンアップ: 前のタイマーやrAFをキャンセル
+                if (requestRef.current) cancelAnimationFrame(requestRef.current);
+
+                if (stage === STAGE.FIXATION) {
+                    // FIXATION -> CUE
+                    scheduleNextStage(STAGE.CUE, FIXATION_DURATION);
+                } else if (stage === STAGE.CUE) {
+                    // CUE -> TARGET (SOA)
+                    scheduleNextStage(STAGE.TARGET, CUE_Target_SOA);
+                }
+                
+                return () => {
+                    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+                };
+            }, [stage]);
+
+            // --- ターゲット描画時刻のキャプチャ (VSync同期) ---
+            useLayoutEffect(() => {
+                if (stage === STAGE.TARGET) {
+                    // DOM更新直後、ブラウザが描画を行う次のフレームの時刻を取得する
+                    // これにより「画面に出た瞬間」に限りなく近い時刻をStartとする
+                    requestRef.current = requestAnimationFrame((timestamp) => {
+                        startTimeRef.current = timestamp;
+                    });
+                }
+            }, [stage]);
+
+            // 試行開始処理
+            const startNextTrial = useCallback(() => {
+                if (currentTrialIndex >= trials.length) {
+                    setStage(STAGE.FINISHED);
+                    return;
+                }
+
+                const trial = trials[currentTrialIndex];
+                setCurrentTrial(trial);
+                setStage(STAGE.FIXATION);
+            }, [currentTrialIndex, trials]);
+
+            // キー入力処理
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (stage !== STAGE.TARGET) return;
+
+                    const key = e.key.toLowerCase();
+                    if (key !== 'f' && key !== 'j') return;
+
+                    // 高精度の現在時刻を取得 (rAFのtimestampと同一クロック)
+                    const now = performance.now();
+                    
+                    // startTimeRef.current がまだセットされていない（描画フレーム前）場合のガード
+                    // 極端に早い反応の場合、描画前にキーが押される可能性がある
+                    const startTime = startTimeRef.current || now; 
+                    
+                    // 反応時間計算
+                    const rt = Math.max(0, now - startTime);
+                    
+                    const responseSide = key === 'f' ? 'left' : 'right';
+                    const isCorrect = responseSide === currentTrial.targetLoc;
+
+                    const resultData = {
+                        trialIndex: currentTrialIndex + 1,
+                        condition: currentTrial.condition,
+                        cueDir: currentTrial.cueDir,
+                        targetLoc: currentTrial.targetLoc,
+                        response: responseSide,
+                        isCorrect: isCorrect,
+                        rt: rt
+                    };
+
+                    setResults(prev => [...prev, resultData]);
+                    
+                    // 次の試行へ（少し間隔を空ける）
+                    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+                    
+                    setCurrentTrialIndex(prev => prev + 1);
+                    setTimeout(() => {
+                        startNextTrial();
+                    }, 500);
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [stage, currentTrial, currentTrialIndex, startNextTrial]);
+
+            useEffect(() => {
+                return () => {
+                    if (requestRef.current) cancelAnimationFrame(requestRef.current);
+                };
+            }, []);
+
+            const calculateStats = () => {
+                const validTrials = results.filter(r => r.condition === 'valid' && r.isCorrect);
+                const invalidTrials = results.filter(r => r.condition === 'invalid' && r.isCorrect);
+
+                const validMean = validTrials.length ? (validTrials.reduce((acc, cur) => acc + cur.rt, 0) / validTrials.length) : 0;
+                const invalidMean = invalidTrials.length ? (invalidTrials.reduce((acc, cur) => acc + cur.rt, 0) / invalidTrials.length) : 0;
+
+                return { validMean, invalidMean, validCount: validTrials.length, invalidCount: invalidTrials.length };
+            };
+
+            const downloadCSV = () => {
+                const headers = ["SubjectID", "Group", "Trial", "Condition(IV)", "CueDirection", "TargetLocation", "Response", "Correct", "RT(DV)"];
+                const rows = results.map(r => [
+                    subjectId, 
+                    groupName,
+                    r.trialIndex, 
+                    r.condition, 
+                    r.cueDir, 
+                    r.targetLoc, 
+                    r.response, 
+                    r.isCorrect ? 1 : 0, 
+                    r.rt.toFixed(4) // 高精度化に伴い小数点以下を増やす
+                ]);
+                
+                const csvContent = "data:text/csv;charset=utf-8," 
+                    + headers.join(",") + "\n" 
+                    + rows.map(e => e.join(",")).join("\n");
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `posner_${groupName}_${subjectId}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+
+            const saveToCloud = async () => {
+                if (!db || !auth) {
+                    alert("データベース設定が見つかりません。");
+                    return;
+                }
+                if (!user) {
+                    alert("接続を確認中です。少々お待ちください。");
+                    return;
+                }
+                
+                setIsSaving(true);
+                setSaveStatus(null);
+
+                try {
+                    const stats = calculateStats();
+                    const docData = {
+                        subjectId: subjectId,
+                        groupName: groupName,
+                        timestamp: serverTimestamp(),
+                        summary: stats,
+                        results: results,
+                        experiment: 'Posner Task (High Precision)'
+                    };
+
+                    let collectionRef;
+                    if (saveDestination === 'public') {
+                        collectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'posner_results');
+                    } else {
+                        collectionRef = collection(db, 'artifacts', appId, 'users', user.uid, 'posner_results');
+                    }
+
+                    await addDoc(collectionRef, docData);
+                    setSaveStatus('success');
+                } catch (error) {
+                    console.error("Save error:", error);
+                    setSaveStatus('error');
+                } finally {
+                    setIsSaving(false);
+                }
+            };
+
+            // --- レンダリング ---
+            
+            // 1. Welcome
+            if (stage === STAGE.WELCOME) {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-8 text-gray-800 font-sans">
+                        <div className="max-w-2xl bg-white p-8 rounded-xl shadow-lg w-full">
+                            <h1 className="text-3xl font-bold mb-4 text-indigo-700 flex items-center gap-2">
+                                <Activity /> Posner手がかり課題 <span className="text-sm font-normal text-gray-500 ml-2">(高精度計測版)</span>
+                            </h1>
+                            <p className="mb-4 leading-relaxed text-sm text-gray-600">
+                                視覚的注意の定位（Orienting of Attention）を測定する実験です。
+                                矢印手がかり（Cue）によって注意が誘導される効果（Posner効果）を検証します。
+                            </p>
+                            
+                            <div className="grid md:grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">参加者ID (Subject ID)</label>
+                                    <input type="text" value={subjectId} onChange={(e) => setSubjectId(e.target.value)} placeholder="例: Student01"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">グループ/クラス名</label>
+                                    <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} placeholder="例: ClassA"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                </div>
+                            </div>
+
+                            <button onClick={startExperiment} disabled={!subjectId.trim() || !groupName.trim()}
+                                className={`w-full py-4 rounded-lg font-bold text-lg transition shadow-md flex justify-center items-center gap-2
+                                    ${(subjectId.trim() && groupName.trim()) ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                                <BookOpen size={20} /> 実験の説明へ進む
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 2. Instruction
+            if (stage === STAGE.INSTRUCTION) {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-8">
+                        <div className="max-w-2xl text-center space-y-8">
+                            <h2 className="text-2xl font-bold text-yellow-400">インストラクション</h2>
+                            <div className="space-y-4 text-lg">
+                                <p>1. 画面中央の「＋」を見つめてください。</p>
+                                <p>2. 中央に「矢印」が出ます。矢印はターゲットが出る場所を予測しますが、<span className="text-red-400 font-bold">時々外れます</span>。</p>
+                                <p>3. 左右どちらかに「ターゲット（白い四角）」が出たら、素早くキーを押してください。</p>
+                                <div className="bg-gray-800 p-6 rounded-lg border border-gray-600">
+                                    <div className="flex justify-center gap-12">
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-4xl font-mono bg-white text-black w-16 h-16 flex items-center justify-center rounded mb-2">F</span>
+                                            <span>左に出たら</span>
+                                        </div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-4xl font-mono bg-white text-black w-16 h-16 flex items-center justify-center rounded mb-2">J</span>
+                                            <span>右に出たら</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button onClick={startNextTrial} className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-xl transition flex items-center gap-2 mx-auto">
+                                <Play size={24} /> 実験開始
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 3. Finished
+            if (stage === STAGE.FINISHED) {
+                const { validMean, invalidMean, validCount, invalidCount } = calculateStats();
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6 font-sans">
+                        <div className="max-w-3xl w-full bg-white p-8 rounded-xl shadow-lg">
+                            <div className="flex justify-between items-center mb-6 border-b pb-2">
+                                <h2 className="text-2xl font-bold text-gray-800">実験結果レポート</h2>
+                                <div className="text-right">
+                                    <span className="block text-sm font-bold text-gray-700">{subjectId}</span>
+                                    <span className="block text-xs text-gray-500">Group: {groupName}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="grid md:grid-cols-2 gap-8 mb-8">
+                                <div>
+                                    <h3 className="font-bold text-lg mb-4 text-gray-700">条件別平均反応時間</h3>
+                                    <div className="space-y-4">
+                                        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                                            <div className="flex justify-between">
+                                                <span className="text-xs text-blue-600 font-bold uppercase">妥当条件 (Valid)</span>
+                                                <span className="text-xs text-gray-500">n={validCount}</span>
+                                            </div>
+                                            <span className="text-3xl font-bold text-gray-800">{validMean.toFixed(2)} <span className="text-sm font-normal">ms</span></span>
+                                        </div>
+                                        <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+                                            <div className="flex justify-between">
+                                                <span className="text-xs text-red-600 font-bold uppercase">非妥当条件 (Invalid)</span>
+                                                <span className="text-xs text-gray-500">n={invalidCount}</span>
+                                            </div>
+                                            <span className="text-3xl font-bold text-gray-800">{invalidMean.toFixed(2)} <span className="text-sm font-normal">ms</span></span>
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 p-3 bg-gray-100 rounded text-sm text-center">
+                                        Posner効果: <span className="font-bold">{(invalidMean - validMean).toFixed(2)} ms</span>
+                                        {invalidMean > validMean && <span className="text-green-600 ml-2">(妥当)</span>}
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-4">
+                                    <div className="bg-gray-50 p-4 rounded text-sm text-gray-600">
+                                        <p className="mb-3 font-bold">クラウド保存先を選択</p>
+                                        <div className="flex gap-2 mb-2">
+                                            <button onClick={() => setSaveDestination('public')}
+                                                className={`flex-1 py-2 px-3 rounded border text-xs font-bold flex flex-col items-center gap-1 transition-colors
+                                                ${saveDestination === 'public' ? 'bg-blue-100 border-blue-400 text-blue-800' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}>
+                                                <Users size={16} /> 共有 (Public)
+                                                <span className="font-normal text-[10px] opacity-75">クラス全体で集計</span>
+                                            </button>
+                                            <button onClick={() => setSaveDestination('private')}
+                                                className={`flex-1 py-2 px-3 rounded border text-xs font-bold flex flex-col items-center gap-1 transition-colors
+                                                ${saveDestination === 'private' ? 'bg-blue-100 border-blue-400 text-blue-800' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'}`}>
+                                                <Lock size={16} /> 個人 (Private)
+                                                <span className="font-normal text-[10px] opacity-75">自分だけが見る</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <button onClick={saveToCloud} disabled={isSaving || saveStatus === 'success'}
+                                        className={`w-full py-3 rounded-lg font-bold flex justify-center items-center gap-2 transition
+                                        ${saveStatus === 'success' ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}>
+                                        {isSaving ? <span>保存中...</span> : saveStatus === 'success' ? <><Check size={18} /> 保存完了</> : saveStatus === 'error' ? <><AlertCircle size={18} /> エラー (再試行)</> : <><Save size={18} /> クラウドに保存</>}
+                                    </button>
+
+                                    <button onClick={downloadCSV} className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-bold flex justify-center items-center gap-2 transition">
+                                        <Download size={18} /> CSVをダウンロード
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="text-center text-xs text-gray-400 mt-4">リロードすると新しいIDで実験を開始できます。</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 4. Main Experiment
+            return (
+                <div className="flex flex-col items-center justify-center w-full h-screen bg-gray-900 overflow-hidden relative select-none cursor-none">
+                    <div className="absolute top-8 text-gray-500 text-sm">F = 左 | J = 右</div>
+                    <div className="flex items-center justify-center gap-32 relative">
+                        <div className={`w-24 h-24 border-4 ${currentTrial?.targetLoc === 'left' && stage === STAGE.TARGET ? 'border-white bg-white' : 'border-gray-600'} transition-colors duration-0 rounded`}></div>
+                        <div className="w-24 h-24 flex items-center justify-center">
+                            {stage === STAGE.FIXATION && <Plus size={48} className="text-white" />}
+                            {(stage === STAGE.CUE || stage === STAGE.TARGET) && (
+                                <div className="text-white">
+                                    {currentTrial.cueDir === 'left' 
+                                        ? <ArrowLeft size={48} className="text-yellow-400" strokeWidth={4} />
+                                        : <ArrowRight size={48} className="text-yellow-400" strokeWidth={4} />
+                                    }
+                                </div>
+                            )}
+                        </div>
+                        <div className={`w-24 h-24 border-4 ${currentTrial?.targetLoc === 'right' && stage === STAGE.TARGET ? 'border-white bg-white' : 'border-gray-600'} transition-colors duration-0 rounded`}></div>
+                    </div>
+                    <div className="absolute bottom-8 w-64 h-2 bg-gray-800 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${((currentTrialIndex) / TRIALS_COUNT) * 100}%` }} />
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PosnerTask />);
+    </script>
+</body>
+</html>
