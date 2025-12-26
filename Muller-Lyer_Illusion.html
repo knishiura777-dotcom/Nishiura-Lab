@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muller-Lyer Illusion Experiment</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Maps: 外部ライブラリの解決 -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+            "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+            "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
+            "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"
+        }
+    }
+    </script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        /* Custom Styles for Range Input */
+        .custom-range {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+            touch-action: none;
+        }
+        .custom-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: grab;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+            margin-top: -14px;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .custom-range:active::-webkit-slider-thumb {
+            cursor: grabbing;
+            transform: scale(1.1);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+        }
+        .custom-range::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+        .custom-range:focus {
+            outline: none;
+        }
+        .custom-range:focus::-webkit-slider-thumb {
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.3);
+        }
+        .custom-range::-moz-range-thumb {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: grab;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease;
+        }
+        .custom-range:active::-moz-range-thumb {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        .custom-range::-moz-range-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 h-screen overflow-hidden">
+    <div id="root" class="h-full"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef, memo } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { Eye, EyeOff, RotateCcw, Ruler, Save, Trash2, ChevronRight, ClipboardList, Loader2, Play, CheckCircle, BarChart2, Download, Settings, Lock, Users, LogOut, X, Table, Send, Code, ExternalLink, Copy, Check, Info, Layers, User, Cloud, FileSpreadsheet, AlertCircle } from 'lucide-react';
+        import { initializeApp, getApps, getApp } from "firebase/app";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
+        import { getFirestore, collection, addDoc, deleteDoc, doc, onSnapshot, serverTimestamp, query, orderBy, setDoc } from "firebase/firestore";
+
+        // --- Configuration & Initialization Safety Check ---
+        const getSafeConfig = () => {
+          try {
+            if (typeof __firebase_config !== 'undefined') {
+              return typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+            }
+          } catch (e) {
+            console.warn("Failed to parse firebase config:", e);
+          }
+          // デフォルト（開発用ダミー）設定
+          return { apiKey: "demo-key", authDomain: "demo.firebaseapp.com", projectId: "demo-project" };
+        };
+
+        const firebaseConfig = getSafeConfig();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Initialize Firebase
+        const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Constants & Helper Functions ---
+
+        const MIN_LENGTH = 50;
+        const MAX_LENGTH = 300;
+        const DEFAULT_REFERENCE = 150;
+        const ADMIN_PASSWORD = "admin"; 
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbyJInllOI7xrD3-ufR5fFEmhtoTg2atm9Q3so0YtgNjGWbXZw9YuJc12kFFqP1Tcw/exec";
+        const PRACTICE_TRIAL_COUNT = 10;
+
+        const FIN_LENGTHS = {
+          short: 20,
+          medium: 40,
+          long: 60
+        };
+
+        const getFinPoints = (cx, cy, length, angle, isLeftEnd, isInward) => {
+          const rad = (angle * Math.PI) / 180;
+          let xDir;
+          if (isLeftEnd) { xDir = isInward ? 1 : -1; } 
+          else { xDir = isInward ? -1 : 1; }
+          
+          const x1 = cx + (Math.cos(rad) * length * xDir);
+          const y1 = cy - (Math.sin(rad) * length);
+          const x2 = cx + (Math.cos(rad) * length * xDir);
+          const y2 = cy + (Math.sin(rad) * length);
+          return `${x1},${y1} ${cx},${cy} ${x2},${y2}`;
+        };
+
+        const getTypeLabel = (type) => {
+          switch(type) {
+              case 'standard': return '標準 (上 >-< vs 下 <->)';
+              case 'inverted': return '逆転 (上 <-> vs 下 >-<)';
+              case 'control_out': return '対照A (両方 >-<)';
+              case 'control_in': return '対照B (両方 <->)';
+              default: return type;
+          }
+        };
+
+        const getShortTypeLabel = (type) => {
+            switch(type) {
+                case 'standard': return '標準';
+                case 'inverted': return '逆転';
+                case 'control_out': return '対照A';
+                case 'control_in': return '対照B';
+                default: return type;
+            }
+        };
+
+        const getLengthLabel = (len) => {
+            if (len === FIN_LENGTHS.short) return '短い';
+            if (len === FIN_LENGTHS.medium) return '普通';
+            if (len === FIN_LENGTHS.long) return '長い';
+            return `${len}px`;
+        };
+
+        const getGenderLabel = (gender) => {
+            switch(gender) {
+                case 'male': return '男性';
+                case 'female': return '女性';
+                case 'other': return 'その他';
+                case 'prefer_not_to_say': return '回答しない';
+                default: return gender;
+            }
+        };
+
+        const copyTextToClipboard = async (text) => {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+              await navigator.clipboard.writeText(text);
+              return true;
+            } catch (err) {
+              console.warn('Clipboard API failed, trying fallback', err);
+            }
+          }
+
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            return true;
+          } catch (err) {
+            console.error('Copy failed', err);
+            document.body.removeChild(textarea);
+            return false;
+          }
+        };
+
+        // --- Child Components ---
+
+        const DrawLine = memo(({ cx, cy, len, angle, finLength, isInward, color = "stroke-slate-800", isRevealed }) => {
+          const halfLen = len / 2;
+          const startX = cx - halfLen;
+          const endX = cx + halfLen;
+          
+          const currentFinLength = finLength || FIN_LENGTHS.medium;
+
+          const leftFinPoints = getFinPoints(startX, cy, currentFinLength, angle, true, isInward);
+          const rightFinPoints = getFinPoints(endX, cy, currentFinLength, angle, false, isInward);
+
+          return (
+            <g>
+              <line x1={startX} y1={cy} x2={endX} y2={cy} className={`${color} stroke-[4]`} strokeLinecap="round" />
+              <polyline points={leftFinPoints} className={`${color} stroke-[4] fill-none`} strokeLinecap="round" strokeLinejoin="round" />
+              <polyline points={rightFinPoints} className={`${color} stroke-[4] fill-none`} strokeLinecap="round" strokeLinejoin="round" />
+              {isRevealed && (
+                <text x={cx} y={cy - 20} textAnchor="middle" className="fill-slate-500 text-sm font-bold opacity-0 animate-in fade-in">
+                  {len}px
+                </text>
+              )}
+            </g>
+          );
+        });
+
+        const GuideLines = memo(({ cx, refLen, userLen, cy1, cy2 }) => {
+          const halfRef = refLen / 2;
+          const refStart = cx - halfRef;
+          const refEnd = cx + halfRef;
+          return (
+            <g className="opacity-50 pointer-events-none">
+              <line x1={refStart} y1={cy1 - 40} x2={refStart} y2={cy2 + 40} stroke="red" strokeDasharray="4" strokeWidth="1" />
+              <line x1={refEnd} y1={cy1 - 40} x2={refEnd} y2={cy2 + 40} stroke="red" strokeDasharray="4" strokeWidth="1" />
+              <line x1={cx} y1={cy1 - 40} x2={cx} y2={cy2 + 40} stroke="#cbd5e1" strokeDasharray="2" strokeWidth="1" />
+            </g>
+          );
+        });
+
+        const IntroView = memo(({ experimentSets, showFeedback, setShowFeedback, subjectInfo, setSubjectInfo, onStart }) => (
+          <div className="flex flex-col items-center justify-center h-full max-w-lg mx-auto text-center p-6 space-y-8 animate-in fade-in slide-in-from-bottom-4">
+              <div className="bg-indigo-100 p-4 rounded-full">
+                  <Ruler size={48} className="text-indigo-600" />
+              </div>
+              <div>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-2">ミューラー・リヤー錯視実験</h2>
+                  <p className="text-slate-600 mb-4">
+                      各試行で、下の線を上の線と「同じ長さ」に見えるように調整してください。
+                  </p>
+              </div>
+              
+              <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm w-full text-left space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3">1. 実験設定</label>
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                        <span className="text-slate-600 font-medium flex items-center gap-2">
+                            <Layers size={18} /> セット数
+                        </span>
+                        <span className="font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full">
+                            {experimentSets === 'practice' 
+                                ? `練習試行 (${PRACTICE_TRIAL_COUNT}回)` 
+                                : `${experimentSets} セット (${experimentSets * 48}回)`}
+                        </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">※ 実験条件は教員によって管理されています。</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                        <User size={18} className="text-indigo-600" /> 被験者情報
+                    </label>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="col-span-2">
+                            <label className="block text-xs font-bold text-slate-500 mb-1">被験者ID / 氏名</label>
+                            <input 
+                                type="text" 
+                                value={subjectInfo.id}
+                                onChange={(e) => setSubjectInfo({...subjectInfo, id: e.target.value})}
+                                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="IDを入力 (例: sub001)"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">年齢</label>
+                            <input 
+                                type="number" 
+                                value={subjectInfo.age}
+                                onChange={(e) => setSubjectInfo({...subjectInfo, age: e.target.value})}
+                                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="例: 20"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-500 mb-1">性別</label>
+                            <select 
+                                value={subjectInfo.gender}
+                                onChange={(e) => setSubjectInfo({...subjectInfo, gender: e.target.value})}
+                                className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                            >
+                                <option value="unspecified">未選択</option>
+                                <option value="male">男性</option>
+                                <option value="female">女性</option>
+                                <option value="other">その他</option>
+                                <option value="prefer_not_to_say">回答しない</option>
+                            </select>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-4">
+                     <label className="block text-sm font-bold text-slate-700 mb-3">フィードバック設定</label>
+                     <label className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${showFeedback ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <input 
+                            type="checkbox" 
+                            checked={showFeedback}
+                            onChange={(e) => setShowFeedback(e.target.checked)}
+                            className="mt-1 w-5 h-5 accent-indigo-600 cursor-pointer"
+                        />
+                        <div>
+                            <span className={`block font-bold ${showFeedback ? 'text-indigo-700' : 'text-slate-600'}`}>試行ごとに正解を表示する</span>
+                            <span className="text-xs text-slate-500">チェックを外すと、連続して実験を行えます。</span>
+                        </div>
+                     </label>
+                  </div>
+              </div>
+
+              <button 
+                  onClick={onStart}
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              >
+                  <Play size={20} fill="currentColor" /> 実験を開始する
+              </button>
+          </div>
+        ));
+
+        const AdminDashboard = memo(({ onBack, user }) => {
+          const [allResults, setAllResults] = useState([]);
+          const [isLoading, setIsLoading] = useState(true);
+          const [showSettings, setShowSettings] = useState(false);
+          const [gasUrl, setGasUrl] = useState(localStorage.getItem('muller_lyer_gas_url') || DEFAULT_GAS_URL);
+          const [isSending, setIsSending] = useState(false);
+          const [showCodeSample, setShowCodeSample] = useState(false);
+          
+          const [configSets, setConfigSets] = useState(1);
+          const [isSavingConfig, setIsSavingConfig] = useState(false);
+
+          useEffect(() => {
+            if (!user) return; 
+
+            const resultsRef = collection(db, 'artifacts', appId, 'public', 'data', 'experiment_results');
+            const unsubscribeResults = onSnapshot(resultsRef, 
+              (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                data.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                setAllResults(data);
+                setIsLoading(false);
+              },
+              (error) => {
+                console.error("Admin fetch error:", error);
+                setIsLoading(false);
+              }
+            );
+
+            const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global_config');
+            const unsubscribeConfig = onSnapshot(configDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.experimentSets !== undefined) setConfigSets(data.experimentSets);
+                }
+            });
+
+            return () => {
+                unsubscribeResults();
+                unsubscribeConfig();
+            };
+          }, [user]);
+
+          const saveGasUrl = () => {
+              localStorage.setItem('muller_lyer_gas_url', gasUrl);
+              setShowSettings(false);
+              alert("設定を保存しました");
+          };
+
+          const saveGlobalConfig = async (sets) => {
+              if (!user) return;
+              setIsSavingConfig(true);
+              
+              // Optimistic Update: 即座にUIを更新
+              const previousSets = configSets;
+              setConfigSets(sets);
+              
+              try {
+                  const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global_config');
+                  await setDoc(configDocRef, {
+                      experimentSets: sets,
+                      updatedAt: serverTimestamp()
+                  }, { merge: true });
+              } catch (error) {
+                  console.error("Error saving config:", error);
+                  alert("設定の保存に失敗しました");
+                  setConfigSets(previousSets); // ロールバック
+              } finally {
+                  setIsSavingConfig(false);
+              }
+          };
+
+          const sendToGas = async () => {
+            if (!gasUrl) {
+                alert("GASのURLが設定されていません。設定画面からURLを入力してください。");
+                setShowSettings(true);
+                return;
+            }
+            if (allResults.length === 0) return;
+            if (!confirm(`${allResults.length}件のデータをGASへ送信しますか？`)) return;
+
+            setIsSending(true);
+            
+            try {
+                const payload = {
+                    data: allResults.map(item => ({
+                        userId: item.userId || 'Unknown',
+                        subjectId: item.subjectId || '',
+                        subjectAge: item.subjectAge || '',
+                        subjectGender: item.subjectGender ? getGenderLabel(item.subjectGender) : '',
+                        timestamp: item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString('ja-JP') : "",
+                        type: getTypeLabel(item.type).split('(')[0].trim(),
+                        angle: item.angle,
+                        finLength: item.finLength || FIN_LENGTHS.medium,
+                        refLen: item.refLen,
+                        userLen: item.userLen,
+                        diff: item.diff,
+                        diffPercent: item.diffPercent
+                    }))
+                };
+
+                await fetch(gasUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                alert("送信リクエストを完了しました。\n(GASの仕様上、成功可否はGAS側のログを確認してください)");
+            } catch (error) {
+                console.error("Send error:", error);
+                alert("送信中にエラーが発生しました。");
+            } finally {
+                setIsSending(false);
+            }
+          };
+
+          const downloadAllCSV = () => {
+            if (allResults.length === 0) return;
+            const headers = [
+              "User ID", "被験者ID", "年齢", "性別", "日時", "パターン", "角度(度)", "矢羽長さ(px)", "基準の長さ(px)", "調整した長さ(px)", "誤差(px)", "錯視率(%)"
+            ];
+            
+            const rows = allResults.map(item => {
+              const date = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString() : "";
+              return [
+                `"${item.userId || 'Unknown'}"`,
+                `"${item.subjectId || ''}"`,
+                `"${item.subjectAge || ''}"`,
+                `"${item.subjectGender ? getGenderLabel(item.subjectGender) : ''}"`,
+                `"${date}"`,
+                `"${getTypeLabel(item.type).split('(')[0].trim()}"`,
+                item.angle,
+                item.finLength || FIN_LENGTHS.medium,
+                item.refLen,
+                item.userLen,
+                item.diff,
+                item.diffPercent
+              ].join(",");
+            });
+
+            const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `all_students_results_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          };
+
+          const copyToSpreadsheet = async () => {
+            if (allResults.length === 0) return;
+            
+            const headers = [
+              "User ID", "被験者ID", "年齢", "性別", "日時", "パターン", "角度(度)", "矢羽長さ(px)", "基準の長さ(px)", "調整した長さ(px)", "誤差(px)", "錯視率(%)"
+            ];
+            
+            const rows = allResults.map(item => {
+              const date = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString('ja-JP') : "";
+              return [
+                item.userId || 'Unknown',
+                item.subjectId || '',
+                item.subjectAge || '',
+                item.subjectGender ? getGenderLabel(item.subjectGender) : '',
+                date,
+                getTypeLabel(item.type).split('(')[0].trim(),
+                item.angle,
+                item.finLength || FIN_LENGTHS.medium,
+                item.refLen,
+                item.userLen,
+                item.diff,
+                item.diffPercent
+              ].join("\t");
+            });
+
+            const tsvContent = headers.join("\t") + "\n" + rows.join("\n");
+            
+            const success = await copyTextToClipboard(tsvContent);
+            if (success) {
+                alert("データをコピーしました。\n\nGoogleスプレッドシートやExcelを開き、\nA1セルを選択して「貼り付け（Ctrl+V）」してください。");
+            } else {
+                alert("コピーに失敗しました。");
+            }
+          };
+
+          const GAS_SAMPLE_CODE = `function doPost(e) {
+  // 受け取ったJSONデータをパース
+  var jsonString = e.postData.contents;
+  var jsonData = JSON.parse(jsonString);
+  var data = jsonData.data;
+  
+  // アクティブなスプレッドシートを取得
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // ヘッダー行が存在しない場合は追加
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["User ID", "被験者ID", "年齢", "性別", "日時", "パターン", "角度", "矢羽長さ", "基準長", "調整長", "誤差", "錯視率"]);
+  }
+  
+  // データを配列形式に変換
+  var rows = data.map(function(item) {
+    return [
+      item.userId,
+      item.subjectId,
+      item.subjectAge,
+      item.subjectGender,
+      item.timestamp,
+      item.type,
+      item.angle,
+      item.finLength,
+      item.refLen,
+      item.userLen,
+      item.diff,
+      item.diffPercent
+    ];
+  });
+  
+  // データをまとめて書き込み
+  if (rows.length > 0) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  }
+  
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}`;
+
+          const totalTrials = allResults.length;
+          const uniqueUsers = new Set(allResults.map(r => r.userId)).size;
+          const avgError = totalTrials > 0 
+            ? (allResults.reduce((acc, cur) => acc + parseFloat(cur.diffPercent || 0), 0) / totalTrials).toFixed(1) 
+            : 0;
+
+          return (
+            <div className="flex flex-col h-full bg-slate-50 p-6 animate-in fade-in relative">
+              <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="bg-indigo-100 p-2 rounded-lg">
+                        <Users size={24} className="text-indigo-600" />
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-slate-800">教員用管理画面</h2>
+                        <p className="text-xs text-slate-500">全学生の実験データを管理・出力します</p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <button onClick={() => setShowSettings(true)} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="GAS連携設定">
+                        <Settings size={20} />
+                    </button>
+                    <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors" title="ログアウト">
+                        <LogOut size={20} />
+                    </button>
+                </div>
+              </div>
+
+              {showSettings && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+                      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                          <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                  <Settings size={20} className="text-slate-500" />
+                                  連携設定
+                              </h3>
+                              <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
+                                  <X size={20} />
+                              </button>
+                          </div>
+                          
+                          <div className="space-y-6">
+                              <div>
+                                  <label className="block text-sm font-bold text-slate-700 mb-2">Webアプリ URL (GAS)</label>
+                                  <input 
+                                      type="text" 
+                                      value={gasUrl}
+                                      onChange={(e) => setGasUrl(e.target.value)}
+                                      className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
+                                      placeholder="https://script.google.com/macros/s/..."
+                                  />
+                              </div>
+                              <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                  <button 
+                                     onClick={() => setShowCodeSample(!showCodeSample)}
+                                     className="flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800"
+                                  >
+                                     <Code size={16} />
+                                     GAS側スクリプトのサンプルを表示 {showCodeSample ? '▲' : '▼'}
+                                  </button>
+                                  {showCodeSample && (
+                                      <div className="mt-3 relative">
+                                          <pre className="bg-slate-800 text-slate-50 p-4 rounded-lg text-xs overflow-x-auto font-mono leading-relaxed">
+                                              {GAS_SAMPLE_CODE}
+                                          </pre>
+                                          <button 
+                                              onClick={async () => {
+                                                  if (await copyTextToClipboard(GAS_SAMPLE_CODE)) {
+                                                      alert("コードをコピーしました");
+                                                  } else {
+                                                      alert("コピーに失敗しました");
+                                                  }
+                                              }}
+                                              className="absolute top-2 right-2 p-1.5 bg-white/10 hover:bg-white/20 text-white rounded transition-colors"
+                                          >
+                                              <Copy size={14} />
+                                          </button>
+                                      </div>
+                                  )}
+                              </div>
+                              <div className="flex justify-end gap-3 pt-2">
+                                  <button onClick={() => setShowSettings(false)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-bold transition-all">
+                                      キャンセル
+                                  </button>
+                                  <button onClick={saveGasUrl} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow transition-all flex items-center gap-2">
+                                      <Check size={18} /> 保存する
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
+              {/* Global Config Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                      <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                          <Info size={16} /> 実験設定
+                      </h3>
+                      <div className="space-y-4">
+                          <div>
+                              <label className="block text-sm font-bold text-slate-600 mb-2">実験セット数 (全学生に適用)</label>
+                              <div className="flex gap-2">
+                                  <button
+                                      type="button"
+                                      onClick={() => saveGlobalConfig('practice')}
+                                      disabled={isSavingConfig || !user}
+                                      className={`flex-1 py-2 rounded-lg font-bold transition-all border-2 cursor-pointer touch-manipulation active:scale-95 ${
+                                          configSets == 'practice'
+                                          ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                                          : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                      }`}
+                                  >
+                                      {isSavingConfig && configSets != 'practice' ? '...' : `練習 (${PRACTICE_TRIAL_COUNT}回)`}
+                                  </button>
+                                  {[1, 2, 3, 4, 5].map(num => (
+                                      <button
+                                          key={num}
+                                          type="button"
+                                          onClick={() => saveGlobalConfig(num)}
+                                          disabled={isSavingConfig || !user}
+                                          className={`flex-1 py-2 rounded-lg font-bold transition-all border-2 cursor-pointer touch-manipulation active:scale-95 ${
+                                              configSets == num
+                                              ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
+                                              : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                          }`}
+                                      >
+                                          {isSavingConfig && configSets != num ? '...' : `${num} セット`}
+                                      </button>
+                                  ))}
+                              </div>
+                              {!user && <p className="text-xs text-rose-500 mt-2">認証情報を読み込み中... 操作できません</p>}
+                          </div>
+                      </div>
+                  </div>
+
+                  {/* Stats Cards */}
+                  <div className="grid grid-cols-1 gap-4">
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                          <div>
+                              <div className="text-xs text-slate-500 uppercase mb-1">総試行回数</div>
+                              <div className="text-2xl font-bold text-slate-800">{totalTrials}</div>
+                          </div>
+                          <BarChart2 className="text-indigo-100" size={32} />
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                          <div>
+                              <div className="text-xs text-slate-500 uppercase mb-1">参加学生数</div>
+                              <div className="text-2xl font-bold text-slate-800">{uniqueUsers}</div>
+                          </div>
+                          <Users className="text-indigo-100" size={32} />
+                      </div>
+                      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                          <div>
+                              <div className="text-xs text-slate-500 uppercase mb-1">全体平均錯視率</div>
+                              <div className="text-2xl font-bold text-indigo-600">{avgError}%</div>
+                          </div>
+                          <CheckCircle className="text-emerald-100" size={32} />
+                      </div>
+                  </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+                  <div className="p-4 border-b border-slate-200 flex flex-wrap gap-2 justify-between items-center bg-slate-50">
+                      <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                          <ClipboardList size={18} /> データ一覧
+                      </h3>
+                      <div className="flex gap-2 flex-wrap">
+                          <button 
+                              onClick={sendToGas}
+                              disabled={totalTrials === 0 || isSending}
+                              className="px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg shadow transition-all flex items-center gap-2"
+                          >
+                              {isSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                              GASへ送信
+                          </button>
+                          <button 
+                              onClick={copyToSpreadsheet}
+                              disabled={totalTrials === 0}
+                              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg shadow transition-all flex items-center gap-2"
+                          >
+                              <Table size={16} /> クリップボード
+                          </button>
+                          <button 
+                              onClick={downloadAllCSV}
+                              disabled={totalTrials === 0}
+                              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg shadow transition-all flex items-center gap-2"
+                          >
+                              <Download size={16} /> CSV
+                          </button>
+                      </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-auto">
+                      <table className="w-full text-sm text-left">
+                          <thead className="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0 z-10">
+                              <tr>
+                                  <th className="px-4 py-3 font-medium">日時</th>
+                                  <th className="px-4 py-3 font-medium">User ID (Short)</th>
+                                  <th className="px-4 py-3 font-medium">被験者ID</th>
+                                  <th className="px-4 py-3 font-medium">条件</th>
+                                  <th className="px-4 py-3 font-medium text-right">誤差</th>
+                                  <th className="px-4 py-3 font-medium text-right">錯視率</th>
+                              </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                              {isLoading ? (
+                                  <tr><td colSpan="6" className="p-8 text-center text-slate-400"><Loader2 className="animate-spin inline mr-2" /> 読み込み中...</td></tr>
+                              ) : totalTrials === 0 ? (
+                                  <tr><td colSpan="6" className="p-8 text-center text-slate-400">データがまだありません</td></tr>
+                              ) : (
+                                  allResults.map((item, idx) => (
+                                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                          <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                                              {item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString('ja-JP') : '-'}
+                                          </td>
+                                          <td className="px-4 py-3 font-mono text-xs text-slate-400">
+                                              {item.userId ? item.userId.substring(0, 8) + '...' : 'Unknown'}
+                                          </td>
+                                          <td className="px-4 py-3 text-slate-700 font-bold">
+                                              {item.subjectId || '-'}
+                                          </td>
+                                          <td className="px-4 py-3 text-slate-700">
+                                              {getShortTypeLabel(item.type)} / {item.angle}° / {getLengthLabel(item.finLength)}
+                                          </td>
+                                          <td className={`px-4 py-3 text-right font-mono font-bold ${Math.abs(item.diff) < 5 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                              {item.diff > 0 ? '+' : ''}{item.diff}
+                                          </td>
+                                          <td className="px-4 py-3 text-right font-mono text-slate-600">
+                                              {item.diffPercent}%
+                                          </td>
+                                      </tr>
+                                  ))
+                              )}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+            </div>
+          );
+        });
+
+        const SummaryView = memo(({ sessionResults, targetTrialCount, onRestart, onDownload, user }) => {
+          const [gasStatus, setGasStatus] = useState('idle'); 
+          const [cloudStatus, setCloudStatus] = useState('saving'); 
+
+          useEffect(() => {
+              const saveToCloud = async () => {
+                  if (!user || sessionResults.length === 0) return;
+                  try {
+                      const sanitizedResults = sessionResults.map(r => ({
+                          ...r,
+                          timestamp: r.timestamp && typeof r.timestamp.toDate === 'function' 
+                              ? r.timestamp.toDate() 
+                              : new Date()
+                      }));
+
+                      const sessionId = `session_${new Date().getTime()}`;
+                      await setDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'experiment_sessions', sessionId), {
+                          timestamp: serverTimestamp(),
+                          trialCount: sessionResults.length,
+                          results: sanitizedResults, 
+                          completed: true
+                      });
+                      setCloudStatus('saved');
+                  } catch (e) {
+                      console.error("Cloud save failed", e);
+                      setCloudStatus('error');
+                  }
+              };
+
+              const uploadToGas = async () => {
+                  const gasUrl = localStorage.getItem('muller_lyer_gas_url') || DEFAULT_GAS_URL;
+                  if (!gasUrl || sessionResults.length === 0) return;
+
+                  setGasStatus('uploading');
+                  try {
+                      const payload = {
+                          data: sessionResults.map(item => ({
+                              userId: user.uid, 
+                              subjectId: item.subjectId || '',
+                              subjectAge: item.subjectAge || '',
+                              subjectGender: item.subjectGender ? getGenderLabel(item.subjectGender) : '',
+                              timestamp: item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString('ja-JP') : new Date().toLocaleString('ja-JP'),
+                              type: getTypeLabel(item.type).split('(')[0].trim(),
+                              angle: item.angle,
+                              finLength: item.finLength || FIN_LENGTHS.medium,
+                              refLen: item.refLen,
+                              userLen: item.userLen,
+                              diff: item.diff,
+                              diffPercent: item.diffPercent
+                          }))
+                      };
+
+                      await fetch(gasUrl, {
+                          method: 'POST',
+                          mode: 'no-cors',
+                          headers: { 'Content-Type': 'text/plain' },
+                          body: JSON.stringify(payload)
+                      });
+                      setGasStatus('success');
+                  } catch (e) {
+                      console.error("GAS upload failed", e);
+                      setGasStatus('error');
+                  }
+              };
+
+              if (sessionResults.length > 0) {
+                  saveToCloud();
+                  uploadToGas();
+              }
+          }, [sessionResults, user]);
+
+          const avgError = sessionResults.length > 0 
+              ? (sessionResults.reduce((acc, cur) => acc + parseFloat(cur.diffPercent || 0), 0) / sessionResults.length).toFixed(1)
+              : 0;
+          
+          const angles = [15, 30, 45, 60];
+          const types = ['standard', 'inverted', 'control_out', 'control_in'];
+          const lengths = [FIN_LENGTHS.short, FIN_LENGTHS.medium, FIN_LENGTHS.long];
+          
+          const matrix = {};
+          types.forEach(type => {
+              matrix[type] = {};
+              angles.forEach(angle => {
+                  const targets = sessionResults.filter(r => r.type === type && r.angle === angle);
+                  if (targets.length > 0) {
+                      const sum = targets.reduce((acc, cur) => acc + parseFloat(cur.diffPercent || 0), 0);
+                      matrix[type][angle] = (sum / targets.length).toFixed(1);
+                  } else {
+                      matrix[type][angle] = '-';
+                  }
+              });
+          });
+
+          const lengthStats = lengths.map(len => {
+              const targets = sessionResults.filter(r => r.finLength === len);
+              if (targets.length === 0) return { len, avg: 0 };
+              const sum = targets.reduce((acc, cur) => acc + parseFloat(cur.diffPercent || 0), 0);
+              return { len, avg: (sum / targets.length).toFixed(1) };
+          });
+
+          return (
+              <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center p-6 space-y-8 animate-in fade-in pb-20">
+                  <div className="space-y-4 w-full">
+                      <div className="inline-block bg-emerald-100 p-4 rounded-full mb-2">
+                          <CheckCircle size={48} className="text-emerald-600" />
+                      </div>
+                      <div>
+                          <h2 className="text-2xl font-bold text-slate-800">実験終了</h2>
+                          <p className="text-slate-600 mt-1">お疲れ様でした。全{targetTrialCount}回の試行が完了しました。</p>
+                      </div>
+
+                      <div className="flex gap-3 justify-center text-sm mt-4">
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                              cloudStatus === 'saved' ? 'bg-blue-50 border-blue-200 text-blue-700' : 
+                              cloudStatus === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-200 text-slate-500'
+                          }`}>
+                              <Cloud size={14} />
+                              {cloudStatus === 'saving' && <span>クラウド保存中...</span>}
+                              {cloudStatus === 'saved' && <span className="font-bold">クラウド保存完了</span>}
+                              {cloudStatus === 'error' && <span className="font-bold">クラウド保存失敗</span>}
+                          </div>
+
+                          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                              gasStatus === 'success' ? 'bg-green-50 border-green-200 text-green-700' : 
+                              gasStatus === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 
+                              gasStatus === 'uploading' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' : 'bg-slate-50 border-slate-200 text-slate-500'
+                          }`}>
+                              <FileSpreadsheet size={14} />
+                              {gasStatus === 'idle' && <span>待機中</span>}
+                              {gasStatus === 'uploading' && <span className="flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> GAS送信中...</span>}
+                              {gasStatus === 'success' && <span className="font-bold">GAS送信完了</span>}
+                              {gasStatus === 'error' && <span className="font-bold">GAS送信失敗</span>}
+                          </div>
+                      </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm w-full max-w-sm mx-auto">
+                      <div className="text-xs text-slate-500 uppercase mb-1">全体の平均錯視率</div>
+                      <div className="text-3xl font-bold text-indigo-600">{avgError}%</div>
+                  </div>
+
+                  <div className="w-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
+                     <div className="p-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-700 flex items-center justify-center gap-2">
+                         <BarChart2 size={16} /> 条件別 平均錯視率 (%)
+                     </div>
+                     <div className="overflow-x-auto">
+                         <table className="w-full text-center whitespace-nowrap">
+                             <thead>
+                                 <tr className="bg-slate-50 text-slate-500 text-xs uppercase">
+                                     <th className="p-3 border-b border-r border-slate-100 font-medium bg-slate-100 sticky left-0 z-10">パターン \ 角度</th>
+                                     {angles.map(angle => (
+                                         <th key={angle} className="p-3 border-b border-slate-100 font-medium">{angle}°</th>
+                                     ))}
+                                 </tr>
+                             </thead>
+                             <tbody className="divide-y divide-slate-100">
+                                 {types.map(type => (
+                                     <tr key={type} className="hover:bg-slate-50">
+                                         <td className="p-3 border-r border-slate-100 font-bold text-slate-700 bg-slate-50 sticky left-0 text-left">
+                                             {getShortTypeLabel(type)}
+                                         </td>
+                                         {angles.map(angle => {
+                                             const val = matrix[type][angle];
+                                             const numVal = parseFloat(val);
+                                             let colorClass = "text-slate-600";
+                                             if (!isNaN(numVal)) {
+                                                 if (numVal > 5) colorClass = "text-indigo-600 font-bold";
+                                                 else if (numVal < -5) colorClass = "text-rose-600 font-bold";
+                                             }
+                                             return (
+                                                 <td key={angle} className={`p-3 ${colorClass}`}>
+                                                     {val > 0 ? '+' : ''}{val}
+                                                 </td>
+                                             );
+                                         })}
+                                     </tr>
+                                 ))}
+                             </tbody>
+                         </table>
+                     </div>
+                  </div>
+
+                  <div className="w-full bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm p-4">
+                      <div className="font-bold text-slate-700 mb-4 flex items-center justify-center gap-2">
+                         <Ruler size={16} /> 矢羽の長さ別 平均錯視率
+                      </div>
+                      <div className="flex justify-around items-end h-32 gap-4">
+                          {lengthStats.map(stat => {
+                              const height = Math.min(100, Math.max(10, Math.abs(stat.avg) * 3)); 
+                              const isPositive = stat.avg >= 0;
+                              return (
+                                  <div key={stat.len} className="flex flex-col items-center justify-end w-1/3 h-full group">
+                                      <div className="text-xs font-bold text-slate-600 mb-1">{stat.avg}%</div>
+                                      <div 
+                                        style={{ height: `${height}%` }}
+                                        className={`w-full max-w-[40px] rounded-t ${isPositive ? 'bg-indigo-500' : 'bg-rose-500'} transition-all group-hover:opacity-80`}
+                                      ></div>
+                                      <div className="mt-2 text-xs text-slate-500 font-medium border-t border-slate-100 w-full text-center pt-1">
+                                          {getLengthLabel(stat.len)}
+                                      </div>
+                                  </div>
+                              );
+                          })}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-2 text-center">
+                          一般に、矢羽が長いほど錯視量は大きくなる傾向があります。
+                      </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-3 w-full max-w-sm mx-auto">
+                    <button 
+                        onClick={onDownload}
+                        className="w-full py-3 bg-white border-2 border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
+                    >
+                        <Download size={18} /> 結果をCSVでダウンロード
+                    </button>
+                    <button 
+                        onClick={onRestart}
+                        className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold shadow-md transition-all"
+                    >
+                        タイトルに戻る
+                    </button>
+                  </div>
+              </div>
+          );
+        });
+
+        const ExperimentView = memo(({ 
+          currentTrialIndex, targetTrialCount, showGrid, setShowGrid, isRevealed, 
+          referenceLength, userLength, setUserLength, finAngle, illusionType, finLength,
+          diff, diffPercent, isSaving, showFeedback, onConfirm, onNextTrial 
+        }) => {
+          
+          const isRefInward = ['standard', 'control_out'].includes(illusionType);
+          const isUserInward = ['inverted', 'control_out'].includes(illusionType);
+
+          return (
+            <div className="flex flex-col h-full animate-in fade-in">
+                {/* Progress Header */}
+                <div className="flex justify-between items-center mb-6 pr-12">
+                    <div className="flex items-center gap-3">
+                        <span className="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            Trial {currentTrialIndex + 1} / {targetTrialCount}
+                        </span>
+                        <span className="text-xs text-slate-400 hidden sm:inline-block">
+                             (進行度: {Math.round(((currentTrialIndex + 1) / targetTrialCount) * 100)}%)
+                        </span>
+                    </div>
+                    <button 
+                      onClick={() => setShowGrid(!showGrid)}
+                      className={`p-2 rounded-full transition-colors ${showGrid ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}
+                    >
+                      <Ruler size={18} />
+                    </button>
+                </div>
+
+                {/* Canvas */}
+                <div className="relative w-full bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden mb-6 flex-shrink-0">
+                    <div className="w-full aspect-[16/10] sm:aspect-[2/1] flex items-center justify-center bg-slate-50 relative select-none">
+                        {showGrid && (
+                           <div className="absolute inset-0 opacity-10 pointer-events-none" 
+                                style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '20px 20px' }}>
+                           </div>
+                        )}
+                        
+                        <svg width="100%" height="100%" viewBox="0 0 500 400" className="overflow-visible">
+                          {isRevealed && showFeedback && <GuideLines cx={250} refLen={referenceLength} userLen={userLength} cy1={100} cy2={300} />}
+                          
+                          {/* Reference (Y: 100) */}
+                          <DrawLine 
+                            cx={250} cy={100} len={referenceLength} angle={finAngle} finLength={finLength}
+                            isInward={isRefInward} isRevealed={isRevealed && showFeedback} 
+                          />
+                          <text x="250" y="60" textAnchor="middle" className="fill-indigo-800 font-bold text-xs tracking-widest uppercase">基準 (Reference)</text>
+
+                          {/* User (Y: 300) */}
+                          <DrawLine 
+                            cx={250} cy={300} len={userLength} angle={finAngle} finLength={finLength}
+                            isInward={isUserInward} isRevealed={isRevealed && showFeedback}
+                            color={isRevealed && showFeedback ? (Math.abs(diff) < 5 ? "stroke-emerald-500" : "stroke-rose-500") : "stroke-indigo-600"}
+                          />
+                          <text x="250" y="360" textAnchor="middle" className="fill-indigo-600 font-bold text-xs tracking-widest uppercase">調整 (Adjust)</text>
+                        </svg>
+
+                        {/* Result Overlay */}
+                        {isRevealed && showFeedback && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] animate-in fade-in duration-300 z-10">
+                                <div className="bg-white p-6 rounded-xl shadow-xl border border-slate-200 text-center max-w-sm mx-4 w-full">
+                                    <h3 className="text-lg font-bold mb-4 text-slate-800">結果確認</h3>
+                                    <div className="grid grid-cols-2 gap-4 mb-6">
+                                        <div className="bg-slate-50 p-3 rounded">
+                                            <div className="text-xs text-slate-500 uppercase">誤差</div>
+                                            <div className={`text-2xl font-mono font-bold ${diff > 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
+                                                {diff > 0 ? '+' : ''}{diff}px
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-3 rounded">
+                                            <div className="text-xs text-slate-500 uppercase">錯視率</div>
+                                            <div className="text-2xl font-mono font-bold text-slate-800">{diffPercent}%</div>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={onNextTrial}
+                                        disabled={isSaving}
+                                        className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-md flex items-center justify-center gap-2"
+                                    >
+                                        {isSaving ? <Loader2 size={18} className="animate-spin" /> : <ChevronRight size={20} />}
+                                        {currentTrialIndex < targetTrialCount - 1 ? "次の試行へ" : "結果を保存して終了"}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Controls */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <label className="font-bold text-lg text-slate-800">長さを調整してください</label>
+                            <span className="text-sm font-mono bg-slate-100 px-2 py-1 rounded text-slate-600">{userLength}px</span>
+                        </div>
+                        
+                        <input
+                            type="range"
+                            min={MIN_LENGTH}
+                            max={MAX_LENGTH}
+                            step="1"
+                            value={userLength}
+                            onChange={(e) => setUserLength(parseInt(e.target.value))}
+                            disabled={isRevealed && showFeedback} 
+                            className="custom-range w-full appearance-none bg-transparent h-12 relative z-10" 
+                        />
+                    </div>
+
+                    <button
+                        onClick={onConfirm}
+                        disabled={isRevealed || isSaving}
+                        className={`w-full py-4 rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2
+                            ${isRevealed ? 'bg-slate-100 text-slate-400' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
+                    >
+                        {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Eye size={20} />}
+                        {isSaving ? "保存中..." : (showFeedback ? "決定・確認する" : "決定して次へ")}
+                    </button>
+                    
+                    <div className="text-center text-xs text-slate-400 opacity-50 hover:opacity-100 transition-opacity">
+                        条件: {getTypeLabel(illusionType).split('(')[0]} / {finAngle}° / {getLengthLabel(finLength)}
+                    </div>
+                </div>
+            </div>
+          );
+        });
+
+        const App = () => {
+          const [user, setUser] = useState(null);
+          const [history, setHistory] = useState([]);
+          const [isSaving, setIsSaving] = useState(false);
+
+          const [phase, setPhase] = useState('intro');
+          const [experimentSets, setExperimentSets] = useState(1); 
+          const [showFeedback, setShowFeedback] = useState(false);
+          const [targetTrialCount, setTargetTrialCount] = useState(0);
+          const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
+          const [trialPlan, setTrialPlan] = useState([]);
+          const [sessionResults, setSessionResults] = useState([]);
+
+          const [subjectInfo, setSubjectInfo] = useState({
+              id: '',
+              age: '',
+              gender: 'unspecified'
+          });
+
+          const [referenceLength, setReferenceLength] = useState(DEFAULT_REFERENCE);
+          const [userLength, setUserLength] = useState(DEFAULT_REFERENCE);
+          const [finAngle, setFinAngle] = useState(30);
+          const [finLength, setFinLength] = useState(FIN_LENGTHS.medium);
+          const [illusionType, setIllusionType] = useState('standard'); 
+          const [isRevealed, setIsRevealed] = useState(false);
+          const [showGrid, setShowGrid] = useState(false);
+
+          const [showAdminLogin, setShowAdminLogin] = useState(false);
+          const [adminPasswordInput, setAdminPasswordInput] = useState("");
+          const [isAdminMode, setIsAdminMode] = useState(false);
+
+          useEffect(() => {
+            const initAuth = async () => {
+              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+              } else {
+                await signInAnonymously(auth);
+              }
+            };
+            initAuth();
+            const unsubscribe = onAuthStateChanged(auth, setUser);
+            return () => unsubscribe();
+          }, []);
+
+          useEffect(() => {
+              if (!user) return;
+              const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'app_settings', 'global_config');
+              const unsubscribeConfig = onSnapshot(configDocRef, (docSnap) => {
+                  if (docSnap.exists()) {
+                      const data = docSnap.data();
+                      if (data.experimentSets) {
+                          setExperimentSets(data.experimentSets);
+                      }
+                  }
+              });
+              return () => unsubscribeConfig();
+          }, [user]);
+
+          useEffect(() => {
+            if (!user) return;
+            const colRef = collection(db, 'artifacts', appId, 'users', user.uid, 'muller_lyer_results');
+            const unsubscribe = onSnapshot(colRef, (snapshot) => {
+                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                data.sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+                setHistory(data);
+            });
+            return () => unsubscribe();
+          }, [user]);
+
+          const randomizeLengths = () => {
+            const newRef = Math.floor(Math.random() * (200 - 100) + 100);
+            setReferenceLength(newRef);
+            const offset = Math.random() > 0.5 ? 60 : -60;
+            let startVal = newRef + offset;
+            startVal = Math.max(MIN_LENGTH, Math.min(MAX_LENGTH, startVal));
+            setUserLength(startVal);
+            setIsRevealed(false);
+          };
+
+          const generatePlan = (sets) => {
+            const types = ['standard', 'inverted', 'control_out', 'control_in'];
+            const angles = [15, 30, 45, 60];
+            const lengths = [FIN_LENGTHS.short, FIN_LENGTHS.medium, FIN_LENGTHS.long];
+            
+            let baseConditions = [];
+            types.forEach(type => {
+                angles.forEach(angle => {
+                    lengths.forEach(len => {
+                        baseConditions.push({ type, angle, finLength: len });
+                    });
+                });
+            });
+
+            if (sets === 'practice') {
+                for (let i = baseConditions.length - 1; i > 0; i--) {
+                    const k = Math.floor(Math.random() * (i + 1));
+                    [baseConditions[i], baseConditions[k]] = [baseConditions[k], baseConditions[i]];
+                }
+                return baseConditions.slice(0, PRACTICE_TRIAL_COUNT);
+            }
+
+            let fullPlan = [];
+            for(let i=0; i<sets; i++) {
+                const currentSet = [...baseConditions];
+                for (let j = currentSet.length - 1; j > 0; j--) {
+                    const k = Math.floor(Math.random() * (j + 1));
+                    [currentSet[j], currentSet[k]] = [currentSet[k], currentSet[j]];
+                }
+                fullPlan = [...fullPlan, ...currentSet];
+            }
+            return fullPlan;
+        };
+
+          const startExperiment = () => {
+            const plan = generatePlan(experimentSets);
+            setTargetTrialCount(plan.length);
+            setTrialPlan(plan);
+            setSessionResults([]);
+            setCurrentTrialIndex(0);
+            setPhase('experiment');
+            applyCondition(plan[0]);
+          };
+
+          const applyCondition = (condition) => {
+            setIllusionType(condition.type);
+            setFinAngle(condition.angle);
+            setFinLength(condition.finLength);
+            randomizeLengths();
+          };
+
+          const diff = userLength - referenceLength;
+          const diffPercent = ((diff / referenceLength) * 100).toFixed(1);
+
+          const saveResult = async () => {
+            if (!user) return;
+            setIsSaving(true);
+            try {
+                const resultData = {
+                    timestamp: serverTimestamp(),
+                    subjectId: subjectInfo.id,
+                    subjectAge: subjectInfo.age,
+                    subjectGender: subjectInfo.gender,
+                    type: illusionType,
+                    angle: finAngle,
+                    finLength: finLength,
+                    refLen: referenceLength,
+                    userLen: userLength,
+                    diff: diff,
+                    diffPercent: diffPercent
+                };
+                await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'muller_lyer_results'), resultData);
+                
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'experiment_results'), {
+                    ...resultData,
+                    userId: user.uid
+                });
+
+                setSessionResults(prev => [...prev, resultData]);
+            } catch (e) {
+                console.error("Error saving:", e);
+            } finally {
+                setIsSaving(false);
+            }
+          };
+
+          const handleConfirm = async () => {
+            if (showFeedback) {
+                setIsRevealed(true);
+            } else {
+                setIsRevealed(true); 
+                await saveResult();
+                handleNextTrial();
+            }
+          };
+
+          const handleNextTrial = async () => {
+            if (showFeedback && !isSaving) {
+                await saveResult();
+            }
+
+            const nextIndex = currentTrialIndex + 1;
+            if (nextIndex >= targetTrialCount) {
+                setPhase('summary');
+            } else {
+                setCurrentTrialIndex(nextIndex);
+                applyCondition(trialPlan[nextIndex]);
+            }
+          };
+
+          const handleAdminLogin = (e) => {
+              e.preventDefault();
+              if (adminPasswordInput === ADMIN_PASSWORD) {
+                  setIsAdminMode(true);
+                  setShowAdminLogin(false);
+                  setAdminPasswordInput("");
+              } else {
+                  alert("パスワードが違います");
+              }
+          };
+
+          const exportToCSV = () => {
+            if (history.length === 0) return;
+
+            const headers = [
+              "日時", "パターン", "角度(度)", "矢羽長さ(px)", "基準の長さ(px)", "調整した長さ(px)", "誤差(px)", "錯視率(%)"
+            ];
+
+            const rows = history.map(item => {
+              const date = item.timestamp ? new Date(item.timestamp.seconds * 1000).toLocaleString() : "";
+              return [
+                `"${date}"`,
+                `"${getTypeLabel(item.type).split('(')[0].trim()}"`, 
+                item.angle,
+                item.finLength || FIN_LENGTHS.medium, 
+                item.refLen,
+                item.userLen,
+                item.diff,
+                item.diffPercent
+              ].join(",");
+            });
+
+            const csvContent = "\uFEFF" + headers.join(",") + "\n" + rows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute("download", `muller_lyer_results_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          };
+
+          if (isAdminMode) {
+              return (
+                  <div className="min-h-screen bg-slate-50 font-sans">
+                      <AdminDashboard onBack={() => setIsAdminMode(false)} user={user} />
+                  </div>
+              );
+          }
+
+          return (
+            <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex justify-center">
+              
+              <div className="flex-1 flex flex-col p-4 lg:p-8 overflow-y-auto relative max-w-3xl w-full">
+                <button 
+                    onClick={() => setShowAdminLogin(true)}
+                    className="fixed top-4 right-4 lg:top-6 lg:right-6 p-2 text-slate-400 hover:text-indigo-600 bg-white/80 hover:bg-white backdrop-blur-sm rounded-full transition-all z-50 shadow-sm"
+                    title="教員用メニュー"
+                >
+                    <Settings size={20} />
+                </button>
+
+                {phase === 'intro' && (
+                    <IntroView 
+                        experimentSets={experimentSets} 
+                        showFeedback={showFeedback}
+                        setShowFeedback={setShowFeedback}
+                        subjectInfo={subjectInfo}
+                        setSubjectInfo={setSubjectInfo}
+                        onStart={startExperiment} 
+                    />
+                )}
+                {phase === 'experiment' && (
+                    <ExperimentView 
+                        currentTrialIndex={currentTrialIndex}
+                        targetTrialCount={targetTrialCount}
+                        showGrid={showGrid}
+                        setShowGrid={setShowGrid}
+                        isRevealed={isRevealed}
+                        referenceLength={referenceLength}
+                        userLength={userLength}
+                        setUserLength={setUserLength}
+                        finAngle={finAngle}
+                        illusionType={illusionType}
+                        finLength={finLength}
+                        diff={diff}
+                        diffPercent={diffPercent}
+                        isSaving={isSaving}
+                        showFeedback={showFeedback}
+                        onConfirm={handleConfirm}
+                        onNextTrial={handleNextTrial}
+                    />
+                )}
+                {phase === 'summary' && (
+                    <SummaryView 
+                        sessionResults={sessionResults}
+                        targetTrialCount={targetTrialCount}
+                        onRestart={() => setPhase('intro')}
+                        onDownload={exportToCSV}
+                        user={user}
+                    />
+                )}
+              </div>
+
+              {showAdminLogin && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
+                      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm">
+                          <div className="flex justify-between items-center mb-4">
+                              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                  <Lock size={20} className="text-slate-500" />
+                                  管理者ログイン
+                              </h3>
+                              <button onClick={() => setShowAdminLogin(false)} className="text-slate-400 hover:text-slate-600">
+                                  <X size={20} />
+                              </button>
+                          </div>
+                          <form onSubmit={handleAdminLogin} className="space-y-4">
+                              <div>
+                                  <label className="block text-sm font-medium text-slate-600 mb-1">パスワード</label>
+                                  <input 
+                                      type="password" 
+                                      value={adminPasswordInput}
+                                      onChange={(e) => setAdminPasswordInput(e.target.value)}
+                                      className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                                      placeholder="パスワードを入力"
+                                      autoFocus
+                                  />
+                              </div>
+                              <button 
+                                  type="submit"
+                                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow transition-all"
+                              >
+                                  ログイン
+                              </button>
+                          </form>
+                      </div>
+                  </div>
+              )}
+            </div>
+          );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
