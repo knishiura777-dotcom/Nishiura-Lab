@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI心理相談ロールプレイ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    /* スクロールバー非表示用ユーティリティ */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    body {
+      background-color: #f5f5f4; /* stone-100 fallback */
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- Lucide Icons (SVG Components) ---
+    const IconBase = ({ size = 24, className = "", children }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        {children}
+      </svg>
+    );
+
+    const Send = (props) => <IconBase {...props}><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></IconBase>;
+    const User = (props) => <IconBase {...props}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></IconBase>;
+    const Bot = (props) => <IconBase {...props}><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></IconBase>;
+    const AlertTriangle = (props) => <IconBase {...props}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>;
+    const Key = (props) => <IconBase {...props}><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></IconBase>;
+    const X = (props) => <IconBase {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconBase>;
+    const HeartHandshake = (props) => <IconBase {...props}><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.92 0l.29.29"></path></IconBase>;
+    const Settings = (props) => <IconBase {...props}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconBase>;
+    const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></IconBase>;
+    const Brain = (props) => <IconBase {...props}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"></path></IconBase>;
+    const Sparkles = (props) => <IconBase {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path><path d="M5 3v4"></path><path d="M9 5H5"></path><path d="M19 19v4"></path><path d="M23 21h-4"></path></IconBase>;
+    const UserCheck = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></IconBase>;
+    const ShieldCheck = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></IconBase>;
+    const Info = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></IconBase>;
+    const BookOpen = (props) => <IconBase {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></IconBase>;
+    const RefreshCw = (props) => <IconBase {...props}><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M8 16H3v5"></path></IconBase>;
+    const Users = (props) => <IconBase {...props}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></IconBase>;
+    const ArrowRightLeft = (props) => <IconBase {...props}><path d="m16 3 4 4-4 4"></path><path d="M20 7H4"></path><path d="m8 21-4-4 4-4"></path><path d="M4 17h16"></path></IconBase>;
+    const Download = (props) => <IconBase {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></IconBase>;
+    const Trash2 = (props) => <IconBase {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></IconBase>;
+    const FileText = (props) => <IconBase {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></IconBase>;
+    const Code = (props) => <IconBase {...props}><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></IconBase>;
+    const Activity = (props) => <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></IconBase>;
+    const ExternalLink = (props) => <IconBase {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></IconBase>;
+    const Globe = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></IconBase>;
+    const ClipboardList = (props) => <IconBase {...props}><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></IconBase>;
+    const Copy = (props) => <IconBase {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></IconBase>;
+
+    // ----------------------------------------
+    // 定数・翻訳データ定義
+    // ----------------------------------------
+
+    const MODE = {
+      COUNSELOR: 'counselor',
+      CLIENT: 'client'
+    };
+
+    const LANGUAGES = {
+      ja: '日本語',
+      en: 'English',
+      sv: 'Svenska'
+    };
+
+    // 翻訳リソース
+    const RESOURCES = {
+      ja: {
+        // UIテキスト
+        ui: {
+          title_counselor: 'AI心理相談ロールプレイ',
+          title_client: 'カウンセリング練習道場',
+          mode_counselor: '相談モード',
+          mode_client: '練習モード',
+          switch_to_practice: '練習モードへ',
+          switch_to_counsel: '相談モードへ',
+          role_you_client: 'あなたの役割: クライエント（相談者）',
+          role_you_counselor: 'あなたの役割: カウンセラー',
+          partner: '相手',
+          settings: '設定・管理',
+          ethics: '倫理ガイド',
+          emergency: '緊急・相談窓口',
+          summarize_btn: '終了・要約',
+          input_placeholder_counselor: '相談内容を入力...',
+          input_placeholder_client: 'カウンセラーとして応答を入力...',
+          input_placeholder_no_key: 'APIキーを入力してください',
+          send: '送信',
+          next_client: '次の相談者へ',
+          designate: '担当指名:',
+          preparing: '準備中...',
+          api_key_settings: 'APIキー設定',
+          api_key_desc: 'Google AI Studioで取得したGemini APIキーを入力してください。',
+          api_key_link: 'APIキーを取得する (Google AI Studio)',
+          api_key_placeholder: 'AIzaSy...',
+          save_settings: '設定完了',
+          enter_key: 'キーを入力してください',
+          ethics_title: '倫理ガイド・利用規約',
+          ethics_desc: '本アプリはロールプレイ専用です。医療行為ではありません。',
+          ethics_agree: '同意して始める',
+          confirm_switch_title: '役割を交代しますか？',
+          confirm_switch_desc_to_client: 'あなたが「カウンセラー役」になり、AIの相談に乗る練習モードへ切り替えます。',
+          confirm_switch_desc_to_counselor: 'あなたが「クライエント（相談者）」になり、AIに相談するモードへ切り替えます。',
+          confirm_reset_warn: '※これまでの会話履歴はリセットされます',
+          cancel: 'キャンセル',
+          switch: '切り替える',
+          admin_dashboard: '管理ダッシュボード',
+          admin_desc: '会話ログの保存やシステム内部の確認ができます。',
+          download_log: '会話ログを保存 (.json)',
+          clear_history: '会話履歴を全消去',
+          debug_info: 'デバッグ情報 (現在のSystem Prompt)',
+          tab_basic: '基本設定',
+          tab_admin: '管理者ツール',
+          initial_greeting: 'こんにちは。AI心理相談室へようこそ。\nこちらはロールプレイ（模擬体験）の場です。どのようなことでも、リラックスしてお話しください。',
+          safety_message: '【自動応答】緊急性が高いと判断されました。\nこのアプリはロールプレイ用であり、緊急時の対応はできません。\nあなたの安全が最優先です。現実の専門窓口や緊急通報を利用してください。',
+          emergency_warning: '⚠️ [ロールプレイ警告] クライエントが危機的な発言をしました。リスク評価と安全確保の対応（トリアージ）が求められる場面です。',
+          room_entry: '【入室】',
+          summary_title: 'カウンセリング記録・要約',
+          summary_generating: '要約を生成中...',
+          summary_copy: 'クリップボードにコピー',
+          summary_close: '閉じる',
+          summary_intro: '以下の会話を分析し、カウンセラー視点で要約を作成しました。'
+        },
+        // カウンセラー人格 (JA)
+        counselors: {
+          rogers: { name: 'ロジャーズ', fullName: 'カール・ロジャーズ', title: '受容と共感', desc: '否定せず、優しく寄り添います。', prompt: '「無条件の肯定的配慮」を重視し、ユーザーを評価・判断せずに受け入れてください。解決策を急がず、ユーザーの感情を鏡のように反射（伝え返し）して、本人が気づきを得られるようサポートしてください。語り口は非常に穏やかで、温かみのある「傾聴」に徹してください。' },
+          jung: { name: 'ユング', fullName: 'カール・ユング', title: '分析心理学', desc: '心の深い意味を探求します。', prompt: '悩みの中に、人生の統合や自己実現（個性化）へのヒントがあるという視点を持ってください。必要であれば比喩やイメージを用い、ユーザーが自身の内面と向き合えるような深みのある問いかけを行ってください。落ち着いた、哲学的で思慮深いトーンで話してください。' },
+          freud: { name: 'フロイト', fullName: 'ジークムント・フロイト', title: '精神分析', desc: '感情の背景や原因に注目します。', prompt: '現在の悩みが、過去の経験や隠された感情とどう繋がっているかに関心を寄せてください。少し理知的・分析的なトーンを含みつつも、冷たくならないよう配慮してください。' },
+          default: { name: '標準AI', fullName: '標準AIカウンセラー', title: '統合的', desc: 'バランスの良い現代的な対話。', prompt: '共感と傾聴をベースにしつつ、必要に応じて整理や視点の転換を促してください。バランスの取れた、親しみやすい丁寧な口調で話してください。' }
+        },
+        // クライエント人格 (JA)
+        clients: [
+          { name: 'リナ', age: '20代', type: '情緒不安定', intro: 'あの…誰も私のことなんて分かってくれないんです…。先生もどうせ、適当に聞き流すんでしょ…？', prompt: '性格：情緒不安定、依存的。口癖「どうせ私なんて」「見捨てないで」。状況：恋人と連絡が取れずパニック。振る舞い：最初は疑うが、優しくされると過度に依存する。' },
+          { name: 'ケンジ', age: '20代', type: '早口オタク', intro: 'あ、あの、自分、コミュニケーションとかバグってるっていうか、推しの尊さが言語化できなくて…！', prompt: '性格：早口、ネットスラング多用。状況：現実の人間関係がうまくいかず推し活に逃避。振る舞い：一度話し出すと止まらない。' },
+          { name: 'ショウゾウ', age: '60代', type: '頑固・説教', intro: '最近の若いもんは根性が足りん。わしの若い頃はな…いや、あんたに話しても分からんだろうがな。', prompt: '性格：頑固、プライドが高い、説教くさい。状況：定年後の孤独感。振る舞い：マウントを取るが実は寂しがり。' },
+          { name: 'タツヤ', age: '30代', type: '感情麻痺', intro: '…妻に出ていかれました。合理的ではない判断だと思います。契約違反はありません。なぜでしょうか。', prompt: '性格：超論理的、感情表現が希薄。状況：離婚の危機だが感情的な理由が理解できない。振る舞い：淡々とした敬語。「効率」「定義」などの言葉を好む。' },
+          { name: 'モモコ', age: '20代', type: '不思議ちゃん', intro: '昨日、紫色のオーラが見えたんです。先生の背中にも小さな妖精がついてますね…。', prompt: '性格：スピリチュアル傾倒、話が噛み合わない。状況：現実の問題をスピリチュアルな理由にすり替えて逃避。振る舞い：「波動」「宇宙」などの言葉を使う。' }
+        ]
+      },
+      en: {
+        ui: {
+          title_counselor: 'AI Counseling Roleplay',
+          title_client: 'Counseling Dojo',
+          mode_counselor: 'Consult Mode',
+          mode_client: 'Practice Mode',
+          switch_to_practice: 'To Practice',
+          switch_to_counsel: 'To Consult',
+          role_you_client: 'You: Client',
+          role_you_counselor: 'You: Counselor',
+          partner: 'Partner',
+          settings: 'Settings',
+          ethics: 'Ethics',
+          emergency: 'Emergency',
+          summarize_btn: 'End & Summarize',
+          input_placeholder_counselor: 'Type your message...',
+          input_placeholder_client: 'Respond as a counselor...',
+          input_placeholder_no_key: 'Please enter API Key',
+          send: 'Send',
+          next_client: 'Next Client',
+          designate: 'Counselor:',
+          preparing: 'Loading...',
+          api_key_settings: 'API Key Settings',
+          api_key_desc: 'Enter your Gemini API Key from Google AI Studio.',
+          api_key_link: 'Get API Key (Google AI Studio)',
+          api_key_placeholder: 'AIzaSy...',
+          save_settings: 'Save',
+          enter_key: 'Enter Key',
+          ethics_title: 'Ethics & Terms',
+          ethics_desc: 'This app is for roleplay only. It is NOT medical advice.',
+          ethics_agree: 'Agree & Start',
+          confirm_switch_title: 'Switch Roles?',
+          confirm_switch_desc_to_client: 'Switch to "Practice Mode" where you act as the Counselor for an AI client.',
+          confirm_switch_desc_to_counselor: 'Switch to "Consult Mode" where you act as the Client consulting an AI.',
+          confirm_reset_warn: '*Chat history will be reset.',
+          cancel: 'Cancel',
+          switch: 'Switch',
+          admin_dashboard: 'Admin Dashboard',
+          admin_desc: 'Save logs and view system internals.',
+          download_log: 'Save Log (.json)',
+          clear_history: 'Clear History',
+          debug_info: 'Debug Info (System Prompt)',
+          tab_basic: 'Basic',
+          tab_admin: 'Admin',
+          initial_greeting: 'Hello. Welcome to the AI Counseling Room.\nThis is a roleplay environment. Please feel free to talk about anything.',
+          safety_message: '[Auto-Response] High urgency detected.\nThis app is for roleplay only and cannot handle emergencies.\nPlease contact real emergency services immediately.',
+          emergency_warning: '⚠️ [Roleplay Warning] The client made a critical statement. Triage and safety assessment are required.',
+          room_entry: '[Enter]',
+          summary_title: 'Session Summary',
+          summary_generating: 'Generating summary...',
+          summary_copy: 'Copy to Clipboard',
+          summary_close: 'Close',
+          summary_intro: 'Below is a summary of the session from a counselor\'s perspective.'
+        },
+        counselors: {
+          rogers: { name: 'Rogers', fullName: 'Carl Rogers', title: 'Empathy', desc: 'Acceptance & Empathy', prompt: 'Prioritize "Unconditional Positive Regard". Do not judge the user. Reflect their feelings like a mirror to help them find their own answers. Speak in a very gentle, warm, and listening tone.' },
+          jung: { name: 'Jung', fullName: 'Carl Jung', title: 'Analysis', desc: 'Deep meaning & Symbols', prompt: 'Look for hints of individuation and integration in the user\'s problems. Use metaphors and images if necessary. Speak in a calm, philosophical, and thoughtful tone.' },
+          freud: { name: 'Freud', fullName: 'Sigmund Freud', title: 'Psychoanalysis', desc: 'Past & Unconscious', prompt: 'Focus on how current problems relate to past experiences and hidden emotions. Use a slightly analytical and intellectual tone.' },
+          default: { name: 'Standard AI', fullName: 'Standard AI', title: 'Integrated', desc: 'Balanced approach', prompt: 'Based on empathy and active listening, suggest perspectives if necessary. Speak in a balanced, polite, and friendly tone.' }
+        },
+        clients: [
+          { name: 'Lina', age: '20s', type: 'Unstable', intro: 'Um... nobody understands me... You\'re just going to ignore me too, right?', prompt: 'Personality: Emotionally unstable, dependent. Situation: Panicking because boyfriend isn\'t replying. Behavior: Suspicious at first, but becomes overly dependent if treated kindly.' },
+          { name: 'Kenji', age: '20s', type: 'Geek', intro: 'Ah, well, my communication skills are bugged, and I can\'t articulate how precious my idol is...!!', prompt: 'Personality: Fast talker, uses internet slang. Situation: Escaping to fandom from real life issues. Behavior: Talks endlessly once started.' },
+          { name: 'Shozo', age: '60s', type: 'Stubborn', intro: 'Young people these days lack guts. In my day... well, you wouldn\'t understand.', prompt: 'Personality: Stubborn, proud, preachy. Situation: Loneliness after retirement. Behavior: Acts superior but is actually lonely.' },
+          { name: 'Tatsuya', age: '30s', type: 'Robot-like', intro: '...My wife left me. It is not a rational decision. There is no breach of contract. Why?', prompt: 'Personality: Hyper-logical, low empathy. Situation: Divorce crisis but cannot understand emotional reasons. Behavior: Flat tone. Uses words like "efficiency" and "definition".' },
+          { name: 'Momoko', age: '20s', type: 'Spiritual', intro: 'I saw a purple aura yesterday. There is a small fairy on your back, too...', prompt: 'Personality: Spiritual, unique worldview. Situation: Escaping reality into spiritual reasons. Behavior: Uses words like "vibrations" and "universe".' }
+        ]
+      },
+      sv: {
+        ui: {
+          title_counselor: 'AI Psykoterapi Rollspel',
+          title_client: 'Rådgivningsdojo',
+          mode_counselor: 'Konsultläge',
+          mode_client: 'Övningsläge',
+          switch_to_practice: 'Till Övning',
+          switch_to_counsel: 'Till Konsult',
+          role_you_client: 'Du: Klient',
+          role_you_counselor: 'Du: Terapeut',
+          partner: 'Partner',
+          settings: 'Inställningar',
+          ethics: 'Etik',
+          emergency: 'Nödsituation',
+          summarize_btn: 'Avsluta & Sammanfatta',
+          input_placeholder_counselor: 'Skriv ditt meddelande...',
+          input_placeholder_client: 'Svara som en terapeut...',
+          input_placeholder_no_key: 'Ange API-nyckel',
+          send: 'Skicka',
+          next_client: 'Nästa Klient',
+          designate: 'Terapeut:',
+          preparing: 'Laddar...',
+          api_key_settings: 'API-nyckelinställningar',
+          api_key_desc: 'Ange din Gemini API-nyckel från Google AI Studio.',
+          api_key_link: 'Hämta API-nyckel (Google AI Studio)',
+          api_key_placeholder: 'AIzaSy...',
+          save_settings: 'Spara',
+          enter_key: 'Ange Nyckel',
+          ethics_title: 'Etik & Villkor',
+          ethics_desc: 'Denna app är endast för rollspel. Det är INTE medicinsk rådgivning.',
+          ethics_agree: 'Godkänn & Starta',
+          confirm_switch_title: 'Byta roll?',
+          confirm_switch_desc_to_client: 'Byt till "Övningsläge" där du agerar terapeut för en AI-klient.',
+          confirm_switch_desc_to_counselor: 'Byt till "Konsultläge" där du agerar klient och konsulterar en AI.',
+          confirm_reset_warn: '*Chatthistoriken kommer att återställas.',
+          cancel: 'Avbryt',
+          switch: 'Byt',
+          admin_dashboard: 'Adminpanel',
+          admin_desc: 'Spara loggar och visa systeminformation.',
+          download_log: 'Spara Logg (.json)',
+          clear_history: 'Rensa Historik',
+          debug_info: 'Felsökningsinfo (System Prompt)',
+          tab_basic: 'Grund',
+          tab_admin: 'Admin',
+          initial_greeting: 'Hej. Välkommen till AI-rådgivningsrummet.\nDetta är en rollspelsmiljö. Känn dig fri att prata om vad som helst.',
+          safety_message: '[Automatiskt svar] Hög brådska upptäcktes.\nDenna app är endast för rollspel och kan inte hantera nödsituationer.\nKontakta verkliga räddningstjänster omedelbart.',
+          emergency_warning: '⚠️ [Rollspelsvarning] Klienten gjorde ett kritiskt uttalande. Bedömning av risk och säkerhet krävs.',
+          room_entry: '[Kommer in]',
+          summary_title: 'Sessionssammanfattning',
+          summary_generating: 'Genererar sammanfattning...',
+          summary_copy: 'Kopiera till urklipp',
+          summary_close: 'Stäng',
+          summary_intro: 'Nedan följer en sammanfattning av sessionen ur en terapeuts perspektiv.'
+        },
+        counselors: {
+          rogers: { name: 'Rogers', fullName: 'Carl Rogers', title: 'Empati', desc: 'Acceptans & Empati', prompt: 'Prioritera "Villkorslös positiv uppskattning". Döm inte användaren. Spegla deras känslor för att hjälpa dem hitta sina egna svar. Tala i en mycket mild, varm och lyssnande ton.' },
+          jung: { name: 'Jung', fullName: 'Carl Jung', title: 'Analys', desc: 'Djup mening & Symboler', prompt: 'Leta efter tecken på individuation och integration i användarens problem. Använd metaforer och bilder vid behov. Tala i en lugn, filosofisk och omtänksam ton.' },
+          freud: { name: 'Freud', fullName: 'Sigmund Freud', title: 'Psykoanalys', desc: 'Det förflutna & Omedvetna', prompt: 'Fokusera på hur nuvarande problem relaterar till tidigare erfarenheter och dolda känslor. Använd en något analytisk och intellektuell ton.' },
+          default: { name: 'Standard AI', fullName: 'Standard AI', title: 'Integrerad', desc: 'Balanserad metod', prompt: 'Baserat på empati och aktivt lyssnande, föreslå perspektiv vid behov. Tala i en balanserad, artig och vänlig ton.' }
+        },
+        clients: [
+          { name: 'Lina', age: '20-årsåldern', type: 'Instabil', intro: 'Ehm... ingen förstår mig... Du kommer bara att ignorera mig också, eller hur?', prompt: 'Personlighet: Känslomässigt instabil, beroende. Situation: Panik för att pojkvännen inte svarar. Beteende: Misstänksam först, men blir överdrivet beroende om hon behandlas vänligt.' },
+          { name: 'Kenji', age: '20-årsåldern', type: 'Nörd', intro: 'Ah, alltså, min kommunikationsförmåga är buggig, och jag kan inte formulera hur värdefull min idol är...!!', prompt: 'Personlighet: Pratar snabbt, använder internetslang. Situation: Flyr till fandom från verkliga problem. Beteende: Pratar oändligt när han väl börjat.' },
+          { name: 'Shozo', age: '60-årsåldern', type: 'Envis', intro: 'Unga människor nuförtiden saknar ryggrad. På min tid... ja, du skulle inte förstå.', prompt: 'Personlighet: Envis, stolt, predikande. Situation: Ensamhet efter pensionering. Beteende: Agerar överlägset men är egentligen ensam.' },
+          { name: 'Tatsuya', age: '30-årsåldern', type: 'Robotliknande', intro: '...Min fru lämnade mig. Det är inte ett rationellt beslut. Det finns inget kontraktsbrott. Varför?', prompt: 'Personlighet: Hyperlogisk, låg empati. Situation: Skilsmässokris men kan inte förstå känslomässiga skäl. Beteende: Platt ton. Använder ord som "effektivitet" och "definition".' },
+          { name: 'Momoko', age: '20-årsåldern', type: 'Andlig', intro: 'Jag såg en lila aura igår. Det sitter en liten älva på din rygg också...', prompt: 'Personlighet: Andlig, unik världsbild. Situation: Flyr verkligheten till andliga förklaringar. Beteende: Använder ord som "vibrationer" och "universum".' }
+        ]
+      }
+    };
+
+    // ----------------------------------------
+    // コンポーネント本体
+    // ----------------------------------------
+
+    function CounselingBotMultilingual() {
+      const [apiKey, setApiKey] = useState('');
+      
+      // 状態管理
+      const [mode, setMode] = useState(MODE.COUNSELOR);
+      const [lang, setLang] = useState('ja'); // 'ja' | 'en' | 'sv'
+      
+      const [hasAgreedToEthics, setHasAgreedToEthics] = useState(false);
+      const [showSettings, setShowSettings] = useState(false);
+      const [showEthicsModal, setShowEthicsModal] = useState(false);
+      const [showModeSwitchModal, setShowModeSwitchModal] = useState(false);
+      const [showSummaryModal, setShowSummaryModal] = useState(false);
+      const [summaryText, setSummaryText] = useState('');
+      const [isSummarizing, setIsSummarizing] = useState(false);
+      
+      const [settingsTab, setSettingsTab] = useState('settings');
+
+      // 選択中の設定
+      const [selectedCounselorId, setSelectedCounselorId] = useState('rogers');
+      const [currentClientIndex, setCurrentClientIndex] = useState(null);
+      
+      // チャット履歴
+      const [messages, setMessages] = useState([]);
+      const [inputText, setInputText] = useState('');
+      const [isLoading, setIsLoading] = useState(false);
+      const [showSafetyModal, setShowSafetyModal] = useState(false);
+      const [errorMessage, setErrorMessage] = useState('');
+      const messagesEndRef = useRef(null);
+
+      // ヘルパー: 現在の言語のリソースを取得
+      const t = RESOURCES[lang].ui;
+      const counselorData = RESOURCES[lang].counselors;
+      const clientData = RESOURCES[lang].clients;
+
+      const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      };
+
+      useEffect(() => {
+        scrollToBottom();
+      }, [messages]);
+
+      // 初期メッセージ設定（初回のみ）
+      useEffect(() => {
+        if (messages.length === 0 && mode === MODE.COUNSELOR) {
+          setMessages([{
+            role: 'model',
+            text: t.initial_greeting
+          }]);
+        } else if (messages.length === 0 && mode === MODE.CLIENT) {
+          pickRandomClient();
+        }
+      }, [mode]);
+
+      // 言語変更時に初期挨拶を即座に書き換える
+      useEffect(() => {
+        setMessages(prev => {
+          if (prev.length === 0) return prev;
+          
+          const firstMsg = prev[0];
+          // 全言語のinitial_greetingリストを作成
+          const allGreetings = Object.values(RESOURCES).map(r => r.ui.initial_greeting);
+          
+          // もし先頭のメッセージがいずれかの言語の挨拶と一致すれば、現在の言語に置換
+          if (allGreetings.includes(firstMsg.text)) {
+            const newMessages = [...prev];
+            newMessages[0] = { ...firstMsg, text: RESOURCES[lang].ui.initial_greeting };
+            return newMessages;
+          }
+          return prev;
+        });
+      }, [lang]);
+
+      // 同意状態監視
+      useEffect(() => {
+        if (hasAgreedToEthics && !apiKey) {
+          setShowSettings(true);
+        }
+      }, [hasAgreedToEthics, apiKey]);
+
+      // クライエント選出
+      const pickRandomClient = () => {
+        const randomIndex = Math.floor(Math.random() * clientData.length);
+        setCurrentClientIndex(randomIndex);
+        const client = clientData[randomIndex];
+        setMessages([{
+          role: 'model',
+          text: `${t.room_entry} ${client.name} (${client.age} / ${client.type})\n\n「${client.intro}」`
+        }]);
+      };
+
+      // 言語切り替えハンドラ
+      const cycleLanguage = () => {
+        const langs = ['ja', 'en', 'sv'];
+        const nextIdx = (langs.indexOf(lang) + 1) % langs.length;
+        setLang(langs[nextIdx]);
+      };
+
+      const EMERGENCY_PATTERNS = [
+        /死にたい|消えたい|自殺|希死念慮|もう終わり|楽になりたい|いなくなりたい/,
+        /殺したい|他人を傷つけたい|暴力|刺す|殴る/,
+        /DV|虐待|性暴力|レイプ|オーバードーズ|OD/,
+        /kill myself|suicide|want to die|hurt myself/,
+        /döda mig|självmord|vill dö|skada mig/
+      ];
+
+      const looksEmergency = (text) => {
+        return EMERGENCY_PATTERNS.some((re) => re.test(text));
+      };
+
+      const handleModeSwitchClick = () => {
+        setShowModeSwitchModal(true);
+      };
+
+      const executeModeSwitch = () => {
+        const newMode = mode === MODE.COUNSELOR ? MODE.CLIENT : MODE.COUNSELOR;
+        setMode(newMode);
+        setMessages([]); // 履歴クリア
+        setShowModeSwitchModal(false);
+      };
+
+      // プロンプト生成
+      const generateSystemPrompt = () => {
+        const langName = LANGUAGES[lang]; // '日本語', 'English', etc.
+        
+        if (mode === MODE.COUNSELOR) {
+          const persona = counselorData[selectedCounselorId];
+          return `
+You are an AI assistant performing a "roleplay" of psychological counseling.
+Please act as the counselor "${persona.fullName}".
+The user is the client.
+
+[Language Requirement]
+You MUST respond in ${langName}.
+
+[Role & Rules]
+- Listen to the user and respond based on the selected theory: ${persona.title}.
+- Specific Instruction: ${persona.prompt}
+- You are NOT a medical professional. Do NOT give medical diagnosis.
+- Keep the environment safe and supportive.
+          `;
+        } else {
+          const client = (currentClientIndex !== null) ? clientData[currentClientIndex] : clientData[0];
+          return `
+You are an AI performing a "roleplay" of psychological counseling as the CLIENT.
+Act as a character named "${client.name}".
+The user is the counselor.
+
+[Language Requirement]
+You MUST respond in ${langName}.
+
+[Role & Rules]
+- Character: ${client.prompt}
+- Respond to the counselor's questions based on your character (${client.type}).
+- If the counselor shows empathy, open up gradually.
+- If the counselor is judgmental, close off or get defensive.
+- Since this is a roleplay, you may express instability, but avoid overly graphic content.
+- Keep responses conversational length.
+          `;
+        }
+      };
+
+      // API呼び出し
+      const callGemini = async (history, newText) => {
+        try {
+          setErrorMessage('');
+
+          if (!apiKey) {
+            throw new Error(t.input_placeholder_no_key);
+          }
+
+          const contents = history.filter(m => m.role !== 'system').map(msg => ({
+            role: msg.role === 'model' ? 'model' : 'user',
+            parts: [{ text: msg.text }]
+          }));
+          
+          contents.push({
+            role: 'user',
+            parts: [{ text: newText }]
+          });
+
+          const systemPrompt = generateSystemPrompt();
+
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: contents,
+              systemInstruction: { parts: [{ text: systemPrompt }] }
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error?.message || `HTTP ${response.status}`);
+          }
+
+          return data?.candidates?.[0]?.content?.parts?.[0]?.text || "(No response)";
+        } catch (error) {
+          console.error(error);
+          throw error;
+        }
+      };
+
+      const handleSendMessage = async () => {
+        if (!inputText.trim()) return;
+        
+        const userMsg = inputText.trim();
+        setInputText('');
+        setErrorMessage('');
+        
+        setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+        setIsLoading(true);
+
+        if (mode === MODE.COUNSELOR && looksEmergency(userMsg)) {
+          setTimeout(() => {
+            setMessages(prev => [...prev, { role: 'model', text: t.safety_message }]);
+            setIsLoading(false);
+            setShowSafetyModal(true);
+          }, 1000);
+          return;
+        }
+
+        try {
+          const aiResponse = await callGemini(messages, userMsg);
+          
+          let isEmergencyResponse = false;
+          if (mode === MODE.CLIENT && looksEmergency(aiResponse)) {
+            isEmergencyResponse = true;
+          }
+
+          setMessages(prev => {
+            const newMsgs = [...prev, { role: 'model', text: aiResponse }];
+            if (isEmergencyResponse) {
+              newMsgs.push({ role: 'system', text: t.emergency_warning });
+            }
+            return newMsgs;
+          });
+
+        } catch (e) {
+          setErrorMessage(e.message);
+          setMessages(prev => [...prev, { role: 'system', text: `⚠️ ${e.message}` }]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          handleSendMessage();
+        }
+      };
+
+      // 要約生成機能
+      const handleSummarize = async () => {
+        if (!apiKey) {
+          alert(t.input_placeholder_no_key);
+          return;
+        }
+        
+        setIsSummarizing(true);
+        setShowSummaryModal(true);
+        setSummaryText(''); // リセット
+
+        try {
+          // 要約用のAPIコール
+          const historyText = messages.map(m => `${m.role}: ${m.text}`).join('\n');
+          const langName = LANGUAGES[lang];
+          
+          const summaryPrompt = `
+以下の会話ログは、AIを用いたカウンセリングのロールプレイ記録です。
+カウンセラー視点で、以下の項目を含む簡潔な要約を作成してください。
+出力言語: ${langName}
+
+1. 主訴 (Main Complaint)
+2. 感情・認知の傾向 (Emotional/Cognitive Patterns)
+3. セッションの振り返り (Session Review)
+
+[会話ログ]
+${historyText}
+          `;
+
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: summaryPrompt }] }]
+            })
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error?.message || 'Error generating summary');
+          
+          const result = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          setSummaryText(result || "Failed to generate summary.");
+
+        } catch (e) {
+          setSummaryText(`Error: ${e.message}`);
+        } finally {
+          setIsSummarizing(false);
+        }
+      };
+
+      const downloadLogs = () => {
+        const logData = {
+          timestamp: new Date().toISOString(),
+          language: lang,
+          mode: mode,
+          persona: mode === MODE.COUNSELOR ? counselorData[selectedCounselorId].name : clientData[currentClientIndex || 0].name,
+          messages: messages
+        };
+        
+        const blob = new Blob([JSON.stringify(logData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `counseling-log-${lang}-${new Date().getTime()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      // 背景色の決定
+      const bgColor = mode === MODE.COUNSELOR ? 'bg-stone-50' : 'bg-slate-50';
+      const headerColor = mode === MODE.COUNSELOR ? 'bg-teal-700' : 'bg-indigo-700';
+
+      return (
+        <div className={`flex flex-col h-screen ${bgColor} text-stone-800 font-sans relative`}>
+          
+          {/* ヘッダー */}
+          <header className={`${headerColor} text-white p-3 shadow-sm z-20 transition-colors duration-500`}>
+            <div className="flex justify-between items-center mb-1">
+              <div className="flex items-center gap-2">
+                <HeartHandshake className="w-6 h-6" />
+                <h1 className="font-bold text-lg hidden md:block">
+                  {mode === MODE.COUNSELOR ? t.title_counselor : t.title_client}
+                </h1>
+                <h1 className="font-bold text-lg md:hidden">
+                  {mode === MODE.COUNSELOR ? t.mode_counselor : t.mode_client}
+                </h1>
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={cycleLanguage}
+                  className="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-2 rounded-full flex items-center gap-1 transition-colors border border-white/40"
+                  title="Change Language"
+                >
+                  <Globe size={12} />
+                  <span className="font-bold ml-1">{LANGUAGES[lang].substring(0,2).toUpperCase()}</span>
+                </button>
+
+                <button 
+                  onClick={handleSummarize}
+                  className="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-2 rounded-full flex items-center gap-1 transition-colors border border-white/40"
+                  title={t.summarize_btn}
+                >
+                  <ClipboardList size={14} />
+                  <span className="hidden lg:inline ml-1">{t.summarize_btn}</span>
+                </button>
+
+                <button 
+                  onClick={handleModeSwitchClick}
+                  className="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-2 rounded-full flex items-center gap-1 transition-colors border border-white/40"
+                  title={mode === MODE.COUNSELOR ? t.switch_to_practice : t.switch_to_counsel}
+                >
+                  <ArrowRightLeft size={14} />
+                  <span className="hidden lg:inline ml-1">
+                    {mode === MODE.COUNSELOR ? t.switch_to_practice : t.switch_to_counsel}
+                  </span>
+                </button>
+                <button 
+                  onClick={() => setShowSettings(true)}
+                  className="bg-black/20 hover:bg-black/30 text-white p-2 rounded-full transition-colors relative"
+                  title={t.settings}
+                >
+                  <Settings size={20} />
+                </button>
+                <button 
+                  onClick={() => setShowEthicsModal(true)}
+                  className="bg-black/20 hover:bg-black/30 text-white p-2 rounded-full transition-colors"
+                  title={t.ethics}
+                >
+                  <ShieldCheck size={20} />
+                </button>
+              </div>
+            </div>
+            
+            {/* サブヘッダー情報 */}
+            <div className="flex justify-between items-center text-xs text-white/90 px-1">
+              <div className="flex items-center gap-1">
+                <UserCheck size={14} />
+                {mode === MODE.COUNSELOR ? (
+                  <span>{t.role_you_client}</span>
+                ) : (
+                  <span>{t.role_you_counselor}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                <Bot size={14} />
+                {mode === MODE.COUNSELOR ? (
+                  <span>{t.partner}: {counselorData[selectedCounselorId].fullName}</span>
+                ) : (
+                  <span>{t.partner}: {currentClientIndex !== null ? clientData[currentClientIndex].name : t.preparing}</span>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* ペルソナ選択バー (COUNSELORモード時) */}
+          {mode === MODE.COUNSELOR && (
+            <div className="bg-stone-200 p-2 overflow-x-auto z-10 shadow-inner flex gap-2 no-scrollbar">
+              <span className="text-xs font-bold text-stone-500 self-center whitespace-nowrap mr-1">{t.designate}</span>
+              {Object.entries(counselorData).map(([key, persona]) => {
+                const isActive = selectedCounselorId === key;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                       setSelectedCounselorId(key);
+                    }}
+                    className={`
+                      flex items-center gap-2 px-3 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap
+                      ${isActive ? 'bg-teal-600 text-white shadow-md scale-105' : 'bg-white text-stone-600 border border-stone-300 hover:bg-stone-50'}
+                    `}
+                  >
+                    {persona.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* クライエント操作バー (CLIENTモード時) */}
+          {mode === MODE.CLIENT && (
+            <div className="bg-slate-200 p-2 z-10 shadow-inner flex justify-between items-center">
+              <div className="text-xs text-slate-600 font-bold flex items-center gap-2">
+                <Users size={14} />
+                <span>{t.partner}: {currentClientIndex !== null ? clientData[currentClientIndex].name : ''}</span>
+              </div>
+              <button 
+                onClick={() => pickRandomClient()}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-full shadow-sm flex items-center gap-1"
+              >
+                <RefreshCw size={12} /> {t.next_client}
+              </button>
+            </div>
+          )}
+
+          {/* エラー表示バー */}
+          {errorMessage && (
+            <div className="bg-red-100 text-red-700 p-2 text-sm text-center border-b border-red-200 flex justify-between items-center px-4">
+              <span>{errorMessage}</span>
+              <button onClick={() => setErrorMessage('')}><X size={16} /></button>
+            </div>
+          )}
+
+          {/* チャットエリア */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-stone-100/50">
+            {messages.map((msg, index) => (
+              <div 
+                key={index} 
+                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                 {msg.role === 'system' ? (
+                   <div className="w-full flex justify-center my-2">
+                     <div className="text-xs text-stone-600 bg-stone-200 px-3 py-1 rounded-full flex items-center gap-1 shadow-sm border border-stone-300">
+                       <Sparkles size={12} />
+                       {msg.text}
+                     </div>
+                   </div>
+                 ) : (
+                  <div className={`flex max-w-[85%] md:max-w-[70%] gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
+                      msg.role === 'user' 
+                        ? (mode === MODE.COUNSELOR ? 'bg-teal-600 text-white' : 'bg-indigo-600 text-white') 
+                        : 'bg-white text-stone-600 border border-stone-200'
+                    }`}>
+                      {msg.role === 'user' ? <User size={16} /> : <Bot size={18} />}
+                    </div>
+                    <div className={`p-3.5 rounded-2xl shadow-sm text-sm md:text-base leading-relaxed whitespace-pre-wrap ${
+                      msg.role === 'user' 
+                        ? (mode === MODE.COUNSELOR ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-indigo-600 text-white rounded-tr-none')
+                        : 'bg-white text-stone-800 rounded-tl-none border border-stone-200'
+                    }`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                 )}
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="flex gap-2 max-w-[80%]">
+                  <div className="w-8 h-8 rounded-full bg-white text-stone-500 border border-stone-200 flex items-center justify-center mt-1">
+                    <Bot size={18} />
+                  </div>
+                  <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-stone-200 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
+                    <span className="w-2 h-2 bg-stone-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* 入力エリア */}
+          <div className="bg-white p-3 border-t border-stone-200 shadow-lg z-10">
+            <div className="max-w-4xl mx-auto flex items-end gap-2">
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  !apiKey ? t.input_placeholder_no_key :
+                  mode === MODE.COUNSELOR 
+                    ? t.input_placeholder_counselor 
+                    : t.input_placeholder_client
+                }
+                disabled={!apiKey}
+                className={`flex-1 bg-stone-100 border-0 rounded-xl p-3 focus:ring-2 focus:outline-none resize-none min-h-[50px] max-h-[120px] disabled:bg-stone-200 disabled:text-stone-400 transition-colors ${
+                  mode === MODE.COUNSELOR ? 'focus:ring-teal-500' : 'focus:ring-indigo-500'
+                }`}
+                rows={1}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputText.trim() || isLoading || !apiKey}
+                className={`p-3 rounded-full text-white shadow-md disabled:bg-stone-300 disabled:cursor-not-allowed transition-all ${
+                  mode === MODE.COUNSELOR 
+                    ? 'bg-teal-600 hover:bg-teal-700' 
+                    : 'bg-indigo-600 hover:bg-indigo-700'
+                }`}
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* モード切替確認モーダル */}
+          {showModeSwitchModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[80] p-4 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="bg-white rounded-xl shadow-2xl max-w-sm w-full overflow-hidden">
+                <div className={`p-4 text-white text-center ${mode === MODE.COUNSELOR ? 'bg-indigo-600' : 'bg-teal-600'}`}>
+                  <RefreshCw className="w-8 h-8 mx-auto mb-2 opacity-90" />
+                  <h3 className="font-bold text-lg">{t.confirm_switch_title}</h3>
+                </div>
+                
+                <div className="p-6 text-center">
+                  <p className="text-stone-700 mb-4">
+                    {mode === MODE.COUNSELOR 
+                      ? t.confirm_switch_desc_to_client
+                      : t.confirm_switch_desc_to_counselor
+                    }
+                  </p>
+                  <p className="text-xs text-red-500 bg-red-50 p-2 rounded border border-red-100">
+                    {t.confirm_reset_warn}
+                  </p>
+                </div>
+
+                <div className="flex border-t border-stone-100">
+                  <button 
+                    onClick={() => setShowModeSwitchModal(false)}
+                    className="flex-1 py-4 text-stone-500 hover:bg-stone-50 font-bold transition-colors border-r border-stone-100"
+                  >
+                    {t.cancel}
+                  </button>
+                  <button 
+                    onClick={executeModeSwitch}
+                    className={`flex-1 py-4 text-white font-bold transition-colors ${mode === MODE.COUNSELOR ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-teal-600 hover:bg-teal-700'}`}
+                  >
+                    {t.switch}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 要約モーダル */}
+          {showSummaryModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[90] p-4 backdrop-blur-sm animate-in fade-in duration-200">
+              <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+                <div className="bg-stone-100 p-4 border-b border-stone-200 flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-teal-600 p-1.5 rounded-lg text-white">
+                      <ClipboardList size={18} />
+                    </div>
+                    <h3 className="font-bold text-stone-800">{t.summary_title}</h3>
+                  </div>
+                  <button onClick={() => setShowSummaryModal(false)} className="text-stone-500 hover:text-stone-700">
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="p-6 flex-1 overflow-y-auto bg-stone-50">
+                  {isSummarizing ? (
+                    <div className="flex flex-col items-center justify-center h-48 gap-3 text-stone-500">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                      <p>{t.summary_generating}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-sm text-stone-500">{t.summary_intro}</p>
+                      <div className="bg-white border border-stone-200 rounded-lg p-4 text-sm leading-relaxed whitespace-pre-wrap font-sans text-stone-800 shadow-sm">
+                        {summaryText}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 border-t border-stone-200 bg-white flex justify-between items-center">
+                  <button 
+                    onClick={() => setShowSummaryModal(false)}
+                    className="text-stone-500 hover:text-stone-700 text-sm font-bold px-4"
+                  >
+                    {t.summary_close}
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(summaryText);
+                      alert('Copied!');
+                    }}
+                    disabled={isSummarizing || !summaryText}
+                    className="bg-teal-600 hover:bg-teal-700 disabled:bg-stone-300 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                  >
+                    <Copy size={16} />
+                    {t.summary_copy}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 初期同意画面 */}
+          {!hasAgreedToEthics && (
+            <div className="fixed inset-0 bg-stone-900/95 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
+              <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="bg-gradient-to-r from-teal-600 to-indigo-600 p-6 text-center text-white relative">
+                  
+                  <div className="absolute top-4 right-4">
+                    <button 
+                      onClick={cycleLanguage}
+                      className="bg-white/20 hover:bg-white/30 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1 transition-colors border border-white/40"
+                    >
+                      <Globe size={12} />
+                      <span className="ml-1">{LANGUAGES[lang]}</span>
+                    </button>
+                  </div>
+
+                  <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-90" />
+                  <h1 className="text-2xl font-bold mb-1">AI Therapy Roleplay</h1>
+                  <p className="opacity-90 text-sm">Roleplay Tool</p>
+                </div>
+                
+                <div className="p-6 space-y-5 overflow-y-auto flex-1 text-sm text-stone-700 leading-relaxed">
+                  <p className="font-bold text-center text-lg text-stone-800">
+                    {t.ethics_title}
+                  </p>
+
+                  <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg text-amber-900">
+                    <h4 className="font-bold mb-2 flex items-center gap-2">
+                      <Info size={18} /> Roleplay Only
+                    </h4>
+                    <p>{t.ethics_desc}</p>
+                  </div>
+                </div>
+
+                <div className="p-6 border-t border-stone-100 bg-stone-50">
+                  <button 
+                    onClick={() => setHasAgreedToEthics(true)}
+                    className="w-full bg-gradient-to-r from-teal-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  >
+                    <CheckCircle size={20} />
+                    {t.ethics_agree}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 設定・管理モーダル */}
+          {showSettings && (
+            <div className="absolute inset-0 bg-stone-100/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-4 animate-in fade-in duration-200">
+              <div className="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full border border-stone-200 flex flex-col max-h-[90vh]">
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-xl font-bold text-stone-800 flex items-center gap-2">
+                    <Settings className="text-stone-500" /> {t.settings}
+                  </h2>
+                  {apiKey && (
+                    <button onClick={() => setShowSettings(false)} className="text-stone-400 hover:text-stone-600">
+                      <X size={24} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex border-b border-stone-200 mb-4">
+                  <button 
+                    onClick={() => setSettingsTab('settings')}
+                    className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${settingsTab === 'settings' ? 'border-teal-600 text-teal-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+                  >
+                    {t.tab_basic}
+                  </button>
+                  <button 
+                    onClick={() => setSettingsTab('admin')}
+                    className={`flex-1 py-2 text-sm font-bold border-b-2 transition-colors ${settingsTab === 'admin' ? 'border-indigo-600 text-indigo-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}
+                  >
+                    {t.tab_admin}
+                  </button>
+                </div>
+
+                <div className="space-y-6 flex-1 overflow-y-auto pr-1">
+                  {settingsTab === 'settings' && (
+                    <>
+                      <p className="text-sm text-stone-600">{t.api_key_desc}</p>
+                      
+                      <a 
+                        href="https://aistudio.google.com/app/apikey" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-teal-600 hover:text-teal-800 flex items-center gap-1 w-fit hover:underline mb-2"
+                      >
+                        {t.api_key_link} <ExternalLink size={12} />
+                      </a>
+
+                      <div>
+                        <label className="text-xs font-bold text-stone-500 mb-1 block">Gemini API Key</label>
+                        <input
+                          type="password"
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          placeholder={t.api_key_placeholder}
+                          className="w-full p-3 border border-stone-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono text-sm bg-stone-50"
+                        />
+                      </div>
+                      <button
+                        onClick={() => setShowSettings(false)}
+                        disabled={!apiKey}
+                        className="w-full bg-stone-800 hover:bg-stone-900 disabled:bg-stone-300 text-white font-bold py-3 rounded-lg transition-colors"
+                      >
+                        {apiKey ? t.save_settings : t.enter_key}
+                      </button>
+                    </>
+                  )}
+
+                  {settingsTab === 'admin' && (
+                    <div className="space-y-4">
+                      <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg text-indigo-900 text-sm">
+                        <h4 className="font-bold flex items-center gap-1 mb-1">
+                          <Activity size={14} /> {t.admin_dashboard}
+                        </h4>
+                        <p className="text-xs opacity-80">{t.admin_desc}</p>
+                      </div>
+
+                      <div className="space-y-2">
+                        <button 
+                          onClick={downloadLogs}
+                          className="w-full flex items-center justify-between p-3 bg-white border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors text-sm text-stone-700"
+                        >
+                          <span className="flex items-center gap-2"><Download size={16} /> {t.download_log}</span>
+                          <FileText size={14} className="text-stone-400" />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (window.confirm('Reset?')) {
+                              setMessages([]);
+                              setShowSettings(false);
+                            }
+                          }}
+                          className="w-full flex items-center justify-between p-3 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors text-sm text-red-600"
+                        >
+                          <span className="flex items-center gap-2"><Trash2 size={16} /> {t.clear_history}</span>
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-stone-500 block">{t.debug_info}</label>
+                        <div className="relative">
+                          <pre className="w-full h-32 p-3 bg-stone-800 text-green-400 text-xs font-mono rounded-lg overflow-auto border border-stone-700 whitespace-pre-wrap">
+                            {generateSystemPrompt()}
+                          </pre>
+                          <Code size={14} className="absolute top-2 right-2 text-stone-500" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* 倫理ガイドモーダル */}
+          {showEthicsModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+               <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="bg-stone-100 p-4 border-b border-stone-200 flex justify-between items-center">
+                  <h3 className="text-stone-800 font-bold flex items-center gap-2">
+                    <ShieldCheck size={20} /> {t.ethics}
+                  </h3>
+                  <button onClick={() => setShowEthicsModal(false)} className="text-stone-500 hover:text-stone-700">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-sm text-stone-700">
+                  <p>{t.ethics_desc}</p>
+                </div>
+               </div>
+            </div>
+          )}
+
+          {/* 緊急連絡先モーダル */}
+          {showSafetyModal && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4 backdrop-blur-sm">
+              <div className="bg-white rounded-xl shadow-2xl max-w-md w-full overflow-hidden">
+                <div className="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center">
+                  <h3 className="text-red-700 font-bold flex items-center gap-2">
+                    <AlertTriangle size={20} /> {t.emergency}
+                  </h3>
+                  <button onClick={() => setShowSafetyModal(false)} className="text-stone-500 hover:text-stone-700">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-5 space-y-4">
+                  <p className="text-sm text-stone-600">{t.safety_message}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<CounselingBotMultilingual />);
+  </script>
+</body>
+</html>
