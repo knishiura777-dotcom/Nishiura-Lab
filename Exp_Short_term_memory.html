@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>短期記憶実験：デジタル・スパン課題</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans JP', sans-serif; }
+        /* 数字専用フォント指定を削除し、Noto Sans JPで統一 */
+        .number-display { font-variant-numeric: tabular-nums; } /* 数字の幅を揃える設定のみ残す */
+        
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        
+        @keyframes pulse-text { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .animate-pulse-custom { animation: pulse-text 1.5s infinite; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex items-center justify-center p-4">
+
+    <div id="app-container" class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden min-h-[600px] flex flex-col relative">
+        
+        <!-- ヘッダー (常に表示) -->
+        <header class="bg-indigo-600 text-white p-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M20 12v1a2 2 0 0 1-2 2h-2a2 2 0 0 0-2 2v1"/><path d="M10 12v2a2 2 0 0 0 2 2h2a2 2 0 0 1 2 2v1"/><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H2v2h20"/></svg>
+                <h1 class="font-bold text-lg" data-i18n="appTitle">短期記憶実験：構音抑制</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <div id="status-bar" class="hidden text-xs bg-indigo-700 px-3 py-1 rounded-full mr-2 flex flex-col items-end">
+                    <span id="condition-label">統制(黙読) - 5桁</span>
+                    <span>Trial: <span id="trial-counter">1/2</span></span>
+                </div>
+                
+                <!-- 言語切り替えボタン -->
+                <button onclick="toggleLanguage()" class="text-xs font-bold bg-indigo-800 hover:bg-indigo-900 px-2 py-1 rounded border border-indigo-400 transition" id="lang-btn">
+                    EN
+                </button>
+
+                <!-- 設定ボタン (New) -->
+                <button onclick="openSettings()" id="btn-settings" class="p-2 hover:bg-indigo-500 rounded-full transition" title="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- メインコンテンツエリア -->
+        <main id="main-content" class="flex-1 flex flex-col p-6 items-center justify-center text-center relative overflow-y-auto">
+            
+            <!-- 1. イントロダクション画面 -->
+            <div id="view-intro" class="w-full max-w-lg text-left space-y-6 animate-fade-in">
+                
+                <!-- 参加者情報入力フォーム -->
+                <div class="bg-white p-5 rounded-lg border border-slate-300 shadow-sm">
+                    <h3 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <span data-i18n="participantInfoTitle">参加者情報</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1"><span data-i18n="nameLabel">参加者ID (任意)</span></label>
+                            <input type="text" id="participant-name" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" data-i18n-placeholder="namePlaceholder" placeholder="例: P001">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1"><span data-i18n="ageLabel">年齢 (任意)</span></label>
+                            <input type="number" id="participant-age" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" data-i18n-placeholder="agePlaceholder" placeholder="例: 20">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="block text-sm font-medium text-slate-600 mb-1"><span data-i18n="memoLabel">備考 (任意)</span></label>
+                        <input type="text" id="participant-memo" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" data-i18n-placeholder="memoPlaceholder" placeholder="クラス、学籍番号など">
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="font-bold text-lg" data-i18n="procedureTitle">実験計画 (2×2要因デザイン)</h3>
+                    <div class="bg-blue-50 p-4 rounded text-sm text-slate-700 space-y-2">
+                        <p data-i18n="expDesc1">以下の4つの条件ブロックを順番に行います。</p>
+                        <ul class="list-disc list-inside ml-2">
+                            <li data-i18n="expCond1"><strong>統制条件（黙読）</strong> × 短（5桁）</li>
+                            <li data-i18n="expCond2"><strong>統制条件（黙読）</strong> × 長（8桁）</li>
+                            <li data-i18n="expCond3"><strong>構音抑制（発話）</strong> × 短（5桁）</li>
+                            <li data-i18n="expCond4"><strong>構音抑制（発話）</strong> × 長（8桁）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- GAS設定アラート (New) -->
+                <div id="gas-warning" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 text-sm text-yellow-700">
+                    <p class="font-bold flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <span data-i18n="gasWarningTitle">データ送信設定が未完了です</span>
+                    </p>
+                    <p class="mt-1 mb-2" data-i18n="gasWarningText">データの記録機能を使うには設定が必要です。</p>
+                    <button onclick="openSettings()" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 font-bold py-1 px-3 rounded text-xs border border-yellow-300 transition flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <span data-i18n="openSettings">設定画面を開く</span>
+                    </button>
+                </div>
+                
+                <button onclick="startExperiment()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    <span data-i18n="startExperiment">実験を開始する</span>
+                </button>
+            </div>
+
+            <!-- ブロック間インストラクション画面 -->
+            <div id="view-instruction" class="hidden w-full max-w-lg text-center space-y-8 animate-fade-in">
+                <div class="bg-yellow-50 border-l-8 border-yellow-400 p-6 rounded-lg shadow-sm text-left">
+                    <h3 class="text-xl font-bold text-yellow-800 mb-4" id="instruction-title">次の条件</h3>
+                    <p class="text-lg text-yellow-900 mb-6 leading-relaxed" id="instruction-text">
+                        ここには指示が入ります。
+                    </p>
+                    <div class="text-sm text-yellow-700 bg-white p-3 rounded border border-yellow-200" id="instruction-note">
+                        準備ができたらボタンを押してください。
+                    </div>
+                </div>
+                
+                <button onclick="startBlock()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                    <span data-i18n="startBlock">この条件で開始する</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            </div>
+
+            <!-- 2. 表示画面 -->
+            <div id="view-display" class="hidden flex-col items-center justify-center w-full h-full">
+                <div class="text-sm text-slate-400 mb-8 uppercase tracking-widest font-bold" data-i18n="memorize">Memorize</div>
+                
+                <!-- 構音抑制中の指示表示 -->
+                <div id="suppression-indicator" class="hidden absolute top-20 bg-red-100 text-red-600 px-4 py-2 rounded-full font-bold animate-pulse">
+                    <span data-i18n="suppressionAlert">「あーあーあー」と言い続けて！</span>
+                </div>
+
+                <div id="digit-container" class="h-64 w-full flex items-center justify-center">
+                    <div id="current-digit" class="text-8xl font-bold text-slate-800 number-display leading-normal text-center"></div>
+                </div>
+                <div id="fixation-cross" class="hidden text-6xl text-slate-300">+</div>
+            </div>
+
+            <!-- 3. 入力画面 -->
+            <div id="view-input" class="hidden w-full max-w-md animate-fade-in">
+                <p class="text-slate-500 mb-4" data-i18n="inputPrompt">数字を入力してください</p>
+                <form onsubmit="submitAnswer(event)" class="space-y-6">
+                    <input type="text" id="user-input" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+                        class="w-full text-center text-4xl p-4 border-b-4 border-indigo-500 bg-slate-50 focus:outline-none focus:bg-white transition number-display tracking-widest"
+                        placeholder="">
+                    
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
+                        <span data-i18n="submitAnswer">回答する</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                </form>
+            </div>
+
+            <!-- 4. フィードバック画面 -->
+            <div id="view-feedback" class="hidden text-center animate-fade-in">
+                <div id="feedback-icon" class="mb-4 flex justify-center"></div>
+                <h2 id="feedback-text" class="text-3xl font-bold mb-2"></h2>
+                <div id="feedback-detail" class="text-slate-500"></div>
+            </div>
+
+            <!-- 5. 結果画面 -->
+            <div id="view-result" class="hidden w-full h-full pt-4 text-left">
+                <div class="text-center mb-6">
+                    <div class="inline-block p-3 bg-indigo-100 rounded-full mb-3 text-indigo-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800" data-i18n="resultTitle">実験結果</h2>
+                </div>
+
+                <!-- 2x2 結果テーブル -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 mb-8 shadow-sm">
+                    <h3 class="font-bold mb-4 text-center text-slate-700" data-i18n="matrixTitle">条件別正答率 (正解数 / 試行数)</h3>
+                    <div class="grid grid-cols-3 gap-2 text-center text-sm">
+                        <div class="bg-slate-100 p-2 rounded font-bold flex items-center justify-center"></div>
+                        <div class="bg-slate-100 p-2 rounded font-bold" data-i18n="headerShort">短 (5桁)</div>
+                        <div class="bg-slate-100 p-2 rounded font-bold" data-i18n="headerLong">長 (8桁)</div>
+
+                        <div class="bg-slate-100 p-2 rounded font-bold flex items-center justify-center text-blue-800" data-i18n="rowControl">統制(黙読)</div>
+                        <div class="border p-4 rounded text-xl font-bold text-blue-600" id="res-control-short">-</div>
+                        <div class="border p-4 rounded text-xl font-bold text-blue-600" id="res-control-long">-</div>
+
+                        <div class="bg-slate-100 p-2 rounded font-bold flex items-center justify-center text-red-800" data-i18n="rowSuppression">構音抑制</div>
+                        <div class="border p-4 rounded text-xl font-bold text-red-600" id="res-supp-short">-</div>
+                        <div class="border p-4 rounded text-xl font-bold text-red-600" id="res-supp-long">-</div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 text-center" data-i18n="resultNote">構音抑制条件（特に8桁）で成績が低下していれば、内言の妨害効果が示されています。</p>
+                </div>
+
+                <!-- 保存セクション -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+                    <h3 class="font-bold text-gray-700 mb-3 text-center text-sm" data-i18n="saveDataTitle">データの保存</h3>
+                    <div id="send-data-section" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <!-- GAS送信ボタン -->
+                        <button onclick="sendDataToGas()" id="btn-send" class="flex flex-col items-center justify-center w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 group">
+                            <div class="flex items-center gap-2 mb-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                                <span class="font-bold text-lg" data-i18n="btnRecordCloud">クラウドに記録</span>
+                            </div>
+                            <span class="text-xs text-green-100 group-hover:text-white" data-i18n="btnRecordCloudDesc">Googleスプレッドシートへ送信</span>
+                        </button>
+                        
+                        <!-- CSVダウンロードボタン -->
+                        <button onclick="downloadCSV()" id="btn-download" class="flex flex-col items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl shadow-md transition-all active:scale-95 group">
+                            <div class="flex items-center gap-2 mb-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                <span class="font-bold text-lg" data-i18n="btnSaveLocal">結果を保存 (CSV)</span>
+                            </div>
+                            <span class="text-xs text-blue-100 group-hover:text-white" data-i18n="btnSaveLocalDesc">端末にデータをダウンロード</span>
+                        </button>
+
+                    </div>
+                    <div id="send-status" class="hidden text-center text-sm font-bold p-2 mt-2"></div>
+                </div>
+
+                <button onclick="resetExperiment()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 rounded-lg shadow flex items-center justify-center gap-2 mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6"/><path d="M2.5 22v-6h6"/><path d="M21.5 2v6h-6"/><path d="M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.3"/></svg>
+                    <span data-i18n="btnRetry">実験をやり直す</span>
+                </button>
+                
+                <button onclick="exitExperiment()" class="w-full bg-white hover:bg-gray-100 text-gray-500 border border-gray-300 font-bold py-3 rounded-lg shadow-sm flex items-center justify-center gap-2 mb-8">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    <span data-i18n="btnExit">実験を終了する</span>
+                </button>
+            </div>
+
+            <!-- 6. パスワード認証画面 (New) -->
+            <div id="view-password" class="hidden w-full max-w-sm text-left space-y-6 animate-fade-in">
+                <div class="text-center mb-6">
+                    <div class="inline-block p-3 bg-slate-100 rounded-full mb-3 text-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </div>
+                    <h2 class="font-bold text-xl text-slate-800" data-i18n="adminAuthTitle">管理者認証</h2>
+                    <p class="text-sm text-slate-500" data-i18n="adminAuthDesc">設定を変更するにはパスワードが必要です</p>
+                </div>
+
+                <form onsubmit="verifyPassword(event)" class="space-y-4">
+                    <div>
+                        <input type="password" id="input-password" 
+                            class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-center tracking-widest" 
+                            data-i18n-placeholder="passwordPlaceholder"
+                            placeholder="パスワードを入力">
+                        <p id="password-error" class="hidden text-xs text-red-500 mt-2 text-center font-bold flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            <span data-i18n="passwordError">パスワードが間違っています</span>
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition">
+                            <span data-i18n="btnAuthenticate">認証する</span>
+                        </button>
+                        <button type="button" onclick="cancelPassword()" class="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 border border-slate-300 font-bold rounded-lg shadow-sm transition">
+                            <span data-i18n="btnCancel">キャンセル</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 7. 設定画面 (New) -->
+            <div id="view-settings" class="hidden w-full max-w-lg text-left space-y-6 animate-fade-in">
+                <h2 class="font-bold text-xl mb-3 border-b border-slate-300 pb-2 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    <span data-i18n="settingsTitle">設定</span>
+                </h2>
+                
+                <div class="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Google Apps Script (GAS) Web App URL</label>
+                    <input type="text" id="input-gas-url" 
+                        class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" 
+                        placeholder="https://script.google.com/macros/s/xxxx/exec">
+                    <p class="text-xs text-slate-500 mt-2 leading-relaxed" data-i18n="gasUrlDesc">
+                        GASでデプロイしたウェブアプリのURLを入力してください。<br>
+                        URLはブラウザに保存され、次回以降も使用されます。
+                    </p>
+                </div>
+
+                <div class="flex gap-3 pt-4">
+                    <button onclick="saveSettings()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow transition">
+                        <span data-i18n="btnSaveReturn">保存して戻る</span>
+                    </button>
+                    <button onclick="cancelSettings()" class="px-6 py-3 bg-white hover:bg-slate-100 text-slate-600 border border-slate-300 font-bold rounded-lg shadow-sm transition">
+                        <span data-i18n="btnCancel">キャンセル</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 8. 終了画面 -->
+            <div id="view-goodbye" class="hidden w-full max-w-lg text-center space-y-6 animate-fade-in">
+                <div class="bg-slate-50 p-8 rounded-xl border border-slate-200">
+                    <div class="inline-block p-4 bg-green-100 rounded-full mb-4 text-green-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-2" data-i18n="goodbyeTitle">実験終了</h2>
+                    <p class="text-slate-600 mb-6" data-i18n="goodbyeDesc">ご協力ありがとうございました。<br>この画面を閉じて終了してください。</p>
+                    <p class="text-xs text-slate-400" data-i18n="goodbyeNote">（ブラウザのタブを閉じてください）</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // --- 言語リソース (Translations) ---
+        const TRANSLATIONS = {
+            ja: {
+                appTitle: "短期記憶実験：構音抑制",
+                digitsLabel: "条件",
+                participantInfoTitle: "参加者情報",
+                nameLabel: "参加者ID (任意)",
+                namePlaceholder: "例: P001",
+                ageLabel: "年齢 (任意)",
+                agePlaceholder: "例: 20",
+                memoLabel: "備考 (任意)",
+                memoPlaceholder: "クラス、学籍番号など",
+                procedureTitle: "実験計画 (2×2要因デザイン)",
+                expDesc1: "以下の4つの条件ブロックを順番に行います。",
+                expCond1: "<strong>統制条件（黙読）</strong> × 短（5桁）",
+                expCond2: "<strong>統制条件（黙読）</strong> × 長（8桁）",
+                expCond3: "<strong>構音抑制（発話）</strong> × 短（5桁）",
+                expCond4: "<strong>構音抑制（発話）</strong> × 長（8桁）",
+                gasWarningTitle: "データ送信設定が未完了です",
+                gasWarningText: "データの記録機能を使うには設定が必要です。",
+                openSettings: "設定画面を開く",
+                startExperiment: "実験を開始する",
+                memorize: "記憶中",
+                inputPrompt: "数字を入力してください",
+                submitAnswer: "回答する",
+                correct: "正解！",
+                incorrect: "不正解...",
+                answerIs: "正解: ",
+                resultTitle: "実験結果",
+                resultSubtitle: "全条件終了",
+                matrixTitle: "条件別正答率 (正解数 / 試行数)",
+                headerShort: "短 (5桁)",
+                headerLong: "長 (8桁)",
+                rowControl: "統制(黙読)",
+                rowSuppression: "構音抑制",
+                resultNote: "構音抑制条件（特に8桁）で成績が低下していれば、内言の妨害効果が示唆されます。",
+                saveDataTitle: "データの保存",
+                btnRecordCloud: "クラウドに記録",
+                btnRecordCloudDesc: "Googleスプレッドシートへ送信",
+                btnSaveLocal: "結果を保存 (CSV)",
+                btnSaveLocalDesc: "端末にデータをダウンロード",
+                btnRetry: "実験をやり直す",
+                btnExit: "実験を終了する",
+                adminAuthTitle: "管理者認証",
+                adminAuthDesc: "設定を変更するにはパスワードが必要です",
+                passwordPlaceholder: "パスワードを入力",
+                passwordError: "パスワードが間違っています",
+                btnAuthenticate: "認証する",
+                btnCancel: "キャンセル",
+                settingsTitle: "設定",
+                gasUrlDesc: "GASでデプロイしたウェブアプリのURLを入力してください。<br>URLはブラウザに保存され、次回以降も使用されます。",
+                btnSaveReturn: "保存して戻る",
+                goodbyeTitle: "実験終了",
+                goodbyeDesc: "ご協力ありがとうございました。<br>この画面を閉じて終了してください。",
+                goodbyeNote: "（ブラウザのタブを閉じてください）",
+                instrControlTitle: "統制条件（黙読）",
+                instrControlText: "数字が表示されます。<strong>声に出さず、頭の中で</strong>リハーサルして覚えてください。",
+                instrSuppTitle: "構音抑制条件（発話）",
+                instrSuppText: "数字が表示されている間、<strong>「あーあーあー」または「ザ・ザ・ザ」と声に出して言い続けながら</strong>覚えてください。<br>※内言（頭の中の声）を妨害します。",
+                startBlock: "この条件で開始する",
+                suppressionAlert: "「あーあーあー」と言い続けて！",
+                statusSending: "送信中...",
+                statusSent: "送信完了！",
+                statusSentDesc: "スプレッドシートに記録されました",
+                statusError: "送信エラー: ",
+                alertGasUrl: "GASのURLが設定されていません。設定画面を開いてURLを入力しますか？"
+            },
+            en: {
+                appTitle: "Articulatory Suppression Experiment",
+                digitsLabel: "Cond",
+                participantInfoTitle: "Participant Info",
+                nameLabel: "Participant ID (Optional)",
+                namePlaceholder: "e.g. P001",
+                ageLabel: "Age (Optional)",
+                agePlaceholder: "e.g. 20",
+                memoLabel: "Note (Optional)",
+                memoPlaceholder: "Class ID, etc.",
+                procedureTitle: "Experiment Design (2x2)",
+                expDesc1: "You will perform 4 blocks:",
+                expCond1: "<strong>Control (Silent)</strong> x Short (5 digits)",
+                expCond2: "<strong>Control (Silent)</strong> x Long (8 digits)",
+                expCond3: "<strong>Suppression (Speech)</strong> x Short (5 digits)",
+                expCond4: "<strong>Suppression (Speech)</strong> x Long (8 digits)",
+                gasWarningTitle: "Data Recording Not Configured",
+                gasWarningText: "Setup required to use data recording.",
+                openSettings: "Open Settings",
+                startExperiment: "Start Experiment",
+                memorize: "Memorize",
+                inputPrompt: "Enter the digits",
+                submitAnswer: "Submit",
+                correct: "Correct!",
+                incorrect: "Incorrect...",
+                answerIs: "Answer: ",
+                resultTitle: "Results",
+                resultSubtitle: "All blocks completed",
+                matrixTitle: "Accuracy by Condition (Correct / Total)",
+                headerShort: "Short (5)",
+                headerLong: "Long (8)",
+                rowControl: "Control",
+                rowSuppression: "Suppression",
+                resultNote: "Lower scores in Suppression (esp. 8 digits) suggest interference with inner speech.",
+                saveDataTitle: "Save Data",
+                btnRecordCloud: "Record to Cloud",
+                btnRecordCloudDesc: "Send to Google Spreadsheet",
+                btnSaveLocal: "Save Result (CSV)",
+                btnSaveLocalDesc: "Download data to your device",
+                btnRetry: "Retry Experiment",
+                btnExit: "Exit Experiment",
+                adminAuthTitle: "Admin Auth",
+                adminAuthDesc: "Password required to change settings",
+                passwordPlaceholder: "Enter password",
+                passwordError: "Incorrect password",
+                btnAuthenticate: "Authenticate",
+                btnCancel: "Cancel",
+                settingsTitle: "Settings",
+                gasUrlDesc: "Enter the Web App URL deployed on GAS.<br>The URL will be saved in your browser.",
+                btnSaveReturn: "Save & Return",
+                goodbyeTitle: "Experiment Finished",
+                goodbyeDesc: "Thank you for your participation.<br>Please close this screen.",
+                goodbyeNote: "(Please close the browser tab)",
+                instrControlTitle: "Control Condition (Silent)",
+                instrControlText: "Digits will appear. Rehearse them <strong>silently in your head</strong>.",
+                instrSuppTitle: "Suppression Condition (Speech)",
+                instrSuppText: "While digits appear, <strong>continuously say 'The-The-The' or 'Ah-Ah-Ah' aloud</strong>.<br>This blocks your inner speech.",
+                startBlock: "Start Block",
+                suppressionAlert: "Keep saying 'The-The-The'!",
+                statusSending: "Sending...",
+                statusSent: "Sent!",
+                statusSentDesc: "Recorded to Spreadsheet",
+                statusError: "Error: ",
+                alertGasUrl: "GAS URL is not set. Open settings to enter URL?"
+            }
+        };
+
+        // 言語状態管理
+        let currentLang = 'ja';
+
+        function t(key) {
+            return TRANSLATIONS[currentLang][key] || key;
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ja' ? 'en' : 'ja';
+            updateUITexts();
+        }
+
+        function updateUITexts() {
+            document.getElementById('lang-btn').textContent = currentLang === 'ja' ? 'EN' : 'JP';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.innerHTML = t(key);
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t(key);
+            });
+            
+            // 結果画面の再描画
+            if (state.phase === 'result') {
+                finishExperiment();
+            }
+        }
+
+        // 実験の設定
+        // 2x2デザイン: 抑制(有/無) x 長さ(5/8)
+        // ブロック順: 統制5 -> 統制8 -> 抑制5 -> 抑制8
+        const BLOCKS = [
+            { id: 'control_short', type: 'control', length: 5, trials: 2 },
+            { id: 'control_long',  type: 'control', length: 8, trials: 2 },
+            { id: 'supp_short',    type: 'suppression', length: 5, trials: 2 },
+            { id: 'supp_long',     type: 'suppression', length: 8, trials: 2 }
+        ];
+        
+        const DISPLAY_TIME = 1000;
+        const ISI_TIME = 200;
+
+        let state = {
+            phase: 'intro', // intro, instruction, display, input, feedback, result, settings, password, goodbye
+            currentBlockIndex: 0,
+            currentTrialInBlock: 0,
+            currentSequence: [],
+            history: [], // 全試行データ
+            participant: { name: "", age: "", memo: "" },
+            previousPhase: 'intro',
+            gasUrl: localStorage.getItem('digit_span_gas_url') || ""
+        };
+        
+        let rafId = null; 
+
+        // DOM要素
+        const views = {
+            intro: document.getElementById('view-intro'),
+            instruction: document.getElementById('view-instruction'),
+            display: document.getElementById('view-display'),
+            input: document.getElementById('view-input'),
+            feedback: document.getElementById('view-feedback'),
+            result: document.getElementById('view-result'),
+            password: document.getElementById('view-password'),
+            settings: document.getElementById('view-settings'),
+            goodbye: document.getElementById('view-goodbye')
+        };
+        const els = {
+            statusBar: document.getElementById('status-bar'),
+            btnSettings: document.getElementById('btn-settings'),
+            conditionLabel: document.getElementById('condition-label'),
+            trialCounter: document.getElementById('trial-counter'),
+            digitDisplay: document.getElementById('current-digit'),
+            digitContainer: document.getElementById('digit-container'),
+            fixation: document.getElementById('fixation-cross'),
+            suppressionIndicator: document.getElementById('suppression-indicator'),
+            userInput: document.getElementById('user-input'),
+            feedbackText: document.getElementById('feedback-text'),
+            feedbackDetail: document.getElementById('feedback-detail'),
+            feedbackIcon: document.getElementById('feedback-icon'),
+            instructionTitle: document.getElementById('instruction-title'),
+            instructionText: document.getElementById('instruction-text'),
+            inputName: document.getElementById('participant-name'),
+            inputAge: document.getElementById('participant-age'),
+            inputMemo: document.getElementById('participant-memo'),
+            inputGasUrl: document.getElementById('input-gas-url'),
+            inputPassword: document.getElementById('input-password'),
+            passwordError: document.getElementById('password-error'),
+            gasWarning: document.getElementById('gas-warning'),
+            sendSection: document.getElementById('send-data-section'),
+            sendStatus: document.getElementById('send-status'),
+            btnSend: document.getElementById('btn-send')
+        };
+
+        // 初期化
+        checkGasConfig();
+        updateUITexts();
+
+        function switchPhase(phaseName) {
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+            
+            if ((phaseName === 'settings' || phaseName === 'password') && 
+                state.phase !== 'settings' && state.phase !== 'password') {
+                state.previousPhase = state.phase;
+            }
+
+            state.phase = phaseName;
+            Object.values(views).forEach(el => el.classList.add('hidden'));
+            views[phaseName].classList.remove('hidden');
+
+            if (['intro', 'result', 'settings', 'password', 'goodbye'].includes(phaseName)) {
+                els.statusBar.classList.add('hidden');
+                if (['settings', 'password', 'goodbye'].includes(phaseName)) {
+                    els.btnSettings.classList.add('invisible');
+                } else {
+                    els.btnSettings.classList.remove('invisible');
+                }
+            } else {
+                els.statusBar.classList.remove('hidden');
+                els.btnSettings.classList.add('invisible');
+                updateStatusBar();
+            }
+        }
+
+        function updateStatusBar() {
+            const block = BLOCKS[state.currentBlockIndex];
+            const typeStr = block.type === 'control' ? (currentLang==='ja'?'統制':'Control') : (currentLang==='ja'?'抑制':'Suppression');
+            els.conditionLabel.textContent = `${typeStr} - ${block.length}${(currentLang==='ja'?'桁':'d')}`;
+            els.trialCounter.textContent = `${state.currentTrialInBlock + 1} / ${block.trials}`;
+        }
+
+        // --- 設定画面ロジック ---
+        function openSettings() {
+            els.inputPassword.value = '';
+            els.passwordError.classList.add('hidden');
+            switchPhase('password');
+        }
+
+        function verifyPassword(e) {
+            if(e) e.preventDefault();
+            const pass = els.inputPassword.value;
+            // Password: admin
+            if (pass === 'admin0001') {
+                els.inputGasUrl.value = state.gasUrl;
+                switchPhase('settings');
+            } else {
+                els.passwordError.classList.remove('hidden');
+                els.inputPassword.value = '';
+                els.inputPassword.focus();
+            }
+        }
+
+        function cancelPassword() {
+            switchPhase(state.previousPhase || 'intro');
+        }
+
+        function saveSettings() {
+            const newUrl = els.inputGasUrl.value.trim();
+            state.gasUrl = newUrl;
+            localStorage.setItem('digit_span_gas_url', newUrl);
+            checkGasConfig();
+            switchPhase(state.previousPhase || 'intro');
+        }
+
+        function cancelSettings() {
+            switchPhase(state.previousPhase || 'intro');
+        }
+
+        function checkGasConfig() {
+            if (!state.gasUrl) {
+                els.gasWarning.classList.remove('hidden');
+            } else {
+                els.gasWarning.classList.add('hidden');
+            }
+        }
+
+        // --- 実験フロー制御 ---
+
+        function startExperiment() {
+            const name = els.inputName.value.trim();
+            const age = els.inputAge.value.trim();
+            const memo = els.inputMemo.value.trim();
+            state.participant = { name, age, memo };
+
+            state.currentBlockIndex = 0;
+            state.history = [];
+            
+            // ボタンのスタイルと状態をリセット (GAS用)
+            els.btnSend.disabled = false;
+            els.btnSend.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+            els.btnSend.classList.add('bg-green-600', 'hover:bg-green-700');
+            // innerHTMLは言語切り替え時に設定されるのでここでは触らない
+
+            showBlockInstruction();
+        }
+
+        function showBlockInstruction() {
+            const block = BLOCKS[state.currentBlockIndex];
+            state.currentTrialInBlock = 0;
+
+            if (block.type === 'control') {
+                els.instructionTitle.textContent = t('instrControlTitle');
+                els.instructionText.innerHTML = t('instrControlText');
+            } else {
+                els.instructionTitle.textContent = t('instrSuppTitle');
+                els.instructionText.innerHTML = t('instrSuppText');
+            }
+            switchPhase('instruction');
+        }
+
+        function startBlock() {
+            startTrial();
+        }
+
+        function startTrial() {
+            const block = BLOCKS[state.currentBlockIndex];
+            // ランダムな数列生成
+            state.currentSequence = Array.from({ length: block.length }, () => Math.floor(Math.random() * 10));
+            
+            switchPhase('display');
+            els.userInput.value = '';
+            
+            // 抑制条件ならインジケーター表示
+            if (block.type === 'suppression') {
+                els.suppressionIndicator.classList.remove('hidden');
+                els.suppressionIndicator.querySelector('span').textContent = t('suppressionAlert');
+            } else {
+                els.suppressionIndicator.classList.add('hidden');
+            }
+
+            runDisplaySequence();
+        }
+
+        function runDisplaySequence() {
+            const seq = state.currentSequence;
+            els.digitDisplay.className = 'text-8xl font-bold text-slate-800 number-display leading-normal text-center';
+            els.digitDisplay.textContent = '';
+            els.digitDisplay.style.visibility = 'hidden';
+
+            els.fixation.classList.remove('hidden');
+            els.digitContainer.classList.add('hidden');
+
+            setTimeout(() => {
+                els.fixation.classList.add('hidden');
+                els.digitContainer.classList.remove('hidden');
+                
+                let startTime = null;
+                const cycleDuration = DISPLAY_TIME; 
+                const onDuration = DISPLAY_TIME - ISI_TIME; 
+                
+                let lastIndex = -1;
+
+                function loop(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    const elapsed = timestamp - startTime;
+                    const currentIndex = Math.floor(elapsed / cycleDuration);
+                    const timeInCycle = elapsed % cycleDuration;
+
+                    if (currentIndex >= seq.length) {
+                        els.digitDisplay.style.visibility = 'hidden';
+                        setTimeout(() => {
+                            switchPhase('input');
+                            setTimeout(() => els.userInput.focus(), 100);
+                        }, 500);
+                        rafId = null;
+                        return;
+                    }
+
+                    if (currentIndex !== lastIndex) {
+                        els.digitDisplay.textContent = seq[currentIndex];
+                        lastIndex = currentIndex;
+                    }
+
+                    if (timeInCycle < onDuration) {
+                        if (els.digitDisplay.style.visibility !== 'visible') els.digitDisplay.style.visibility = 'visible';
+                    } else {
+                        if (els.digitDisplay.style.visibility !== 'hidden') els.digitDisplay.style.visibility = 'hidden';
+                    }
+
+                    rafId = requestAnimationFrame(loop);
+                }
+                rafId = requestAnimationFrame(loop);
+            }, 1000);
+        }
+
+        function submitAnswer(e) {
+            e.preventDefault();
+            const userVal = els.userInput.value.replace(/[^0-9]/g, '');
+            const correctVal = state.currentSequence.join('');
+            const isCorrect = userVal === correctVal;
+            const block = BLOCKS[state.currentBlockIndex];
+
+            // データ記録
+            state.history.push({
+                blockId: block.id,
+                type: block.type,
+                length: block.length,
+                sequence: correctVal,
+                response: userVal,
+                isCorrect: isCorrect
+            });
+
+            // フィードバック
+            els.feedbackIcon.innerHTML = isCorrect ? 
+                `<svg class="w-16 h-16 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>` : 
+                `<svg class="w-16 h-16 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            
+            els.feedbackText.textContent = isCorrect ? t('correct') : t('incorrect');
+            els.feedbackText.className = isCorrect ? "text-3xl font-bold mb-2 text-green-600" : "text-3xl font-bold mb-2 text-red-600";
+            
+            if (!isCorrect) {
+                els.feedbackDetail.innerHTML = `${t('answerIs')} <span class="font-mono font-bold text-slate-800">${correctVal}</span>`;
+            } else {
+                els.feedbackDetail.textContent = "";
+            }
+
+            switchPhase('feedback');
+
+            setTimeout(() => {
+                nextStep();
+            }, 1500);
+        }
+
+        function nextStep() {
+            state.currentTrialInBlock++;
+            const block = BLOCKS[state.currentBlockIndex];
+
+            if (state.currentTrialInBlock < block.trials) {
+                // 同じブロックの次の試行
+                startTrial();
+            } else {
+                // ブロック終了
+                state.currentBlockIndex++;
+                if (state.currentBlockIndex < BLOCKS.length) {
+                    showBlockInstruction(); // 次のブロックへ
+                } else {
+                    finishExperiment(); // 実験終了
+                }
+            }
+        }
+
+        // 集計関数を外に出す（GAS送信時にも使うため）
+        function calcRate(id) {
+            const trials = state.history.filter(h => h.blockId === id);
+            if (trials.length === 0) return "-";
+            const correct = trials.filter(h => h.isCorrect).length;
+            return `${correct} / ${trials.length} (${Math.round(correct/trials.length*100)}%)`;
+        };
+
+        function finishExperiment() {
+            document.getElementById('res-control-short').textContent = calcRate('control_short');
+            document.getElementById('res-control-long').textContent = calcRate('control_long');
+            document.getElementById('res-supp-short').textContent = calcRate('supp_short');
+            document.getElementById('res-supp-long').textContent = calcRate('supp_long');
+
+            // 送信UIのリセット
+            els.sendSection.classList.remove('hidden');
+            els.sendStatus.classList.add('hidden');
+            els.sendStatus.className = "hidden text-center text-sm font-bold p-2 mt-2";
+
+            // GASボタンの状態制御
+            if (!state.gasUrl) {
+                els.btnSend.disabled = true;
+                els.btnSend.classList.add('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                els.btnSend.classList.remove('bg-green-600', 'hover:bg-green-700');
+            } else {
+                els.btnSend.disabled = false;
+                els.btnSend.classList.remove('opacity-50', 'cursor-not-allowed', 'bg-gray-400');
+                els.btnSend.classList.add('bg-green-600', 'hover:bg-green-700');
+            }
+
+            switchPhase('result');
+        }
+
+        function resetExperiment() {
+            switchPhase('intro');
+        }
+
+        function exitExperiment() {
+            switchPhase('goodbye');
+        }
+
+        // --- GAS送信処理 ---
+        function sendDataToGas() {
+            if (!state.gasUrl) {
+                if(confirm(t('alertGasUrl'))) {
+                    openSettings();
+                }
+                return;
+            }
+
+            els.sendStatus.classList.remove('hidden', 'text-green-600', 'text-red-600');
+            els.sendStatus.classList.add('text-slate-500');
+            els.sendStatus.textContent = t('statusSending');
+            els.btnSend.disabled = true;
+            els.btnSend.classList.add('opacity-50', 'cursor-not-allowed');
+
+            const payload = {
+                experiment: "Articulatory Suppression Task (2x2)",
+                date: new Date().toISOString(),
+                participant: state.participant,
+                // 前回の互換性のため maxSpan, evaluation も一応入れるが今回は意味が違う
+                maxSpan: "2x2 Fixed", 
+                evaluation: `Control(S:${calcRate('control_short')}, L:${calcRate('control_long')}) / Supp(S:${calcRate('supp_short')}, L:${calcRate('supp_long')})`,
+                history: state.history
+            };
+
+            fetch(state.gasUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                els.sendStatus.textContent = t('statusSent');
+                els.sendStatus.classList.remove('text-slate-500');
+                els.sendStatus.classList.add('text-green-600');
+                
+                els.btnSend.disabled = true;
+                els.btnSend.classList.add('bg-gray-400', 'cursor-not-allowed');
+                els.btnSend.classList.remove('bg-green-600', 'hover:bg-green-700');
+                els.btnSend.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span class="font-bold text-lg">${t('statusSent')}</span>
+                    </div>
+                    <span class="text-xs text-white opacity-80">${t('statusSentDesc')}</span>
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                els.sendStatus.textContent = t('statusError') + error.message;
+                els.sendStatus.classList.remove('text-slate-500');
+                els.sendStatus.classList.add('text-red-600');
+                els.btnSend.disabled = false;
+                els.btnSend.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+
+        // --- CSV保存 ---
+        function downloadCSV() {
+            const now = new Date().toLocaleString(currentLang === 'ja' ? 'ja-JP' : 'en-US');
+            let csvContent = "\ufeff"; 
+            
+            const l = (k) => currentLang === 'ja' ? k : k; 
+
+            csvContent += `Experiment,Articulatory Suppression Task (2x2)\n`;
+            csvContent += `Date,${now}\n`;
+            csvContent += `ID,"${state.participant.name}"\n`;
+            csvContent += `Age,"${state.participant.age}"\n`;
+            csvContent += `Memo,"${state.participant.memo}"\n\n`;
+            
+            csvContent += `Block,Condition,Length,Sequence,Response,Result\n`;
+            
+            state.history.forEach((h, i) => {
+                const condStr = h.type === 'control' ? 'Control' : 'Suppression';
+                const resStr = h.isCorrect ? '1' : '0'; 
+                csvContent += `${h.blockId},${condStr},${h.length},"${h.sequence}","${h.response}",${resStr}\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `memory_suppression_${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        els.userInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+
+    </script>
+</body>
+</html>

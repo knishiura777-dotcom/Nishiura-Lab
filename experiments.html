@@ -6,52 +6,82 @@
     <title>Psychology Experiments Library | Nishiura Lab</title>
     <meta name="description" content="西浦和樹研究室が提供するWebベースの心理学基礎実験アプリケーション集。">
     
+    <!-- Fonts: Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Noto Sans JP"', 'sans-serif'],
-                        serif: ['"Noto Serif JP"', 'serif'],
-                        english: ['"Cinzel"', 'serif'],
-                        inter: ['"Inter"', 'sans-serif'],
+                        sans: ['"Inter"', '"Noto Sans JP"', 'sans-serif'],
+                        serif: ['"Cinzel"', '"Noto Serif JP"', 'serif'],
+                        body: ['"Noto Sans JP"', 'sans-serif'],
                     },
+                    colors: {
+                        brand: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            500: '#4f46e5', // Indigo
+                            900: '#102a43', // Deep Navy
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
+                    }
                 }
             }
         }
     </script>
     
+    <!-- React & Babel -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/framer-motion@10.16.4/dist/framer-motion.js"></script>
     
     <style>
         body {
-            background-color: #f8fafc;
-            color: #1e293b;
-            overflow-x: hidden;
+            background-color: #fcfcfc; /* Slightly off-white */
+            color: #334155;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .animate-fade-up {
+            opacity: 0;
+            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -60,225 +90,609 @@
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
-        const { motion, AnimatePresence } = window.Motion;
 
-        // --- Icons ---
-        const IconBase = ({ size = 24, className = "", children, ...props }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>{children}</svg>
+        // --- Icons (Lucide-like SVG) ---
+        const Icon = ({ path, size = 20, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {path}
+            </svg>
         );
-        const ArrowLeft = (props) => (<IconBase {...props}><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></IconBase>);
-        const Search = (props) => (<IconBase {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></IconBase>);
-        const Play = (props) => (<IconBase {...props}><polygon points="5 3 19 12 5 21 5 3"/></IconBase>);
-        const Clock = (props) => (<IconBase {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></IconBase>);
-        const Activity = (props) => (<IconBase {...props}><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></IconBase>);
-        const Brain = (props) => (<IconBase {...props}><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></IconBase>);
-        const Eye = (props) => (<IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></IconBase>);
-        const Database = (props) => (<IconBase {...props}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></IconBase>);
+
+        const icons = {
+            arrowLeft: <><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>,
+            search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
+            play: <><polygon points="5 3 19 12 5 21 5 3"/></>,
+            clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+            activity: <><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></>,
+            brain: <><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></>,
+            eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+            database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
+            users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+            smile: <><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></>,
+            map: <><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></>,
+            check: <><polyline points="20 6 9 17 4 12"/></>,
+            globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+            alert: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+            monitor: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></>,
+            zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>
+        };
+
+        // --- Translations ---
+        const translations = {
+            ja: {
+                backToLab: "ラボに戻る",
+                libraryTitle: "心理学実験ライブラリ",
+                heroTitle: "心を探求する",
+                heroDesc: "教育心理学・認知心理学の基礎的な現象を体験・学習できるWebアプリケーション集です。\nブラウザ上で手軽に実験を行い、データの収集と分析のプロセスを学ぶことができます。",
+                searchPlaceholder: "実験を検索...",
+                filterAll: "すべて",
+                startBtn: "開始",
+                comingSoon: "準備中",
+                alertMsg: "現在準備中です。公開をお待ちください。",
+                footerRights: "Nishiura Laboratory. All rights reserved.",
+                footerPrivacy: "プライバシー",
+                footerTerms: "利用規約",
+                footerContact: "お問い合わせ",
+                cat_Cognition: "認知",
+                cat_Memory: "記憶",
+                cat_Attention: "注意",
+                cat_Perception: "知覚",
+                cat_Spatial: "空間",
+                cat_Inhibition: "抑制",
+                cat_Social: "社会",
+                cat_ProblemSolving: "問題解決",
+                diff_Easy: "初級",
+                diff_Medium: "中級",
+                diff_Hard: "上級",
+                // Precautions Section
+                precautionTitle: "実験をする前の注意事項",
+                precautionSubtitle: "データの信頼性を高めるための技術的チェック",
+                prec_screen_title: "高精細の画面提示を実現するには",
+                prec_screen_desc: "リフレッシュレートやフレームタイミングのズレは、視覚実験の精度に大きく影響します。実験前にディスプレイのパフォーマンスを確認してください。",
+                prec_screen_link: "フレームレート計測ツール",
+                prec_input_title: "反応時間を正確に測定するには",
+                prec_input_desc: "キーボードやブラウザの入力遅延（Input Lag）は、反応時間(RT)データのノイズ源となります。ご自身の環境の応答速度を把握しておきましょう。",
+                prec_input_link: "キー入力応答計測ツール",
+            },
+            en: {
+                backToLab: "Back to Lab",
+                libraryTitle: "Experiment Library",
+                heroTitle: "Explore the Mind",
+                heroDesc: "A collection of web applications for experiencing and learning fundamental phenomena in educational and cognitive psychology. Easily conduct experiments in your browser and learn the process of data collection and analysis.",
+                searchPlaceholder: "Search experiments...",
+                filterAll: "All",
+                startBtn: "Start",
+                comingSoon: "Coming Soon",
+                alertMsg: "Currently under preparation. Please wait for the release.",
+                footerRights: "Nishiura Laboratory. All rights reserved.",
+                footerPrivacy: "Privacy",
+                footerTerms: "Terms",
+                footerContact: "Contact",
+                cat_Cognition: "Cognition",
+                cat_Memory: "Memory",
+                cat_Attention: "Attention",
+                cat_Perception: "Perception",
+                cat_Spatial: "Spatial",
+                cat_Inhibition: "Inhibition",
+                cat_Social: "Social",
+                cat_ProblemSolving: "Problem Solving",
+                diff_Easy: "Easy",
+                diff_Medium: "Medium",
+                diff_Hard: "Hard",
+                // Precautions Section
+                precautionTitle: "Precautions before Experiment",
+                precautionSubtitle: "Technical checks to improve data reliability",
+                prec_screen_title: "Achieving High-Definition Screen Presentation",
+                prec_screen_desc: "Refresh rates and frame timing discrepancies significantly affect visual experiment accuracy. Check display performance before experimenting.",
+                prec_screen_link: "Frame Timing Diagnostics",
+                prec_input_title: "Measuring Reaction Time Accurately",
+                prec_input_desc: "Keyboard and browser input lag introduce noise into Reaction Time (RT) data. Understand your environment's response speed.",
+                prec_input_link: "Key Response Benchmark",
+            },
+            se: {
+                backToLab: "Tillbaka till labbet",
+                libraryTitle: "Experimentbibliotek",
+                heroTitle: "Utforska sinnet",
+                heroDesc: "En samling webbapplikationer för att uppleva och lära sig grundläggande fenomen inom pedagogisk och kognitiv psykologi. Genomför enkelt experiment i din webbläsare och lär dig processen för datainsamling och analys.",
+                searchPlaceholder: "Sök experiment...",
+                filterAll: "Alla",
+                startBtn: "Starta",
+                comingSoon: "Kommer snart",
+                alertMsg: "För närvarande under förberedelse. Vänligen vänta på lanseringen.",
+                footerRights: "Nishiura Laboratory. Med ensamrätt.",
+                footerPrivacy: "Integritet",
+                footerTerms: "Villkor",
+                footerContact: "Kontakt",
+                cat_Cognition: "Kognition",
+                cat_Memory: "Minne",
+                cat_Attention: "Uppmärksamhet",
+                cat_Perception: "Perception",
+                cat_Spatial: "Spatial",
+                cat_Inhibition: "Inhibition",
+                cat_Social: "Social",
+                cat_ProblemSolving: "Problemlösning",
+                diff_Easy: "Lätt",
+                diff_Medium: "Medium",
+                diff_Hard: "Svår",
+                // Precautions Section
+                precautionTitle: "Försiktighetsåtgärder före experiment",
+                precautionSubtitle: "Tekniska kontroller för att förbättra datatillförlitligheten",
+                prec_screen_title: "Uppnå högupplöst skärmpresentation",
+                prec_screen_desc: "Uppdateringsfrekvenser och bildruteavvikelser påverkar noggrannheten i visuella experiment avsevärt. Kontrollera skärmens prestanda före experiment.",
+                prec_screen_link: "Diagnostik av Bildtider",
+                prec_input_title: "Mäta reaktionstid noggrant",
+                prec_input_desc: "Tangentbords- och webbläsarfördröjning introducerar brus i reaktionstidsdata (RT). Förstå din miljös svarshastighet.",
+                prec_input_link: "Key Response Benchmark",
+            }
+        };
 
         // --- Data ---
-        const experiments = [
-            { id: 1, title: "Stroop Task", category: "Cognition", duration: "3-5 min", difficulty: "Easy", description: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。選択的注意と認知的葛藤を評価する古典的な課題です。", icon: Brain, link: "./StroopTask_common_template_v2.html" },
-            { id: 2, title: "Mental Rotation", category: "Spatial", duration: "5-10 min", difficulty: "Medium", description: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", icon: Activity },
-            { id: 3, title: "Visual Search", category: "Attention", duration: "3-5 min", difficulty: "Easy", description: "多数の妨害刺激の中からターゲット刺激を見つける課題。特徴探索と結合探索の違いを体験します。", icon: Eye },
-            { id: 4, title: "Short-term Memory", category: "Memory", duration: "2-4 min", difficulty: "Easy", description: "数字や文字の系列を再生し、マジカルナンバー（7±2）などの短期記憶容量を測定します。", icon: Database },
-            { id: 5, title: "Go/No-Go Task", category: "Inhibition", duration: "4-6 min", difficulty: "Medium", description: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。実行機能の抑制制御を測定します。", icon: Activity },
-            { id: 6, title: "N-back Task", category: "Memory", duration: "5-8 min", difficulty: "Hard", description: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", icon: Brain },
+        const experimentsData = [
+            { 
+                id: 1, 
+                title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" },
+                category: "cat_Cognition", 
+                duration: "3-5 min", 
+                difficulty: "diff_Easy", 
+                description: {
+                    ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。",
+                    en: "Measures the 'Stroop effect,' where reaction time is delayed when the color and the meaning of the text contradict each other.",
+                    se: "Mäter 'Stroop-effekten', där reaktionstiden fördröjs när färgen och textens betydelse motsäger varandra."
+                },
+                icon: "brain", 
+                link: "./Exp_Stroop.html" 
+            },
+            { 
+                id: 2, 
+                title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" },
+                category: "cat_Spatial", 
+                duration: "5-10 min", 
+                difficulty: "diff_Medium", 
+                description: {
+                    ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。",
+                    en: "A task to identify if presented objects are the same by rotation. Measures spatial representation manipulation ability.",
+                    se: "En uppgift för att identifiera om presenterade objekt är desamma genom rotation. Mäter förmågan att manipulera spatiala representationer."
+                },
+                icon: "activity", 
+                link: "./Exp_Mental_rotation.html" 
+            },
+            { 
+                id: 7, 
+                title: { ja: "ミュラー・リヤー錯視", en: "Müller-Lyer Illusion", se: "Müller-Lyer-illusion" },
+                category: "cat_Perception", 
+                duration: "2-3 min", 
+                difficulty: "diff_Easy", 
+                description: {
+                    ja: "矢羽の向きによって線の長さが異なって見える錯視量を調整法を用いて定量的に測定します。",
+                    en: "Quantitatively measures the amount of illusion where line lengths appear different depending on the direction of arrowheads using the adjustment method.",
+                    se: "Mäter kvantitativt mängden illusion där linjelängder verkar olika beroende på pilspetsarnas riktning med justeringsmetoden."
+                },
+                icon: "eye", 
+                link: "./Exp_Muller-Lyer_illusion.html" 
+            },
+            { 
+                id: 4, 
+                title: { ja: "短期記憶 (Digit Span)", en: "Short-term Memory", se: "Korttidsminne" },
+                category: "cat_Memory", 
+                duration: "2-4 min", 
+                difficulty: "diff_Easy", 
+                description: {
+                    ja: "数字や文字の系列を再生し、マジカルナンバー（7±2）などの短期記憶容量を測定します。",
+                    en: "Reproduces sequences of numbers or letters to measure short-term memory capacity, such as the magical number (7±2).",
+                    se: "Återger sekvenser av siffror eller bokstäver för att mäta korttidsminneskapaciteten, såsom det magiska talet (7±2)."
+                },
+                icon: "database", 
+                link: "./Exp_Short_term_memory.html" 
+            },
+            { 
+                id: 9, 
+                title: { ja: "チェンジ・ブラインドネス", en: "Change Blindness", se: "Förändringsblindhet" },
+                category: "cat_Perception", 
+                duration: "5-8 min", 
+                difficulty: "diff_Hard", 
+                description: {
+                    ja: "画像の大きな変化であっても、瞬きや画面切り替えの間に起こると気づかない現象を体験します。",
+                    en: "Experience the phenomenon where large changes in images go unnoticed if they occur during a blink or screen transition.",
+                    se: "Upplev fenomenet där stora förändringar i bilder går obemärkta förbi om de inträffar under en blinkning eller skärmövergång."
+                },
+                icon: "eye", 
+                link: "./Exp_Change_blindness.html" 
+            },
+            { 
+                id: 10, 
+                title: { ja: "ポズナーの手がかり課題", en: "Posner Cueing", se: "Posner Cueing" },
+                category: "cat_Attention", 
+                duration: "4-7 min", 
+                difficulty: "diff_Medium", 
+                description: {
+                    ja: "手がかり刺激（Cue）が注意の移動に与える促進・抑制効果を測定する空間的注意の実験です。",
+                    en: "A spatial attention experiment measuring the facilitation and inhibition effects of cue stimuli on attentional shifts.",
+                    se: "Ett experiment om spatial uppmärksamhet som mäter underlättande och hämmande effekter av ledtrådsstimuli på uppmärksamhetsförskjutningar."
+                },
+                icon: "activity", 
+                link: "./Exp_Posner.html" 
+            },
+            { 
+                id: 11, 
+                title: { ja: "アッシュの同調実験", en: "Asch Conformity", se: "Asch Konformitet" },
+                category: "cat_Social", 
+                duration: "5-10 min", 
+                difficulty: "diff_Easy", 
+                description: {
+                    ja: "集団圧力によって個人の判断が歪められる同調現象を体験する実験です。",
+                    en: "An experiment to experience the conformity phenomenon where individual judgment is distorted by group pressure.",
+                    se: "Ett experiment för att uppleva konformitetsfenomenet där individuella bedömningar snedvrids av grupptryck."
+                },
+                icon: "users", 
+                link: "./Exp_Ash_conformity.html" 
+            },
+            { 
+                id: 12, 
+                title: { ja: "表情認知", en: "Face Recognition", se: "Ansiktsigenkänning" },
+                category: "cat_Cognition", 
+                duration: "3-5 min", 
+                difficulty: "diff_Medium", 
+                description: {
+                    ja: "表情認知における倒立効果や提示時間の影響を検討します。",
+                    en: "Examines the inversion effect and the influence of presentation time in facial expression recognition.",
+                    se: "Undersöker inversionseffekten och inverkan av presentationstid vid igenkänning av ansiktsuttryck."
+                },
+                icon: "smile", 
+                link: "./Exp_Face_recognition.html" 
+            },
+            { 
+                id: 13, 
+                title: { ja: "ホビットとオーク", en: "Hobbits and Orcs", se: "Hobbitar och Orcher" },
+                category: "cat_ProblemSolving", 
+                duration: "5-15 min", 
+                difficulty: "diff_Hard", 
+                description: {
+                    ja: "川渡り問題を用いた問題解決プロセスの実験。手段目標分析などの思考過程を体験します。",
+                    en: "An experiment on problem-solving processes using the river crossing problem. Experience thought processes such as means-ends analysis.",
+                    se: "Ett experiment om problemlösningsprocesser med hjälp av flodövergångsproblemet. Upplev tankeprocesser som medel-mål-analys."
+                },
+                icon: "map", 
+                link: "./Exp_Hobit_and orc.html" 
+            },
+            { 
+                id: 6, 
+                title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" },
+                category: "cat_Memory", 
+                duration: "5-8 min", 
+                difficulty: "diff_Hard", 
+                description: {
+                    ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。",
+                    en: "A task to respond when the stimulus matches the one N steps back. A high-load experiment measuring working memory updating function.",
+                    se: "En uppgift att svara när stimulit matchar det som var N steg tillbaka. Ett experiment med hög belastning som mäter arbetsminnets uppdateringsfunktion."
+                },
+                icon: "brain", 
+                link: "./Exp_Working_memory.html" 
+            },
             
-            // Link updated to point to the correct file
-            { id: 7, title: "Müller-Lyer Illusion", category: "Perception", duration: "2-3 min", difficulty: "Easy", description: "矢羽の向きによって線の長さが異なって見える錯視量を調整法を用いて定量的に測定します。", icon: Eye, link: "./Muller-Lyer_Illusion.html" },
-            
-            { id: 8, title: "Simon Task", category: "Cognition", duration: "4-6 min", difficulty: "Medium", description: "刺激の位置と反応キーの位置関係が反応時間に与える影響（サイモン効果）を検証します。", icon: Brain },
-            { id: 9, title: "Change Blindness", category: "Perception", duration: "5-8 min", difficulty: "Hard", description: "画像の大きな変化であっても、瞬きや画面切り替えの間に起こると気づかない現象を体験します。", icon: Eye },
-            { id: 10, title: "Posner Cueing", category: "Attention", duration: "4-7 min", difficulty: "Medium", description: "手がかり刺激（Cue）が注意の移動に与える促進・抑制効果を測定する空間的注意の実験です。", icon: Activity, link: "./Posner_Experiment_v1.html" },
+            // Placeholder (No Links)
+            { 
+                id: 3, 
+                title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" },
+                category: "cat_Attention", 
+                duration: "3-5 min", 
+                difficulty: "diff_Easy", 
+                description: {
+                    ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。特徴探索と結合探索の違いを体験します。",
+                    en: "A task to find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.",
+                    se: "En uppgift att hitta ett målstimulus bland många distraktorer. Upplev skillnaden mellan egenskapssökning och konjunktionssökning."
+                },
+                icon: "eye" 
+            },
+            { 
+                id: 5, 
+                title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" },
+                category: "cat_Inhibition", 
+                duration: "4-6 min", 
+                difficulty: "diff_Medium", 
+                description: {
+                    ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。実行機能の抑制制御を測定します。",
+                    en: "A task to respond to specific stimuli and inhibit response to others. Measures inhibitory control of executive function.",
+                    se: "En uppgift att svara på specifika stimuli och hämma svar på andra. Mäter hämmande kontroll av exekutiv funktion."
+                },
+                icon: "activity" 
+            },
         ];
 
-        const categories = ["All", "Cognition", "Memory", "Attention", "Perception", "Spatial", "Inhibition"];
+        const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
 
         // --- Components ---
         const FilterTab = ({ label, active, onClick }) => (
             <button 
                 onClick={onClick}
-                className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider transition-all duration-300 ${
+                className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 border ${
                     active 
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
-                    : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-100'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+                    : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
                 }`}
             >
                 {label}
             </button>
         );
 
-        const ExperimentCard = ({ data }) => {
-            const Icon = data.icon;
+        const ExperimentCard = ({ data, index, lang, t }) => {
+            const delayStyle = { animationDelay: `${index * 0.05}s` };
             
-            // クリック時のハンドラ
-            const handleClick = () => {
-                if (data.link) {
-                    window.location.href = data.link;
-                } else {
-                    alert('この実験は現在準備中です。');
-                }
-            };
+            // Common inner content
+            const content = (
+                <>
+                    {/* Top Section with Icon & Category */}
+                    <div className="flex justify-between items-start mb-6">
+                        <div className={`p-3 rounded-xl transition-colors duration-500 ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
+                            <Icon path={icons[data.icon]} size={28} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
+                            {t[data.category]}
+                        </span>
+                    </div>
 
-            return (
-                <motion.div
-                    layout
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    whileHover={{ y: -5 }}
-                    onClick={handleClick} // カード全体をクリック可能に
-                    className="bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl hover:border-indigo-100 transition-all duration-300 flex flex-col h-full group cursor-pointer"
-                >
-                    <div className="h-32 bg-slate-50 relative overflow-hidden flex items-center justify-center">
-                        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '12px 12px' }}></div>
-                        <Icon size={48} className="text-indigo-200 group-hover:text-indigo-600 group-hover:scale-110 transition-all duration-500" />
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest text-indigo-600 shadow-sm">
-                            {data.category}
+                    {/* Content */}
+                    <div className="flex-grow">
+                        <h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">
+                            {data.title[lang]}
+                        </h3>
+                        <p className="text-sm text-slate-500 leading-relaxed font-body mb-6 line-clamp-3 whitespace-pre-wrap">
+                            {data.description[lang]}
+                        </p>
+                    </div>
+
+                    {/* Metadata & Action */}
+                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1.5">
+                                <Icon path={icons.clock} size={14} />
+                                {data.duration}
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <Icon path={icons.activity} size={14} />
+                                {t[data.difficulty]}
+                            </span>
+                        </div>
+                        
+                        <div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>
+                            {t.startBtn} <Icon path={icons.play} size={10} className="fill-current" />
                         </div>
                     </div>
                     
-                    <div className="p-6 flex flex-col flex-grow">
-                        <h3 className="text-xl font-bold text-slate-900 mb-3 font-serif group-hover:text-indigo-700 transition-colors">{data.title}</h3>
-                        <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow">
-                            {data.description}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 text-xs text-slate-400 mb-6 border-t border-slate-50 pt-4">
-                            <div className="flex items-center gap-1">
-                                <Clock size={14} />
-                                <span>{data.duration}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                <Activity size={14} />
-                                <span>{data.difficulty}</span>
-                            </div>
-                        </div>
+                    {/* Interactive Border Bottom */}
+                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
+                </>
+            );
 
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); handleClick(); }} // 親へのバブリングを止める（念のため）
-                            className="w-full py-3 bg-slate-900 text-white rounded-lg font-bold text-xs tracking-widest uppercase hover:bg-indigo-600 transition-colors flex items-center justify-center gap-2 group-hover:shadow-lg group-hover:shadow-indigo-200"
-                        >
-                            <Play size={14} className="fill-current" /> Start Experiment
-                        </button>
-                    </div>
-                </motion.div>
+            // Conditional Rendering based on link presence
+            if (data.link) {
+                return (
+                    <a 
+                        href={data.link} 
+                        style={delayStyle}
+                        className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left"
+                    >
+                        {content}
+                    </a>
+                );
+            }
+
+            return (
+                <div 
+                    style={delayStyle}
+                    onClick={() => alert(t.alertMsg)}
+                    className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left"
+                >
+                    {content}
+                </div>
             );
         };
+
+        const TechCheck = ({ t }) => (
+            <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
+                    <div className="mb-4">
+                        <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2">
+                            <Icon path={icons.alert} size={20} className="text-slate-500" />
+                            {t.precautionTitle}
+                        </h3>
+                        <p className="text-xs text-slate-500">{t.precautionSubtitle}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="./Frame_rate_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition">
+                                    <Icon path={icons.monitor} size={20} />
+                                </span>
+                                <Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-indigo-500 transition" />
+                            </div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-700 transition">{t.prec_screen_title}</h4>
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_screen_desc}</p>
+                            <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">
+                                {t.prec_screen_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" />
+                            </span>
+                        </a>
+
+                        <a href="./Key_response_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition">
+                                    <Icon path={icons.zap} size={20} />
+                                </span>
+                                <Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-emerald-500 transition" />
+                            </div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-emerald-700 transition">{t.prec_input_title}</h4>
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_input_desc}</p>
+                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                                {t.prec_input_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" />
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const LanguageSwitcher = ({ currentLang, setLang }) => (
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
+                <button 
+                    onClick={() => setLang('en')} 
+                    className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}
+                >
+                    EN
+                </button>
+                <span className="text-slate-300">|</span>
+                <button 
+                    onClick={() => setLang('ja')} 
+                    className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}
+                >
+                    JP
+                </button>
+                <span className="text-slate-300">|</span>
+                <button 
+                    onClick={() => setLang('se')} 
+                    className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}
+                >
+                    SE
+                </button>
+            </div>
+        );
 
         function ExperimentLibrary() {
             const [activeCategory, setActiveCategory] = useState("All");
             const [searchQuery, setSearchQuery] = useState("");
+            const [lang, setLang] = useState("en"); // Default to English initially
+
+            // Initialize Language based on browser
+            useEffect(() => {
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('ja')) {
+                    setLang('ja');
+                } else if (browserLang.startsWith('sv')) {
+                    setLang('se');
+                } else {
+                    setLang('en');
+                }
+            }, []);
+
+            const t = translations[lang];
 
             const filteredExperiments = useMemo(() => {
-                return experiments.filter(exp => {
+                return experimentsData.filter(exp => {
                     const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
-                    const matchesSearch = exp.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                          exp.description.toLowerCase().includes(searchQuery.toLowerCase());
-                    return matchesCategory && matchesSearch;
+                    // Search in current language
+                    const titleMatch = exp.title[lang].toLowerCase().includes(searchQuery.toLowerCase());
+                    const descMatch = exp.description[lang].toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchesCategory && (titleMatch || descMatch);
                 });
-            }, [activeCategory, searchQuery]);
+            }, [activeCategory, searchQuery, lang]);
+
+            // Update HTML lang attribute
+            useEffect(() => {
+                document.documentElement.lang = lang === 'se' ? 'sv' : lang;
+            }, [lang]);
 
             return (
-                <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 pb-20">
+                <div className="min-h-screen pb-24 font-sans">
                     
                     {/* Header */}
-                    <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
+                    <header className="glass sticky top-0 z-50 transition-all duration-300">
                         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                            <a href="./index.html" className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors group">
-                                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                                    <ArrowLeft size={16} />
+                            <a href="./index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
+                                <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white">
+                                    <Icon path={icons.arrowLeft} size={14} />
                                 </div>
-                                <span className="text-xs font-bold tracking-widest uppercase hidden sm:inline">Back to Lab</span>
+                                <span className="text-xs font-bold tracking-widest uppercase font-serif">Nishiura Lab.</span>
                             </a>
                             
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold serif">N</div>
-                                <span className="text-lg font-bold serif tracking-wider text-slate-900">
-                                    Experiment Library
-                                </span>
+                            <div className="flex items-center gap-6">
+                                <h1 className="text-sm font-serif font-bold tracking-wider text-slate-900 hidden sm:block">
+                                    {t.libraryTitle.toUpperCase()}
+                                </h1>
+                                <LanguageSwitcher currentLang={lang} setLang={setLang} />
                             </div>
-                            
-                            <div className="w-8"></div> {/* Spacer for centering */}
                         </div>
                     </header>
 
-                    {/* Hero Area */}
-                    <div className="bg-white border-b border-slate-100 pb-12 px-6 pt-4"> 
+                    {/* Hero Section */}
+                    <section className="relative px-6 py-20 md:py-28 bg-white border-b border-slate-100">
                         <div className="max-w-4xl mx-auto text-center">
-                            <motion.h1 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-4xl md:text-5xl font-serif text-slate-900 mb-6"
-                            >
-                                Explore the Mind
-                            </motion.h1>
-                            <motion.p 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.1 }}
-                                className="text-slate-500 leading-relaxed max-w-2xl mx-auto mb-10"
-                            >
-                                教育心理学・認知心理学の基礎的な現象を体験・学習できるWebアプリケーション集です。<br/>
-                                ブラウザ上で手軽に実験を行い、データの収集と分析のプロセスを学ぶことができます。
-                            </motion.p>
+                            <span className="block text-indigo-600 text-xs font-bold tracking-[0.2em] uppercase mb-6 animate-fade-up">Web-based Psychology Experiments</span>
+                            <h2 className="text-5xl md:text-7xl font-serif text-slate-900 mb-8 leading-tight animate-fade-up" style={{animationDelay: '0.1s'}}>
+                                {lang === 'ja' ? t.heroTitle : <>Explore the <span className="italic font-light text-slate-400">Mind</span></>}
+                                {lang === 'se' && t.heroTitle}
+                            </h2>
+                            <p className="text-slate-500 leading-loose max-w-xl mx-auto mb-12 font-body animate-fade-up whitespace-pre-wrap" style={{animationDelay: '0.2s'}}>
+                                {t.heroDesc}
+                            </p>
 
-                            {/* Search & Filter Controls */}
-                            <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                                <div className="relative w-full max-w-xs">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                    <input 
-                                        type="text" 
-                                        placeholder="Search experiments..." 
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 rounded-full border border-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all text-sm"
+                            {/* Search Bar */}
+                            <div className="relative max-w-md mx-auto mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
+                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400">
+                                    <Icon path={icons.search} size={18} />
+                                </div>
+                                <input 
+                                    type="text" 
+                                    placeholder={t.searchPlaceholder}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-12 pr-6 py-4 bg-slate-50 border border-transparent hover:border-slate-200 focus:border-indigo-500 focus:ring-0 focus:bg-white rounded-full text-sm outline-none transition-all shadow-sm"
+                                />
+                            </div>
+
+                            {/* Categories */}
+                            <div className="flex flex-wrap justify-center gap-2 animate-fade-up" style={{animationDelay: '0.4s'}}>
+                                <FilterTab 
+                                    label={t.filterAll} 
+                                    active={activeCategory === "All"} 
+                                    onClick={() => setActiveCategory("All")} 
+                                />
+                                {categoriesList.map(catKey => (
+                                    <FilterTab 
+                                        key={catKey} 
+                                        label={t[catKey]} 
+                                        active={activeCategory === catKey} 
+                                        onClick={() => setActiveCategory(catKey)} 
                                     />
-                                </div>
-                                
-                                <div className="flex flex-wrap justify-center gap-2">
-                                    {categories.map(cat => (
-                                        <FilterTab 
-                                            key={cat} 
-                                            label={cat} 
-                                            active={activeCategory === cat} 
-                                            onClick={() => setActiveCategory(cat)} 
-                                        />
-                                    ))}
-                                </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    {/* Grid Content */}
-                    <div className="max-w-7xl mx-auto px-6 py-12">
-                        <motion.div 
-                            layout
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                        >
-                            <AnimatePresence>
-                                {filteredExperiments.map(exp => (
-                                    <ExperimentCard key={exp.id} data={exp} />
-                                ))}
-                            </AnimatePresence>
-                        </motion.div>
+                    {/* New Precautions Section */}
+                    <TechCheck t={t} />
+
+                    {/* Grid Section */}
+                    <section className="max-w-7xl mx-auto px-6 py-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {filteredExperiments.map((exp, index) => (
+                                <ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} />
+                            ))}
+                        </div>
 
                         {filteredExperiments.length === 0 && (
-                            <div className="text-center py-20 text-slate-400">
-                                <p>No experiments found matching your criteria.</p>
+                            <div className="text-center py-32 animate-fade-in">
+                                <div className="inline-block p-4 rounded-full bg-slate-50 text-slate-300 mb-4">
+                                    <Icon path={icons.search} size={32} />
+                                </div>
+                                <p className="text-slate-500 font-medium">No experiments found.</p>
                                 <button 
                                     onClick={() => {setActiveCategory("All"); setSearchQuery("");}}
-                                    className="mt-4 text-indigo-600 text-sm hover:underline"
+                                    className="mt-4 text-indigo-600 text-sm hover:text-indigo-800 font-bold underline underline-offset-4"
                                 >
-                                    Clear filters
+                                    View all experiments
                                 </button>
                             </div>
                         )}
-                    </div>
+                    </section>
 
                     {/* Footer */}
-                    <footer className="text-center text-slate-400 text-xs py-12 border-t border-slate-200 bg-white">
-                        <p>&copy; {new Date().getFullYear()} Nishiura Laboratory. All experiments are for educational purposes.</p>
+                    <footer className="max-w-7xl mx-auto px-6 pt-12 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center text-xs text-slate-400 font-sans">
+                        <p>&copy; {new Date().getFullYear()} {t.footerRights}</p>
+                        <div className="flex gap-6 mt-4 md:mt-0">
+                            <a href="#" className="hover:text-slate-600 transition-colors">{t.footerPrivacy}</a>
+                            <a href="#" className="hover:text-slate-600 transition-colors">{t.footerTerms}</a>
+                            <a href="mailto:nishiura@mgu.ac.jp" className="hover:text-slate-600 transition-colors">{t.footerContact}</a>
+                        </div>
                     </footer>
 
                 </div>

@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホビットとオークの実験</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Babel Standalone (JSX変換用) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        /* アニメーション定義 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* スクロールバーのカスタマイズ（任意） */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        // React & ReactDOM from esm.sh
+        import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+        import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+        
+        // Icons from lucide-react via esm.sh
+        import { 
+            User, Skull, RotateCcw, HelpCircle, Info, ChevronRight, ChevronLeft, Ship, 
+            ClipboardList, Copy, FileText, X, Download, Globe, Save, Settings, 
+            Database, Cloud, FileJson, Play, Code, Check, LogOut, ArrowLeft, Loader 
+        } from 'https://esm.sh/lucide-react@0.263.1';
+
+        // Firebase SDK
+        import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+        import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+        // GASサンプルコード
+        const gasSampleCode = `function doPost(e) {
+  // スプレッドシートを取得
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  
+  // 送信されたデータをパース
+  // text/plainで送られてくるため、postData.contentsをそのままパース
+  var data = JSON.parse(e.postData.contents);
+  
+  // ヘッダー行がない場合は作成
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["Timestamp", "ParticipantID", "Date", "MoveCount", "LastAction", "FullLog_JSON"]);
+  }
+  
+  // 履歴から最終状態を取得
+  var moveCount = 0;
+  var lastAction = "";
+  if (data.history && data.history.length > 0) {
+    var lastEntry = data.history[data.history.length - 1];
+    moveCount = lastEntry.moveCount;
+    lastAction = lastEntry.action; // クライアント側で翻訳済みのテキストが送られてくる想定
+  }
+
+  // 行を追加
+  sheet.appendRow([
+    new Date(),               // 受信時刻
+    data.participantId,       // 被験者ID
+    data.date,                // 実験日時
+    moveCount,                // 総手数
+    lastAction,               // 最終行動
+    JSON.stringify(data.history) // 行動履歴の生JSON
+  ]);
+  
+  // レスポンスを返す
+  return ContentService.createTextOutput(JSON.stringify({status: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+        // 翻訳データ
+        const translations = {
+            ja: {
+                title: "ホビットとオークの実験",
+                subtitle: "認知心理学：問題解決の思考実験",
+                rulesBtn: "ルール",
+                bgBtn: "背景",
+                logBtn: "実験ログ",
+                finishBtn: "実験終了してログ保存",
+                resetBtn: "リセット",
+                settingsBtn: "設定",
+                startBtn: "実験開始",
+                backBtn: "戻る",
+                rulesTitle: "ルール",
+                rulesList: [
+                "ホビット3人とオーク3人を全員、左岸から右岸へ移動させてください。",
+                "ボートには一度に2人まで乗れます。操縦には最低1人必要です。",
+                "重要：どちらの岸でも、オークの数がホビットの数を上回ってはいけません（ホビットが0人の場合は安全）。",
+                "もしオークの方が多くなると、ホビットは食べられてしまいゲームオーバーです。"
+                ],
+                logTitle: "行動履歴",
+                copyCsv: "CSVをコピー",
+                saveCsv: "CSVを保存",
+                sendGas: "GASへ送信",
+                saveFirebase: "Firebaseへ保存",
+                sending: "送信中...",
+                copySuccess: "ログをクリップボードにコピーしました",
+                copyFail: "コピーに失敗しました",
+                saveSuccess: "保存/送信に成功しました",
+                saveFail: "保存/送信に失敗しました: ",
+                savePrompt: "実験を終了しました。表示された行動履歴のボタンからデータを保存してください。",
+                tableHeader: ["#", "Action", "左 (H/O)", "右 (H/O)", "船 (H/O)"],
+                noHistory: "履歴なし",
+                status_initial: "全員を右岸へ移動させてください。",
+                status_won: "クリアおめでとうございます！ 手数: {count}",
+                status_lost: "ゲームオーバー！ オークがホビットを襲ってしまいました。",
+                err_boatFull: "ボートはいっぱいです。",
+                err_needsDriver: "ボートを動かすには最低1人の乗船が必要です。",
+                leftBank: "左岸 (Start)",
+                rightBank: "右岸 (Goal)",
+                boatBtn_right: "右岸へ進む",
+                boatBtn_left: "左岸へ戻る",
+                hobbit: "ホビット",
+                orc: "オーク",
+                hobbit_short: "H",
+                orc_short: "O",
+                boatLabel: "BOAT",
+                emptySeat: "空席",
+                psyTitle: "心理学的背景：手段目標分析と「迂回」",
+                psyIntro: "このパズルは、認知心理学において「問題空間探索」や「手段目標分析 (Means-Ends Analysis)」の限界を示すためによく引用されます。",
+                psyWhyDiffTitle: "なぜ難しいのか？",
+                psyWhyDiffText: "人間の一般的な問題解決方略は「現在の状態とゴールとの差を縮める」ことです。しかし、この問題には「一度ゴールから遠ざかる（人数を減らすために戻る）」必要があるステップが存在します。これは「山登り法（常にゴールに近づく手を選ぶ）」という直感的な戦略に反するため、多くの人がそこで行き詰まります。",
+                psyLearnTitle: "学習と転移",
+                psyLearnText: "この問題を解いた後に類似の問題（例：嫉妬深い夫の問題）を行うと、解く速度が上がることが知られています（類推転移）。このアプリを通じて、「一旦後退することが前進に必要」という複雑な問題解決の構造を体験できます。",
+                action_moveRight: "ボート移動 (左→右)",
+                action_moveLeft: "ボート移動 (右→左)",
+                action_boardLeft: "左岸から乗船 ({char})",
+                action_boardRight: "右岸から乗船 ({char})",
+                action_disembarkLeft: "左岸へ下船 ({char})",
+                action_disembarkRight: "右岸へ下船 ({char})",
+                moves: "手数",
+                log_gameover: "ゲームオーバー",
+                log_clear: "クリア達成",
+                participantId: "被験者ID (任意)",
+                initialScreenTitle: "実験準備",
+                settingsTitle: "実験設定",
+                saveMethod: "保存方法",
+                methodCsv: "CSV",
+                methodGas: "GAS (Web App)",
+                methodFirebase: "Firebase",
+                gasUrlPlaceholder: "https://script.google.com/macros/s/.../exec",
+                firebaseConfigPlaceholder: "Firebase Config JSONを入力...",
+                saveSettings: "設定を保存",
+                settingsSaved: "設定を保存しました",
+                gasSampleLabel: "デプロイ用サンプルコード",
+                copyCode: "コードをコピー",
+                codeCopied: "コードをコピーしました！",
+                exitToTitle: "初期画面へ戻る"
+            },
+            en: {
+                title: "Hobbits and Orcs Experiment",
+                subtitle: "Cognitive Psychology: Problem Solving Task",
+                rulesBtn: "Rules",
+                bgBtn: "Background",
+                logBtn: "Log",
+                finishBtn: "End & Save",
+                resetBtn: "Reset",
+                settingsBtn: "Settings",
+                startBtn: "Start Experiment",
+                backBtn: "Back",
+                rulesTitle: "Rules",
+                rulesList: [
+                "Move all 3 Hobbits and 3 Orcs from the left bank to the right bank.",
+                "The boat can carry up to 2 characters. At least 1 person is needed to row.",
+                "IMPORTANT: Orcs must never outnumber Hobbits on either bank (unless there are 0 Hobbits).",
+                "If Orcs outnumber Hobbits, the Hobbits will be eaten and it's Game Over."
+                ],
+                logTitle: "Action History",
+                copyCsv: "Copy CSV",
+                saveCsv: "Save CSV",
+                sendGas: "Send to GAS",
+                saveFirebase: "Save to Firebase",
+                sending: "Sending...",
+                copySuccess: "Log copied to clipboard",
+                copyFail: "Failed to copy",
+                saveSuccess: "Saved/Sent successfully",
+                saveFail: "Failed to save/send: ",
+                savePrompt: "Experiment ended. Please save data using the buttons in the Action History.",
+                tableHeader: ["#", "Action", "L (H/O)", "R (H/O)", "B (H/O)"],
+                noHistory: "No history",
+                status_initial: "Move everyone to the right bank.",
+                status_won: "Congratulations! Moves: {count}",
+                status_lost: "Game Over! The Orcs attacked the Hobbits.",
+                err_boatFull: "The boat is full.",
+                err_needsDriver: "At least one person must be in the boat to move it.",
+                leftBank: "Left Bank (Start)",
+                rightBank: "Right Bank (Goal)",
+                boatBtn_right: "Move to Right",
+                boatBtn_left: "Move to Left",
+                hobbit: "Hobbit",
+                orc: "Orc",
+                hobbit_short: "H",
+                orc_short: "O",
+                boatLabel: "BOAT",
+                emptySeat: "Empty",
+                psyTitle: "Psychological Background: Means-Ends Analysis",
+                psyIntro: "This puzzle is often used in cognitive psychology to demonstrate 'Problem Space Search' and the limitations of 'Means-Ends Analysis'.",
+                psyWhyDiffTitle: "Why is it difficult?",
+                psyWhyDiffText: "A common human problem-solving strategy is to reduce the difference between the current state and the goal. However, this problem requires steps where you must 'move away from the goal' (taking people back). This contradicts the intuitive 'Hill Climbing' strategy (always choosing moves that get closer to the goal), causing many to get stuck.",
+                psyLearnTitle: "Learning and Transfer",
+                psyLearnText: "Solving this problem is known to improve speed on similar problems (e.g., the Jealous Husbands problem) through analogical transfer. Through this app, you can experience a complex problem structure where 'stepping back is necessary to move forward'.",
+                action_moveRight: "Boat Move (L->R)",
+                action_moveLeft: "Boat Move (R->L)",
+                action_boardLeft: "Board from Left ({char})",
+                action_boardRight: "Board from Right ({char})",
+                action_disembarkLeft: "Disembark to Left ({char})",
+                action_disembarkRight: "Disembark to Right ({char})",
+                moves: "Moves",
+                log_gameover: "Game Over",
+                log_clear: "Level Cleared",
+                participantId: "Participant ID (Optional)",
+                initialScreenTitle: "Experiment Setup",
+                settingsTitle: "Settings",
+                saveMethod: "Save Method",
+                methodCsv: "CSV",
+                methodGas: "GAS (Web App)",
+                methodFirebase: "Firebase",
+                gasUrlPlaceholder: "https://script.google.com/macros/s/.../exec",
+                firebaseConfigPlaceholder: "Enter Firebase Config JSON...",
+                saveSettings: "Save Settings",
+                settingsSaved: "Settings saved",
+                gasSampleLabel: "Sample Code for Deployment",
+                copyCode: "Copy Code",
+                codeCopied: "Code copied!",
+                exitToTitle: "Back to Title"
+            },
+            sv: {
+                title: "Hobbitar och Orcher",
+                subtitle: "Kognitiv psykologi: Problemlösning",
+                rulesBtn: "Regler",
+                bgBtn: "Bakgrund",
+                logBtn: "Logg",
+                finishBtn: "Avsluta & Spara",
+                resetBtn: "Återställ",
+                settingsBtn: "Inställningar",
+                startBtn: "Starta Experiment",
+                backBtn: "Tillbaka",
+                rulesTitle: "Regler",
+                rulesList: [
+                "Flytta alla 3 Hobbitar och 3 Orcher från vänster strand till höger strand.",
+                "Båten kan bära upp till 2 karaktärer. Minst 1 person krävs för att ro.",
+                "VIKTIGT: Orcher får aldrig vara fler än Hobbitar på någon strand (om det inte finns 0 Hobbitar).",
+                "Om Orcher är fler än Hobbitar blir Hobbitarna uppätna och spelet är över."
+                ],
+                logTitle: "Handlingshistorik",
+                copyCsv: "Kopiera CSV",
+                saveCsv: "Spara CSV",
+                sendGas: "Skicka till GAS",
+                saveFirebase: "Spara till Firebase",
+                sending: "Skickar...",
+                copySuccess: "Loggen kopierades till urklipp",
+                copyFail: "Kopiering misslyckades",
+                saveSuccess: "Sparad/Skickad lyckades",
+                saveFail: "Sparad/Skickad misslyckades: ",
+                savePrompt: "Experiment avslutat. Spara data med knapparna i handlingshistoriken.",
+                tableHeader: ["#", "Handling", "V (H/O)", "H (H/O)", "B (H/O)"],
+                noHistory: "Ingen historik",
+                status_initial: "Flytta alla till höger strand.",
+                status_won: "Grattis! Drag: {count}",
+                status_lost: "Game Over! Orcherna attackerade Hobbitarna.",
+                err_boatFull: "Båten är full.",
+                err_needsDriver: "Minst en person måste vara i båten för att ro.",
+                leftBank: "Vänster Strand (Start)",
+                rightBank: "Höger Strand (Mål)",
+                boatBtn_right: "Ro till Höger",
+                boatBtn_left: "Ro till Vänster",
+                hobbit: "Hobbit",
+                orc: "Orch",
+                hobbit_short: "H",
+                orc_short: "O",
+                boatLabel: "BÅT",
+                emptySeat: "Tom",
+                psyTitle: "Psykologisk Bakgrund: Medel-mål-analys",
+                psyIntro: "Detta pussel används ofta inom kognitiv psykologi för att demonstrera 'sökning i problemrymden' och begränsningarna med 'Medel-mål-analys'.",
+                psyWhyDiffTitle: "Varför är det svårt?",
+                psyWhyDiffText: "En vanlig strategi för problemlösning är att minska skillnaden mellan nuvarande tillstånd och målet. Men detta problem kräver steg där du måste 'röra dig bort från målet' (ta tillbaka folk). Detta strider mot den intuitiva 'Hill Climbing'-strategin (att alltid välja drag som kommer närmare målet), vilket gör att många fastnar.",
+                psyLearnTitle: "Inlärning och Transfer",
+                psyLearnText: "Att lösa detta problem är känt för att förbättra hastigheten på liknande problem (t.ex. problemet med svartsjuka makar) genom analogisk transfer. Genom denna app kan du uppleva en komplex problemstruktur där 'ett steg bakåt är nödvändigt för att komma framåt'.",
+                action_moveRight: "Båtflytt (V->H)",
+                action_moveLeft: "Båtflytt (H->V)",
+                action_boardLeft: "Gå ombord från V ({char})",
+                action_boardRight: "Gå ombord från H ({char})",
+                action_disembarkLeft: "Gå iland till V ({char})",
+                action_disembarkRight: "Gå iland till H ({char})",
+                moves: "Drag",
+                log_gameover: "Game Over",
+                log_clear: "Nivå Klarad",
+                participantId: "Deltagar-ID (Valfritt)",
+                initialScreenTitle: "Experimentförberedelse",
+                settingsTitle: "Inställningar",
+                saveMethod: "Sparmetod",
+                methodCsv: "CSV",
+                methodGas: "GAS (Web App)",
+                methodFirebase: "Firebase",
+                gasUrlPlaceholder: "Ange GAS Web App URL...",
+                firebaseConfigPlaceholder: "Ange Firebase Config JSON...",
+                saveSettings: "Spara Inställningar",
+                settingsSaved: "Inställningar sparade",
+                gasSampleLabel: "Exempelkod för Deployment",
+                copyCode: "Kopiera Kod",
+                codeCopied: "Koden kopierad!",
+                exitToTitle: "Tillbaks till Titel"
+            }
+        };
+
+        const HobbitsAndOrcs = () => {
+            // 言語設定 ('ja', 'en', 'sv')
+            const [language, setLanguage] = useState('ja');
+            
+            // 画面管理 ('initial', 'playing', 'settings')
+            const [screen, setScreen] = useState('initial');
+            const [previousScreen, setPreviousScreen] = useState('initial');
+
+            // 設定管理
+            const [participantId, setParticipantId] = useState('');
+            const [saveConfig, setSaveConfig] = useState({
+                method: 'csv', // 'csv', 'gas', 'firebase'
+                gasUrl: '',
+                firebaseConfig: ''
+            });
+
+            // ゲームの状態管理
+            const [leftBank, setLeftBank] = useState({ hobbits: 3, orcs: 3 });
+            const [rightBank, setRightBank] = useState({ hobbits: 0, orcs: 0 });
+            const [boat, setBoat] = useState({ hobbits: 0, orcs: 0 });
+            const [boatPosition, setBoatPosition] = useState('left'); 
+            
+            // メッセージ管理
+            const [messageKey, setMessageKey] = useState('status_initial');
+            const [messageParams, setMessageParams] = useState({});
+            const [tempMessage, setTempMessage] = useState(null);
+            
+            // 保存中のローディング状態
+            const [isSaving, setIsSaving] = useState(false);
+
+            const [gameState, setGameState] = useState('playing'); // 'playing', 'won', 'lost'
+            const [moveCount, setMoveCount] = useState(0);
+            const [showRules, setShowRules] = useState(false);
+            const [showPsychology, setShowPsychology] = useState(false);
+            
+            // ログ管理
+            const [history, setHistory] = useState([]);
+            const [showLog, setShowLog] = useState(false);
+
+            // 翻訳ヘルパー
+            const t = (key, params = {}) => {
+                let text = translations[language][key] || key;
+                Object.keys(params).forEach(param => {
+                text = text.replace(`{${param}}`, params[param]);
+                });
+                return text;
+            };
+
+            // パラメータ自体も翻訳するアクション解決ヘルパー
+            const resolveAction = (key, params) => {
+                const translatedParams = { ...params };
+                // 'char'パラメータがある場合、それを現在の言語設定で翻訳する
+                if (translatedParams.char) {
+                translatedParams.char = t(translatedParams.char);
+                }
+                return t(key, translatedParams);
+            };
+
+            // UI用: 短いキャラ名取得 (ボタン等)
+            const getCharShortName = (type) => t(type === 'hobbits' ? 'hobbit_short' : 'orc_short');
+
+            const displayMessage = () => {
+                if (tempMessage) return t(tempMessage);
+                return t(messageKey, messageParams);
+            };
+
+            const setTemporaryMessage = (key, msg = "") => {
+                if (msg) {
+                    setTempMessage(msg);
+                } else {
+                    setTempMessage(key);
+                }
+                setTimeout(() => {
+                setTempMessage(null);
+                }, 4000);
+            };
+
+            // 初期化
+            const resetGame = () => {
+                setLeftBank({ hobbits: 3, orcs: 3 });
+                setRightBank({ hobbits: 0, orcs: 0 });
+                setBoat({ hobbits: 0, orcs: 0 });
+                setBoatPosition('left');
+                setMessageKey('status_initial');
+                setMessageParams({});
+                setTempMessage(null);
+                setGameState('playing');
+                setMoveCount(0);
+                setHistory([]);
+                setScreen('playing');
+            };
+
+            // タイトル画面へ戻る処理（完全リセット）
+            const exitToTitle = () => {
+                setLeftBank({ hobbits: 3, orcs: 3 });
+                setRightBank({ hobbits: 0, orcs: 0 });
+                setBoat({ hobbits: 0, orcs: 0 });
+                setBoatPosition('left');
+                setMessageKey('status_initial');
+                setMessageParams({});
+                setTempMessage(null);
+                setGameState('playing');
+                setMoveCount(0);
+                setHistory([]);
+                setParticipantId(''); // IDリセット
+                setShowLog(false);
+                setScreen('initial');
+            };
+
+            // 実験終了・ログ保存画面へ誘導
+            const finishExperiment = () => {
+                setShowLog(true);
+                setTemporaryMessage('savePrompt');
+            };
+
+            // ゲーム開始
+            const startGame = () => {
+                resetGame();
+            };
+
+            // 設定画面へ
+            const openSettings = () => {
+                setPreviousScreen(screen);
+                setScreen('settings');
+            };
+
+            // 設定保存して戻る
+            const saveSettingsAndBack = () => {
+                setTemporaryMessage('settingsSaved');
+                setScreen(previousScreen);
+            };
+
+            // ゲームオーバー判定
+            useEffect(() => {
+                if (gameState !== 'playing') return;
+
+                const checkSafety = (h, o) => {
+                if (h > 0 && o > h) return false;
+                return true;
+                };
+
+                const leftSafe = checkSafety(leftBank.hobbits, leftBank.orcs);
+                const rightSafe = checkSafety(rightBank.hobbits, rightBank.orcs);
+
+                if (!leftSafe || !rightSafe) {
+                setGameState('lost');
+                setMessageKey('status_lost');
+                addLog('log_gameover', {}, { leftBank, rightBank, boat, boatPosition, moveCount });
+                } else if (rightBank.hobbits === 3 && rightBank.orcs === 3 && boat.hobbits === 0 && boat.orcs === 0) {
+                setGameState('won');
+                setMessageKey('status_won');
+                setMessageParams({ count: moveCount });
+                addLog('log_clear', {}, { leftBank, rightBank, boat, boatPosition, moveCount });
+                }
+            }, [leftBank, rightBank, gameState, moveCount, boat]); 
+
+            // ログ記録用関数
+            const addLog = (key, params, newState) => {
+                setHistory(prev => {
+                    // 重複チェック
+                    if (prev.length > 0 && prev[prev.length - 1].actionKey === key && prev[prev.length - 1].moveCount === newState.moveCount) {
+                        return prev;
+                    }
+
+                    const timestamp = new Date().toLocaleTimeString();
+                    return [...prev, {
+                        id: prev.length + 1,
+                        time: timestamp,
+                        moveCount: newState.moveCount,
+                        actionKey: key,       // 翻訳キーを保存
+                        actionParams: params, // パラメータを保存
+                        left: { ...newState.leftBank },
+                        right: { ...newState.rightBank },
+                        boat: { ...newState.boat },
+                        boatPosition: newState.boatPosition
+                    }];
+                });
+            };
+
+            // データエクスポート用に現在の言語で履歴データを変換するヘルパー
+            const getExportData = () => {
+                return history.map(log => ({
+                    ...log,
+                    action: resolveAction(log.actionKey, log.actionParams) // 現在の言語でAction列を生成
+                }));
+            };
+
+            // CSVデータ生成
+            const generateCSV = () => {
+                const metaData = `ParticipantID,${participantId}\nDate,${new Date().toLocaleString()}\nMethod,${saveConfig.method}\n\n`;
+                const header = `Time,MoveCount,Action,Left_Hobbits,Left_Orcs,Right_Hobbits,Right_Orcs,Boat_Hobbits,Boat_Orcs,Boat_Position\n`;
+                
+                const exportHistory = getExportData();
+                const rows = exportHistory.map(row => 
+                `${row.time},${row.moveCount},"${row.action}",${row.left.hobbits},${row.left.orcs},${row.right.hobbits},${row.right.orcs},${row.boat.hobbits},${row.boat.orcs},${row.boatPosition}`
+                ).join("\n");
+                return metaData + header + rows;
+            };
+            
+            const copyLogToClipboard = () => {
+                const csvContent = generateCSV();
+                const textArea = document.createElement("textarea");
+                textArea.value = csvContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                document.execCommand('copy');
+                setTemporaryMessage('copySuccess');
+                } catch (err) {
+                setTemporaryMessage('copyFail');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            const downloadLogAsCSV = () => {
+                const csvContent = generateCSV();
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                const dateStr = new Date().toISOString().slice(0,19).replace(/T|:/g, '-');
+                const pId = participantId ? `_${participantId}` : '';
+                link.setAttribute('download', `hobbits_orcs${pId}_${dateStr}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTemporaryMessage('saveSuccess');
+            };
+
+            // GASへの送信
+            const sendToGAS = async () => {
+                if (!saveConfig.gasUrl) {
+                setTemporaryMessage('', "Error: GAS URL not configured");
+                return;
+                }
+                
+                setIsSaving(true); 
+
+                try {
+                const payload = {
+                    participantId,
+                    date: new Date().toISOString(),
+                    history: getExportData() // 翻訳済みの履歴データを送信
+                };
+                
+                await fetch(saveConfig.gasUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain' 
+                    },
+                    body: JSON.stringify(payload)
+                });
+                setTemporaryMessage('saveSuccess');
+                } catch (error) {
+                console.error(error);
+                setTemporaryMessage('saveFail', `Error: ${error.message}`);
+                } finally {
+                setIsSaving(false);
+                }
+            };
+
+            // Firebaseへの保存
+            const saveToFirebase = async () => {
+                if (!saveConfig.firebaseConfig) {
+                    setTemporaryMessage('', "Error: Firebase Config not set");
+                    return;
+                }
+                
+                setIsSaving(true);
+
+                try {
+                    const firebaseConfig = JSON.parse(saveConfig.firebaseConfig);
+                    
+                    let app;
+                    if (getApps().length === 0) {
+                        app = initializeApp(firebaseConfig);
+                    } else {
+                        app = getApp(); 
+                    }
+
+                    const db = getFirestore(app);
+                    
+                    await addDoc(collection(db, "experiments"), {
+                        participantId,
+                        date: new Date().toISOString(),
+                        history: getExportData(), // 翻訳済みの履歴データを保存
+                        result: gameState,
+                        totalMoves: moveCount
+                    });
+                    
+                    setTemporaryMessage('saveSuccess');
+                } catch (error) {
+                    console.error(error);
+                    setTemporaryMessage('saveFail', `Error: ${error.message}`);
+                } finally {
+                    setIsSaving(false);
+                }
+            };
+
+            // 保存実行ハンドラ
+            const executeSave = () => {
+                if (saveConfig.method === 'csv') {
+                    downloadLogAsCSV();
+                } else if (saveConfig.method === 'gas') {
+                    sendToGAS();
+                } else if (saveConfig.method === 'firebase') {
+                    saveToFirebase();
+                }
+            };
+
+            const copyGasSample = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = gasSampleCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                document.execCommand('copy');
+                setTemporaryMessage('codeCopied');
+                } catch (err) {
+                setTemporaryMessage('copyFail');
+                }
+                document.body.removeChild(textArea);
+            };
+
+            // キャラクター移動
+            const moveCharacter = (type, direction) => {
+                if (gameState !== 'playing') return;
+
+                const nextLeft = { ...leftBank };
+                const nextRight = { ...rightBank };
+                const nextBoat = { ...boat };
+                
+                const isLeft = boatPosition === 'left';
+                let actionKey = "";
+                
+                // パラメータとして「翻訳キー」を渡す ('hobbit' または 'orc')
+                let charKey = type === 'hobbits' ? 'hobbit' : 'orc';
+                let actionParams = { char: charKey };
+
+                if (direction === 'toBoat') {
+                if (nextBoat.hobbits + nextBoat.orcs >= 2) {
+                    setTemporaryMessage('err_boatFull');
+                    return;
+                }
+                
+                if (isLeft && nextLeft[type] > 0) {
+                    nextLeft[type]--;
+                    nextBoat[type]++;
+                    actionKey = 'action_boardLeft';
+                } else if (!isLeft && nextRight[type] > 0) {
+                    nextRight[type]--;
+                    nextBoat[type]++;
+                    actionKey = 'action_boardRight';
+                } else {
+                    return; 
+                }
+                } else {
+                if (nextBoat[type] > 0) {
+                    nextBoat[type]--;
+                    if (isLeft) {
+                    nextLeft[type]++;
+                    actionKey = 'action_disembarkLeft';
+                    } else {
+                    nextRight[type]++;
+                    actionKey = 'action_disembarkRight';
+                    }
+                } else {
+                    return;
+                }
+                }
+
+                setLeftBank(nextLeft);
+                setRightBank(nextRight);
+                setBoat(nextBoat);
+                setTempMessage(null); 
+
+                addLog(actionKey, actionParams, {
+                leftBank: nextLeft,
+                rightBank: nextRight,
+                boat: nextBoat,
+                boatPosition: boatPosition,
+                moveCount: moveCount
+                });
+            };
+
+            // ボート移動
+            const moveBoat = () => {
+                if (gameState !== 'playing') return;
+
+                const totalOnBoat = boat.hobbits + boat.orcs;
+                if (totalOnBoat === 0) {
+                setTemporaryMessage('err_needsDriver');
+                return;
+                }
+
+                const nextPosition = boatPosition === 'left' ? 'right' : 'left';
+                const nextMoveCount = moveCount + 1;
+                const actionKey = boatPosition === 'left' ? 'action_moveRight' : 'action_moveLeft';
+
+                setBoatPosition(nextPosition);
+                setMoveCount(nextMoveCount);
+                setTempMessage(null);
+
+                addLog(actionKey, {}, {
+                leftBank: leftBank,
+                rightBank: rightBank,
+                boat: boat,
+                boatPosition: nextPosition, 
+                moveCount: nextMoveCount
+                });
+            };
+
+            const changeLanguage = (lang) => {
+                setLanguage(lang);
+            };
+
+            const CharacterIcon = ({ type, count, onClick }) => {
+                const icons = [];
+                for (let i = 0; i < count; i++) {
+                icons.push(
+                    <div 
+                    key={`${type}-${i}`} 
+                    onClick={onClick}
+                    className={`
+                        cursor-pointer transition-all duration-300 transform hover:scale-110 active:scale-95
+                        flex flex-col items-center justify-center m-1 p-2 rounded-lg shadow-sm
+                        ${type === 'hobbits' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}
+                        border-2
+                    `}
+                    >
+                    {type === 'hobbits' ? <User size={24} /> : <Skull size={24} />}
+                    <span className="text-xs font-bold mt-1">{getCharShortName(type)}</span>
+                    </div>
+                );
+                }
+                return <div className="flex flex-wrap justify-center min-h-[60px]">{icons}</div>;
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
+                
+                {/* 画面コンテナ：初期画面 */}
+                {screen === 'initial' && (
+                    <div className="flex items-center justify-center min-h-[80vh] animate-fadeIn">
+                    <div className="bg-white max-w-md w-full rounded-xl shadow-xl p-8 space-y-8">
+                        <div className="text-center space-y-2">
+                        <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Ship className="text-blue-600" size={32} />
+                        </div>
+                        <h1 className="text-2xl font-bold text-slate-800">{t('title')}</h1>
+                        <p className="text-slate-500">{t('initialScreenTitle')}</p>
+                        </div>
+
+                        <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            {t('participantId')}
+                            </label>
+                            <input
+                            type="text"
+                            value={participantId}
+                            onChange={(e) => setParticipantId(e.target.value)}
+                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            placeholder="ID12345"
+                            />
+                        </div>
+                        
+                        <button
+                            onClick={startGame}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition transform hover:scale-105"
+                        >
+                            <Play size={20} /> {t('startBtn')}
+                        </button>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+                        <button
+                            onClick={openSettings}
+                            className="text-slate-500 hover:text-slate-800 flex items-center gap-1 text-sm"
+                        >
+                            <Settings size={16} /> {t('settingsBtn')}
+                        </button>
+                        <div className="flex gap-2">
+                            {['ja', 'en', 'sv'].map(lang => (
+                                <button 
+                                    key={lang}
+                                    onClick={() => changeLanguage(lang)}
+                                    className={`text-xs px-2 py-1 rounded ${language === lang ? 'bg-slate-200 font-bold' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {lang.toUpperCase()}
+                                </button>
+                            ))}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                )}
+
+                {/* 画面コンテナ：設定画面 */}
+                {screen === 'settings' && (
+                    <div className="flex items-center justify-center min-h-[80vh] animate-fadeIn">
+                    <div className="bg-white max-w-lg w-full rounded-xl shadow-xl p-8 space-y-6 max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+                        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <Settings size={24} className="text-slate-500" />
+                            {t('settingsTitle')}
+                        </h2>
+                        <button onClick={saveSettingsAndBack} className="text-slate-400 hover:text-slate-600">
+                            <X size={24} />
+                        </button>
+                        </div>
+                        
+                        {tempMessage && (
+                        <div className="bg-blue-100 text-blue-700 px-4 py-2 rounded mb-4 text-center text-sm font-bold flex items-center justify-center gap-2">
+                            {tempMessage === 'codeCopied' ? <Check size={16} /> : <Info size={16} />}
+                            {t(tempMessage)}
+                        </div>
+                        )}
+
+                        <div className="space-y-4">
+                        <label className="block text-sm font-medium text-slate-700">{t('saveMethod')}</label>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <button
+                                onClick={() => setSaveConfig({ ...saveConfig, method: 'csv' })}
+                                className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition h-24 ${
+                                    saveConfig.method === 'csv' ? 'border-blue-500 bg-blue-50 text-blue-700 ring-1 ring-blue-500' : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                }`}
+                            >
+                                <Download size={24} className="mb-1"/>
+                                <div className="text-center leading-tight">
+                                    <div className="font-bold text-xs">{t('methodCsv')}</div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setSaveConfig({ ...saveConfig, method: 'gas' })}
+                                className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition h-24 ${
+                                    saveConfig.method === 'gas' ? 'border-green-500 bg-green-50 text-green-700 ring-1 ring-green-500' : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                }`}
+                            >
+                                <FileJson size={24} className="mb-1"/>
+                                <div className="text-center leading-tight">
+                                    <div className="font-bold text-xs">{t('methodGas')}</div>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setSaveConfig({ ...saveConfig, method: 'firebase' })}
+                                className={`p-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition h-24 ${
+                                    saveConfig.method === 'firebase' ? 'border-orange-500 bg-orange-50 text-orange-700 ring-1 ring-orange-500' : 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                                }`}
+                            >
+                                <Database size={24} className="mb-1"/>
+                                <div className="text-center leading-tight">
+                                    <div className="font-bold text-xs">{t('methodFirebase')}</div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                            {saveConfig.method === 'gas' && (
+                                <div className="animate-fadeIn space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-green-700 mb-1">GAS URL</label>
+                                        <input
+                                            type="text"
+                                            value={saveConfig.gasUrl}
+                                            onChange={(e) => setSaveConfig({...saveConfig, gasUrl: e.target.value.trim()})}
+                                            placeholder={t('gasUrlPlaceholder')}
+                                            className="w-full px-3 py-2 text-sm border border-slate-300 rounded focus:ring-1 focus:ring-green-500 outline-none"
+                                        />
+                                        <p className="text-xs text-red-500 mt-1 font-bold">
+                                            重要：デプロイ時の「アクセスできるユーザー」を「全員 (Anyone)」に設定してください。
+                                        </p>
+                                        <p className="text-xs text-slate-400 mt-1">
+                                            * '/exec' で終わるURLを入力してください。<br/>
+                                            * CORS制限回避のため 'no-cors' モードで送信されます。
+                                        </p>
+                                    </div>
+                                    
+                                    <div className="bg-slate-50 p-3 rounded border border-slate-200">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="text-xs font-bold text-slate-600 flex items-center gap-1">
+                                                <Code size={12}/> {t('gasSampleLabel')}
+                                            </label>
+                                            <button 
+                                            onClick={copyGasSample} 
+                                            className="text-xs bg-white border border-slate-300 px-2 py-1 rounded hover:bg-slate-100 flex items-center gap-1 transition active:scale-95"
+                                            >
+                                                {tempMessage === 'codeCopied' ? <Check size={12} className="text-green-600"/> : <Copy size={12}/>}
+                                                {tempMessage === 'codeCopied' ? <span className="text-green-600 font-bold">{t('codeCopied')}</span> : t('copyCode')}
+                                            </button>
+                                        </div>
+                                        <pre className="text-[10px] bg-slate-800 text-slate-300 p-2 rounded overflow-x-auto whitespace-pre-wrap font-mono h-32">
+                                            {gasSampleCode}
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
+
+                            {saveConfig.method === 'firebase' && (
+                                <div className="animate-fadeIn">
+                                    <label className="block text-xs font-bold text-orange-700 mb-1">Firebase Config (JSON)</label>
+                                    <textarea
+                                        value={saveConfig.firebaseConfig}
+                                        onChange={(e) => setSaveConfig({...saveConfig, firebaseConfig: e.target.value})}
+                                        placeholder={t('firebaseConfigPlaceholder')}
+                                        className="w-full h-32 px-3 py-2 text-xs font-mono border border-slate-300 rounded focus:ring-1 focus:ring-orange-500 outline-none"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        </div>
+
+                        <div className="pt-4">
+                        <button
+                            onClick={saveSettingsAndBack}
+                            className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg transition"
+                        >
+                            {t('saveSettings')}
+                        </button>
+                        </div>
+                    </div>
+                    </div>
+                )}
+
+                {/* 画面コンテナ：ゲーム本編 */}
+                {screen === 'playing' && (
+                    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-xl overflow-hidden animate-fadeIn">
+                    
+                    <header className="bg-slate-800 text-white p-6 flex justify-between items-center flex-wrap gap-4">
+                        <div>
+                        <h1 className="text-2xl font-bold flex items-center gap-2">
+                            <Ship className="text-blue-300" />
+                            {t('title')}
+                        </h1>
+                        <div className="flex gap-2 items-center mt-1">
+                            <p className="text-slate-400 text-sm">{t('subtitle')}</p>
+                            {participantId && (
+                                <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-blue-200">ID: {participantId}</span>
+                            )}
+                        </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex bg-slate-700 rounded p-1 gap-1">
+                            {['ja', 'en', 'sv'].map(lang => (
+                                <button 
+                                    key={lang}
+                                    onClick={() => changeLanguage(lang)}
+                                    className={`px-2 py-1 text-xs rounded transition ${language === lang ? 'bg-blue-500 text-white font-bold' : 'text-slate-300 hover:text-white'}`}
+                                >
+                                    {lang === 'ja' ? '日本語' : lang === 'en' ? 'English' : 'Svenska'}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-2 flex-wrap justify-end">
+                            <button 
+                            onClick={() => setShowRules(!showRules)}
+                            className="flex items-center gap-1 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded text-sm transition"
+                            >
+                            <HelpCircle size={16} /> {t('rulesBtn')}
+                            </button>
+                            <button 
+                            onClick={() => setShowPsychology(!showPsychology)}
+                            className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm transition"
+                            >
+                            <Info size={16} /> {t('bgBtn')}
+                            </button>
+                            <button 
+                            onClick={() => setShowLog(!showLog)}
+                            className={`flex items-center gap-1 px-3 py-2 rounded text-sm transition ${showLog ? 'bg-teal-600 text-white' : 'bg-teal-700 hover:bg-teal-600'}`}
+                            >
+                            <ClipboardList size={16} /> {t('logBtn')}
+                            </button>
+                        </div>
+                        </div>
+                    </header>
+
+                    {showRules && (
+                        <div className="bg-yellow-50 p-4 border-b border-yellow-100 animate-fadeIn">
+                        <h3 className="font-bold text-yellow-800 mb-2">{t('rulesTitle')}</h3>
+                        <ul className="list-disc list-inside text-sm text-yellow-900 space-y-1">
+                            {translations[language].rulesList.map((rule, idx) => (
+                            <li key={idx}>{rule}</li>
+                            ))}
+                        </ul>
+                        </div>
+                    )}
+
+                    {showLog && (
+                        <div className="bg-slate-100 p-4 border-b border-slate-200 animate-fadeIn max-h-96 overflow-hidden flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                            <h3 className="font-bold text-slate-700 flex items-center gap-2"><FileText size={16}/> {t('logTitle')}</h3>
+                            <div className="flex gap-2 flex-wrap justify-end">
+                            <button onClick={copyLogToClipboard} className="text-xs bg-white border border-slate-300 px-2 py-1 rounded flex items-center gap-1 hover:bg-slate-50">
+                                <Copy size={12}/> {t('copyCsv')}
+                            </button>
+                            
+                            <button 
+                                onClick={executeSave} 
+                                disabled={isSaving}
+                                className={`text-xs px-3 py-1 rounded flex items-center gap-1 text-white font-bold shadow-sm transition-all
+                                    ${isSaving ? 'bg-slate-400 cursor-not-allowed' :
+                                        saveConfig.method === 'csv' ? 'bg-blue-600 hover:bg-blue-500' :
+                                        saveConfig.method === 'gas' ? 'bg-green-600 hover:bg-green-500' :
+                                        'bg-orange-600 hover:bg-orange-500'}
+                                `}
+                            >
+                                {isSaving ? <Loader size={12} className="animate-spin"/> : 
+                                (saveConfig.method === 'csv' ? <Download size={12}/> : 
+                                saveConfig.method === 'gas' ? <FileJson size={12}/> : <Cloud size={12}/>)}
+                                
+                                {isSaving ? t('sending') :
+                                (saveConfig.method === 'csv' ? t('saveCsv') : 
+                                saveConfig.method === 'gas' ? t('sendGas') : t('saveFirebase'))}
+                            </button>
+
+                            <button onClick={exitToTitle} className="text-xs bg-slate-200 border border-slate-300 px-2 py-1 rounded flex items-center gap-1 hover:bg-slate-300 text-slate-700 ml-2">
+                                <LogOut size={12}/> {t('exitToTitle')}
+                            </button>
+
+                            <button onClick={() => setShowLog(false)} className="text-slate-500 hover:text-slate-800 ml-2">
+                                <X size={16}/>
+                            </button>
+                            </div>
+                        </div>
+                        
+                        <div className="mb-2 text-xs text-slate-500 font-mono bg-slate-50 p-2 rounded border border-slate-200">
+                            ID: {participantId || 'Guest'} | Method: {saveConfig.method.toUpperCase()}
+                        </div>
+
+                        <div className="overflow-y-auto bg-white rounded border border-slate-200 text-xs font-mono">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-slate-50 sticky top-0">
+                                    <tr>
+                                        {translations[language].tableHeader.map((h, i) => (
+                                            <th key={i} className={`p-2 border-b ${i > 1 ? 'text-center' : ''}`}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {history.length === 0 ? (
+                                        <tr><td colSpan="5" className="p-4 text-center text-slate-400">{t('noHistory')}</td></tr>
+                                    ) : (
+                                        history.map((log) => (
+                                            <tr key={log.id} className="border-b last:border-0 hover:bg-slate-50">
+                                                <td className="p-2 text-slate-500">{log.id}</td>
+                                                <td className="p-2">{resolveAction(log.actionKey, log.actionParams)}</td>
+                                                <td className="p-2 text-center text-slate-600">{log.left.hobbits} / {log.left.orcs}</td>
+                                                <td className="p-2 text-center text-slate-600">{log.right.hobbits} / {log.right.orcs}</td>
+                                                <td className="p-2 text-center text-slate-600">{log.boat.hobbits} / {log.boat.orcs}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                        </div>
+                    )}
+
+                    <div className="p-6">
+                        <div className="flex flex-col md:flex-row justify-between items-center mb-6 bg-slate-100 p-3 rounded-lg gap-3">
+                        <div className="font-mono text-slate-600 whitespace-nowrap">{t('moves')}: <span className="text-xl font-bold text-slate-900">{moveCount}</span></div>
+                        
+                        <div className={`text-center font-bold px-4 py-1 rounded w-full md:flex-1 mx-2 text-sm md:text-base transition-colors duration-300 ${
+                            tempMessage ? 'text-orange-600 bg-orange-100' :
+                            gameState === 'playing' ? 'text-blue-600' :
+                            gameState === 'won' ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
+                        }`}>
+                            {displayMessage()}
+                        </div>
+
+                        <div className="flex gap-2">
+                            <button 
+                            onClick={finishExperiment}
+                            className="flex items-center gap-1 bg-teal-600 hover:bg-teal-500 text-white px-3 py-2 rounded text-sm whitespace-nowrap transition shadow-sm"
+                            >
+                            <Save size={16} /> {t('finishBtn')}
+                            </button>
+                            <button 
+                            onClick={resetGame}
+                            className="flex items-center gap-1 text-slate-500 hover:text-slate-800 bg-white border border-slate-300 px-3 py-2 rounded transition text-sm whitespace-nowrap hover:bg-slate-50"
+                            >
+                            <RotateCcw size={16} /> {t('resetBtn')}
+                            </button>
+                        </div>
+                        </div>
+
+                        <div className="relative flex justify-between items-stretch h-64 md:h-80 border-2 border-slate-300 rounded-xl overflow-hidden bg-blue-50">
+                        <div className={`flex-1 p-4 flex flex-col items-center justify-start border-r-2 border-dashed border-slate-300 transition-colors ${boatPosition === 'left' ? 'bg-green-50' : 'bg-slate-100'}`}>
+                            <h3 className="font-bold text-slate-500 mb-4 text-sm md:text-base text-center">{t('leftBank')}</h3>
+                            <div className="w-full space-y-2">
+                            <CharacterIcon 
+                                type="hobbits" 
+                                count={leftBank.hobbits} 
+                                onClick={() => boatPosition === 'left' && moveCharacter('hobbits', 'toBoat')} 
+                            />
+                            <CharacterIcon 
+                                type="orcs" 
+                                count={leftBank.orcs} 
+                                onClick={() => boatPosition === 'left' && moveCharacter('orcs', 'toBoat')} 
+                            />
+                            </div>
+                        </div>
+
+                        <div className="flex-[1.5] bg-blue-400 relative flex flex-col items-center justify-center overflow-hidden">
+                            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle,_#ffffff_1px,_transparent_1px)] bg-[length:20px_20px]"></div>
+                            
+                            <div 
+                            className={`
+                                relative w-48 h-32 bg-amber-800 rounded-b-3xl rounded-t-md shadow-2xl 
+                                flex flex-col items-center justify-center border-4 border-amber-900
+                                transition-all duration-700 ease-in-out
+                                ${boatPosition === 'left' ? '-translate-x-12 md:-translate-x-24' : 'translate-x-12 md:translate-x-24'}
+                            `}
+                            >
+                            <div className="absolute -top-3 text-white text-xs font-bold bg-amber-900 px-2 rounded">{t('boatLabel')}</div>
+                            <div className="flex items-center justify-center gap-2 w-full h-full p-2">
+                                {boat.hobbits > 0 && (
+                                <CharacterIcon type="hobbits" count={boat.hobbits} onClick={() => moveCharacter('hobbits', 'toBank')} />
+                                )}
+                                {boat.orcs > 0 && (
+                                <CharacterIcon type="orcs" count={boat.orcs} onClick={() => moveCharacter('orcs', 'toBank')} />
+                                )}
+                                {boat.hobbits === 0 && boat.orcs === 0 && (
+                                <span className="text-amber-200 text-sm opacity-50">{t('emptySeat')}</span>
+                                )}
+                            </div>
+                            </div>
+
+                            <button
+                            onClick={moveBoat}
+                            disabled={gameState !== 'playing'}
+                            className={`
+                                mt-8 px-6 py-2 rounded-full font-bold shadow-lg z-10 transition-all text-sm md:text-base
+                                ${gameState !== 'playing' ? 'bg-gray-400 cursor-not-allowed' : 'bg-white hover:bg-yellow-100 text-blue-600 hover:scale-105 active:scale-95'}
+                            `}
+                            >
+                            {boatPosition === 'left' ? (
+                                <span className="flex items-center gap-1">{t('boatBtn_right')} <ChevronRight /></span>
+                            ) : (
+                                <span className="flex items-center gap-1"><ChevronLeft /> {t('boatBtn_left')}</span>
+                            )}
+                            </button>
+                        </div>
+
+                        <div className={`flex-1 p-4 flex flex-col items-center justify-start border-l-2 border-dashed border-slate-300 transition-colors ${boatPosition === 'right' ? 'bg-green-50' : 'bg-slate-100'}`}>
+                            <h3 className="font-bold text-slate-500 mb-4 text-sm md:text-base text-center">{t('rightBank')}</h3>
+                            <div className="w-full space-y-2">
+                            <CharacterIcon 
+                                type="hobbits" 
+                                count={rightBank.hobbits} 
+                                onClick={() => boatPosition === 'right' && moveCharacter('hobbits', 'toBoat')} 
+                            />
+                            <CharacterIcon 
+                                type="orcs" 
+                                count={rightBank.orcs} 
+                                onClick={() => boatPosition === 'right' && moveCharacter('orcs', 'toBoat')} 
+                            />
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+
+                    {showPsychology && (
+                        <div className="bg-indigo-50 p-6 border-t border-indigo-100 animate-slideUp">
+                        <h3 className="text-lg font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                            <Info size={20} />
+                            {t('psyTitle')}
+                        </h3>
+                        <div className="text-sm text-slate-700 space-y-3 leading-relaxed">
+                            <p>{t('psyIntro')}</p>
+                            <div className="grid md:grid-cols-2 gap-4 mt-4">
+                            <div className="bg-white p-3 rounded shadow-sm">
+                                <h4 className="font-bold text-indigo-700 mb-1">{t('psyWhyDiffTitle')}</h4>
+                                <p>{t('psyWhyDiffText')}</p>
+                            </div>
+                            <div className="bg-white p-3 rounded shadow-sm">
+                                <h4 className="font-bold text-indigo-700 mb-1">{t('psyLearnTitle')}</h4>
+                                <p>{t('psyLearnText')}</p>
+                            </div>
+                            </div>
+                        </div>
+                        </div>
+                    )}
+                    </div>
+                )}
+
+                <footer className="text-center text-slate-400 mt-8 text-sm">
+                    © 2024 Psychology Logic Lab
+                </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HobbitsAndOrcs />);
+    </script>
+</body>
+</html>

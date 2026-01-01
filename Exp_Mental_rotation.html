@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メンタルローテーション実験</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #1a1a1a; color: white; font-family: 'Helvetica Neue', Arial, sans-serif; user-select: none; -webkit-user-select: none; }
+        
+        /* 3Dキャンバス: 最背面 */
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        /* UIレイヤー: 説明文や結果表示など */
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* UIレイヤー内の操作可能な要素 */
+        .interactive { pointer-events: auto; }
+        
+        /* ボタン共通スタイル */
+        .btn {
+            background-color: #3b82f6; color: white; font-weight: bold; padding: 1rem 2rem;
+            border-radius: 0.5rem; border: none; font-size: 1.2rem; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        .btn:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.6); }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        
+        .btn-red { background-color: #ef4444; }
+        .btn-red:hover { background-color: #dc2626; }
+        
+        .btn-green { background-color: #10b981; }
+        .btn-green:hover { background-color: #059669; }
+
+        .btn-icon {
+            padding: 0.5rem; border-radius: 50%; background: transparent; border: 1px solid rgba(255,255,255,0.2);
+            color: #aaa; transition: all 0.2s;
+        }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); color: white; transform: rotate(90deg); }
+
+        /* 入力フォーム */
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        .form-label { display: block; font-size: 0.9rem; color: #aaa; margin-bottom: 0.3rem; }
+        .form-input { 
+            width: 100%; padding: 0.5rem; border-radius: 0.3rem; border: 1px solid #444; 
+            background-color: #222; color: white; font-size: 1rem; 
+        }
+        .form-select {
+            width: 100%; padding: 0.5rem; border-radius: 0.3rem; border: 1px solid #444;
+            background-color: #222; color: white; font-size: 1rem;
+        }
+
+        /* 注視点 */
+        #fixation { font-size: 4rem; font-weight: bold; color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; text-shadow: 0 0 10px black; }
+
+        /* 反応ボタンエリア: 最前面 (z-index: 20) */
+        #response-area {
+            position: absolute; bottom: 8%; left: 0; width: 100%;
+            display: none; /* JSでflexに切り替える */
+            justify-content: center; gap: 60px; 
+            z-index: 20; /* UIレイヤーより上に配置 */
+            pointer-events: auto;
+        }
+
+        /* 結果テーブル */
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-size: 0.9rem; }
+        th, td { border: 1px solid #555; padding: 8px; text-align: center; }
+        th { background-color: #333; color: #ddd; }
+        tr:nth-child(even) { background-color: #2a2a2a; }
+
+        /* 結果コンテナのスクロール */
+        .results-container {
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 100%;
+            padding-right: 10px; /* スクロールバー用余白 */
+        }
+        
+        /* スクロールバーのカスタマイズ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #333; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #777; }
+
+        /* ローディングオーバーレイ */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 50; display: none;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 4px solid #3b82f6;
+            width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* 設定モーダル */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 40;
+            display: none; justify-content: center; align-items: center;
+        }
+
+        /* スマホ向け調整 */
+        @media (max-width: 600px) {
+            .btn { padding: 0.8rem 1.5rem; font-size: 1rem; }
+            #response-area { gap: 20px; bottom: 5%; }
+            .btn-resp { width: 120px; height: 80px; font-size: 1.2rem; }
+            #start-screen, #end-screen { width: 90%; padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D描画領域 -->
+    <div id="canvas-container"></div>
+
+    <!-- UIレイヤー -->
+    <div id="ui-layer">
+        
+        <!-- スタート画面（参加者情報のみ） -->
+        <div id="start-screen" class="interactive bg-gray-900 p-8 rounded-lg shadow-2xl text-center max-w-lg border border-gray-700 w-full mx-4 relative">
+            
+            <!-- 歯車ボタン -->
+            <button class="absolute top-4 right-4 btn-icon" onclick="window.app.toggleSettings()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+
+            <h1 class="text-3xl font-bold mb-2 text-blue-400">メンタルローテーション</h1>
+            <p class="mb-4 text-gray-400 text-sm">2つの図形が「同じ（回転）」か「違う（鏡映し）」か判断してください。</p>
+            
+            <div class="bg-gray-800 p-4 rounded mb-6 text-left border border-gray-700">
+                <h3 class="text-lg font-bold mb-3 text-gray-200 border-b border-gray-600 pb-1">参加者情報</h3>
+                
+                <div class="form-group">
+                    <label class="form-label">参加者ID (Participant ID)</label>
+                    <input type="text" id="participant-id" class="form-input" placeholder="例: user001" value="test_user">
+                </div>
+
+                <!-- 年齢・性別入力 (任意) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">年齢 (任意)</label>
+                        <input type="number" id="participant-age" class="form-input" placeholder="Age" min="0" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">性別 (任意)</label>
+                        <select id="participant-gender" class="form-select">
+                            <option value="">未選択</option>
+                            <option value="male">男性</option>
+                            <option value="female">女性</option>
+                            <option value="other">その他</option>
+                            <option value="no-answer">回答しない</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn w-full" onclick="window.app.startExperiment()">実験開始</button>
+        </div>
+
+        <!-- 注視点 -->
+        <div id="fixation">+</div>
+
+        <!-- 終了画面 -->
+        <div id="end-screen" class="interactive bg-gray-900 p-8 rounded-lg shadow-2xl text-center max-w-2xl hidden border border-gray-700" style="width: 95%;">
+            <div class="results-container">
+                <h2 class="text-2xl font-bold mb-4 text-green-400">実験終了</h2>
+                <p class="mb-4 text-gray-300">お疲れ様でした。データを確認してください。</p>
+                
+                <!-- 全体サマリー -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                        <div class="text-sm text-gray-400">平均反応時間</div>
+                        <div class="text-3xl font-bold text-yellow-400" id="avg-rt">-- ms</div>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded border border-gray-700">
+                        <div class="text-sm text-gray-400">正答率</div>
+                        <div class="text-3xl font-bold text-blue-400" id="accuracy">-- %</div>
+                    </div>
+                </div>
+
+                <!-- 角度別サマリー -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold mb-2 text-left text-gray-300 border-l-4 border-blue-500 pl-3">角度別結果 (正答のみ)</h3>
+                    <table id="angle-results-table">
+                        <thead>
+                            <tr>
+                                <th>回転角度</th>
+                                <th>平均RT (ms)</th>
+                                <th>正答率 (%)</th>
+                                <th>試行数</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- 詳細データ -->
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold mb-2 text-left text-gray-300 border-l-4 border-gray-500 pl-3">詳細データ</h3>
+                    <div class="overflow-x-auto">
+                        <table id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>No.</th>
+                                    <th>角度</th>
+                                    <th>条件</th>
+                                    <th>反応</th>
+                                    <th>RT(ms)</th>
+                                    <th>正誤</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 保存アクションエリア -->
+                <div class="flex flex-col gap-4 pb-4 border-t border-gray-700 pt-6 mt-4">
+                    <h3 class="text-lg font-bold text-gray-300 mb-2 text-left">結果の保存</h3>
+                    
+                    <!-- メイン保存ボタン (設定依存) -->
+                    <button id="save-btn" class="btn btn-green w-full flex items-center justify-center gap-2" onclick="window.app.saveResults()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        <span id="save-btn-text">データを保存</span>
+                        <span id="save-mode-badge" class="bg-black bg-opacity-30 text-xs py-1 px-2 rounded ml-2">CSV</span>
+                    </button>
+
+                    <!-- サブアクション (CSVバックアップ & 再開) -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button class="btn bg-gray-700 hover:bg-gray-600 text-sm py-3 flex items-center justify-center gap-2" onclick="window.app.downloadCSV()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            CSVで保存(予備)
+                        </button>
+                        <button class="btn bg-gray-600 hover:bg-gray-500 text-sm py-3 flex items-center justify-center gap-2" onclick="location.reload()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            実験を再開
+                        </button>
+                    </div>
+                </div>
+                <div id="save-status" class="text-sm font-bold mt-2 h-6"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 設定モーダル（初期設定の移設先） -->
+    <div id="settings-modal" class="interactive" onclick="if(event.target === this) window.app.toggleSettings()">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-2xl max-w-md w-full border border-gray-600 mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 class="text-xl font-bold mb-4 text-gray-200 border-b border-gray-600 pb-2">実験パラメータ設定</h2>
+            
+            <!-- 実験計画概要 -->
+            <div class="mb-6 bg-gray-700 p-4 rounded text-sm text-gray-300 border border-gray-600">
+                <h3 class="font-bold text-white mb-2 border-b border-gray-500 pb-1">実験計画概要</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li><span class="font-bold text-blue-300">目的:</span> 心的回転能力(Mental Rotation)の測定</li>
+                    <li><span class="font-bold text-blue-300">独立変数 1:</span> 回転角度 (0, 60, 120, 180°)</li>
+                    <li><span class="font-bold text-blue-300">独立変数 2:</span> 像の異同 (正像 / 鏡像)</li>
+                    <li><span class="font-bold text-blue-300">従属変数:</span> 反応時間 (RT), 正答率</li>
+                    <li><span class="font-bold text-blue-300">手続き:</span> 2つの3次元図形が「同じ」か「違う」かを判断</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">試行回数 (Trials)</label>
+                <div class="text-xs text-gray-400 mb-1">※実験全体の繰り返し数です</div>
+                <input type="number" id="trial-input" value="10" min="5" max="50" class="form-input text-center">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">保存方法 (Storage)</label>
+                <select id="storage-mode" class="form-select" onchange="window.app.toggleGasInput()">
+                    <option value="csv">CSV (Download)</option>
+                    <option value="gas">Google Apps Script</option>
+                    <option value="firebase">Firebase (Firestore)</option>
+                </select>
+            </div>
+
+            <div id="gas-url-container" class="form-group hidden">
+                <label class="form-label">GAS Web App URL</label>
+                <input type="text" id="gas-url" class="form-input" placeholder="https://script.google.com/macros/s/..." style="font-size: 0.8rem;">
+                
+                <!-- GASスクリプト表示ボタン -->
+                <div class="mt-2 text-right">
+                    <button class="text-xs text-blue-400 hover:text-blue-300 underline" onclick="window.app.toggleGasScriptArea()">
+                        デプロイ用GASコードを表示
+                    </button>
+                </div>
+                
+                <!-- GASスクリプト表示エリア -->
+                <div id="gas-script-area-container" class="hidden mt-2">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-xs text-gray-400">スプレッドシートの「拡張機能」>「Apps Script」用</span>
+                        <button class="btn bg-gray-600 hover:bg-gray-500 text-xs py-1 px-2 border border-gray-500 rounded" onclick="window.app.copyGasScript()">Copy</button>
+                    </div>
+                    <textarea id="gas-script-code" class="w-full h-32 bg-gray-900 text-green-400 text-xs p-2 rounded border border-gray-600 font-mono" readonly>
+function doPost(e) {
+  try {
+    // 1. スプレッドシートとシートの取得
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheets()[0]; // 一番左のシートを使用
+
+    // 2. データのパース
+    var rawData = e.postData.contents;
+    var data = JSON.parse(rawData);
+
+    // 3. ヘッダー行の作成（シートが空の場合）
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        "Timestamp",
+        "ParticipantID",
+        "Age",
+        "Gender",
+        "TrialID",
+        "Angle",
+        "Axis",
+        "Condition",
+        "UserResponse",
+        "RT_ms",
+        "IsCorrect"
+      ]);
+    }
+
+    // 4. 行データの作成
+    var rows = [];
+    var commonData = [
+      data.timestamp,
+      data.participantId,
+      data.age,
+      data.gender
+    ];
+
+    data.results.forEach(function(trial) {
+      var row = commonData.concat([
+        trial.id,
+        trial.angle,
+        trial.axis,
+        trial.condition,
+        trial.response,
+        trial.rt,
+        trial.correct ? 1 : 0
+      ]);
+      rows.push(row);
+    });
+
+    // 5. データの書き込み
+    if (rows.length > 0) {
+      // 範囲を指定して一括書き込み（高速化）
+      sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+    }
+
+    // 6. レスポンスの返却
+    return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+
+  } catch (error) {
+    return ContentService.createTextOutput("Error: " + error.toString()).setMimeType(ContentService.MimeType.TEXT);
+  }
+}
+                    </textarea>
+                    <div class="text-xs text-yellow-500 mt-1 leading-relaxed">
+                        ※デプロイ時、「アクセスできるユーザー」を<strong>「全員」</strong>に設定してください。
+                    </div>
+                    <div id="gas-script-copy-status" class="text-right text-xs text-green-400 h-4 mt-1 font-bold"></div>
+                </div>
+            </div>
+            
+            <div id="firebase-status" class="text-xs text-yellow-500 mt-1 mb-4 hidden">
+                ※Firebase設定が見つかりません。CSVで保存されます。
+            </div>
+
+            <button class="btn w-full" onclick="window.app.toggleSettings()">設定を閉じる</button>
+        </div>
+    </div>
+
+    <!-- 回答ボタン（画面下部） -->
+    <div id="response-area">
+        <!-- onmousedownとontouchstart両方を設定して反応漏れを防ぐ -->
+        <button class="btn btn-red btn-resp w-40 h-24 text-2xl shadow-lg" 
+            onmousedown="window.app.recordResponse('different')" 
+            ontouchstart="window.app.recordResponse('different', event)">
+            違う
+        </button>
+        <button class="btn btn-resp w-40 h-24 text-2xl shadow-lg bg-green-500 hover:bg-green-600" 
+            onmousedown="window.app.recordResponse('same')" 
+            ontouchstart="window.app.recordResponse('same', event)">
+            同じ
+        </button>
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div class="text-white font-bold text-xl">Saving data...</div>
+    </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+/**
+ * 実験ロジックとThree.jsの描画を管理するクラス
+ */
+class App {
+    constructor() {
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.objects = []; 
+        
+        this.trials = []; 
+        this.currentTrialIndex = 0;
+        this.results = []; 
+        
+        this.startTime = 0;
+        this.isWaitingForResponse = false;
+        
+        this.config = {
+            blockCount: 10, 
+            baseColor: 0x4ade80, 
+            angles: [0, 60, 120, 180], 
+            axes: ['x', 'y', 'z'] 
+        };
+
+        // 設定値
+        this.settings = {
+            participantId: 'test',
+            age: '', 
+            gender: '', 
+            trialCount: 10,
+            storageMode: 'csv',
+            gasUrl: ''
+        };
+
+        // Firebase
+        this.db = null;
+        this.auth = null;
+        this.appId = 'mental-rotation-app'; // デフォルトID
+        this.firebaseInitialized = false;
+
+        this.initThree();
+        this.initFirebase();
+        window.addEventListener('resize', () => this.onResize());
+        
+        // 初期UI状態の更新
+        this.toggleGasInput();
+    }
+
+    async initFirebase() {
+        if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                this.auth = getAuth(app);
+                this.db = getFirestore(app);
+                
+                if (typeof __app_id !== 'undefined') {
+                    this.appId = __app_id;
+                }
+
+                // 認証ロジックの修正: カスタムトークンがある場合はそれを使用する
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                     await signInWithCustomToken(this.auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(this.auth);
+                }
+                
+                this.firebaseInitialized = true;
+                console.log("Firebase initialized");
+            } catch (e) {
+                console.error("Firebase init failed:", e);
+                document.getElementById('firebase-status').textContent = "Firebase接続エラー";
+                document.getElementById('firebase-status').classList.remove('hidden');
+            }
+        } else {
+             // 設定がない場合
+             console.log("No Firebase config found.");
+        }
+    }
+
+    initThree() {
+        const container = document.getElementById('canvas-container');
+        
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x222222);
+
+        this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera.position.z = 22; 
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        container.appendChild(this.renderer.domElement);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        this.scene.add(dirLight);
+
+        this.animate();
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    onResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // 設定モーダルの開閉
+    toggleSettings() {
+        const modal = document.getElementById('settings-modal');
+        if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+        } else {
+            modal.style.display = 'flex';
+        }
+    }
+
+    // GASスクリプト表示エリアのトグル
+    toggleGasScriptArea() {
+        const area = document.getElementById('gas-script-area-container');
+        if (area.classList.contains('hidden')) {
+            area.classList.remove('hidden');
+        } else {
+            area.classList.add('hidden');
+        }
+    }
+
+    // GASスクリプトをコピー (document.execCommand使用)
+    copyGasScript() {
+        const textArea = document.getElementById('gas-script-code');
+        if (!textArea) return;
+        
+        textArea.select();
+        textArea.setSelectionRange(0, 99999); // モバイル対応
+
+        try {
+            const successful = document.execCommand('copy');
+            const statusEl = document.getElementById('gas-script-copy-status');
+            
+            if(successful) {
+                statusEl.textContent = "コピーしました！";
+                setTimeout(() => statusEl.textContent = "", 2000);
+            } else {
+                statusEl.textContent = "コピーに失敗しました";
+                statusEl.classList.remove('text-green-400');
+                statusEl.classList.add('text-red-400');
+            }
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+            const statusEl = document.getElementById('gas-script-copy-status');
+            statusEl.textContent = "コピーエラー";
+        }
+    }
+
+    // UI制御: GAS選択時のみURL入力欄を表示
+    toggleGasInput() {
+        const mode = document.getElementById('storage-mode').value;
+        const gasContainer = document.getElementById('gas-url-container');
+        const firebaseStatus = document.getElementById('firebase-status');
+
+        if (mode === 'gas') {
+            if(gasContainer) gasContainer.classList.remove('hidden');
+        } else {
+            if(gasContainer) gasContainer.classList.add('hidden');
+        }
+
+        if (mode === 'firebase' && !this.firebaseInitialized) {
+            if(firebaseStatus) firebaseStatus.classList.remove('hidden');
+        } else {
+            if(firebaseStatus) firebaseStatus.classList.add('hidden');
+        }
+        
+        // モーダル外にあるラベルも更新（存在すれば）
+        const saveBadge = document.getElementById('save-mode-badge');
+        if (saveBadge) saveBadge.innerText = mode.toUpperCase();
+    }
+
+    createRandomBlockStructure() {
+        const group = new THREE.Group();
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshPhongMaterial({ color: this.config.baseColor });
+        const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 });
+
+        let currentPos = [0, 0, 0];
+        
+        for (let i = 0; i < this.config.blockCount; i++) {
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(...currentPos);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            
+            const edges = new THREE.EdgesGeometry(geometry);
+            const line = new THREE.LineSegments(edges, edgeMaterial);
+            mesh.add(line);
+
+            group.add(mesh);
+
+            const axis = Math.floor(Math.random() * 3); 
+            const direction = Math.random() < 0.5 ? 1 : -1;
+            
+            const nextPos = [...currentPos];
+            nextPos[axis] += direction;
+            currentPos = nextPos;
+        }
+        
+        // 重心補正
+        const box = new THREE.Box3().setFromObject(group);
+        const center = box.getCenter(new THREE.Vector3());
+        group.position.sub(center);
+
+        const centeringGroup = new THREE.Group();
+        centeringGroup.add(group);
+
+        return centeringGroup;
+    }
+
+    generateTrials(numTrials) {
+        const trials = [];
+        for (let i = 0; i < numTrials; i++) {
+            const angle = this.config.angles[Math.floor(Math.random() * this.config.angles.length)];
+            const axis = this.config.axes[Math.floor(Math.random() * this.config.axes.length)];
+            const isSame = Math.random() < 0.5; 
+            
+            trials.push({
+                id: i + 1,
+                angle: angle,
+                axis: axis,
+                condition: isSame ? 'same' : 'different'
+            });
+        }
+        return trials;
+    }
+
+    startExperiment() {
+        // 設定読み込み
+        const pId = document.getElementById('participant-id').value.trim();
+        this.settings.participantId = pId || 'guest_' + Math.floor(Math.random() * 1000);
+        
+        // 年齢・性別
+        this.settings.age = document.getElementById('participant-age').value.trim();
+        this.settings.gender = document.getElementById('participant-gender').value;
+
+        // 設定モーダル内の値を取得
+        const countInput = document.getElementById('trial-input');
+        this.settings.trialCount = parseInt(countInput.value) || 10;
+        
+        this.settings.storageMode = document.getElementById('storage-mode').value;
+        this.settings.gasUrl = document.getElementById('gas-url').value.trim();
+
+        // 試行生成
+        this.trials = this.generateTrials(this.settings.trialCount);
+        this.currentTrialIndex = 0;
+        this.results = [];
+
+        document.getElementById('start-screen').classList.add('hidden');
+        // モーダルが開いていれば閉じる
+        document.getElementById('settings-modal').style.display = 'none';
+        
+        this.nextTrial();
+    }
+
+    nextTrial() {
+        if (this.currentTrialIndex >= this.trials.length) {
+            this.endExperiment();
+            return;
+        }
+
+        this.clearScene();
+        document.getElementById('fixation').style.display = 'block';
+        document.getElementById('response-area').style.display = 'none';
+
+        setTimeout(() => {
+            document.getElementById('fixation').style.display = 'none';
+            this.presentStimuli();
+        }, 1000); 
+    }
+
+    clearScene() {
+        this.objects.forEach(obj => this.scene.remove(obj));
+        this.objects = [];
+    }
+
+    presentStimuli() {
+        const trial = this.trials[this.currentTrialIndex];
+        const baseStructure = this.createRandomBlockStructure();
+        
+        const leftObj = baseStructure.clone();
+        leftObj.position.set(-5, 0, 0); 
+        
+        const randomRot = { 
+            x: Math.random() * Math.PI * 2, 
+            y: Math.random() * Math.PI * 2, 
+            z: Math.random() * Math.PI * 2 
+        };
+        leftObj.rotation.set(randomRot.x, randomRot.y, randomRot.z);
+
+        const rightObj = baseStructure.clone();
+        rightObj.position.set(5, 0, 0);
+        rightObj.rotation.set(randomRot.x, randomRot.y, randomRot.z);
+
+        if (trial.condition === 'different') {
+            rightObj.scale.x = -1;
+            rightObj.traverse((node) => {
+                if(node.isMesh) node.material.side = THREE.DoubleSide;
+            });
+        }
+
+        const rad = THREE.MathUtils.degToRad(trial.angle);
+        const rotAxis = new THREE.Vector3();
+        if(trial.axis === 'x') rotAxis.set(1,0,0);
+        if(trial.axis === 'y') rotAxis.set(0,1,0);
+        if(trial.axis === 'z') rotAxis.set(0,0,1);
+        
+        rightObj.rotateOnWorldAxis(rotAxis, rad);
+
+        this.scene.add(leftObj);
+        this.scene.add(rightObj);
+        this.objects.push(leftObj, rightObj);
+
+        requestAnimationFrame(() => {
+             document.getElementById('response-area').style.display = 'flex';
+             this.startTime = performance.now();
+             this.isWaitingForResponse = true;
+        });
+    }
+
+    recordResponse(responseType, event) {
+        if (event) event.preventDefault();
+        
+        if (!this.isWaitingForResponse) return;
+        
+        const endTime = performance.now();
+        const rt = endTime - this.startTime;
+        this.isWaitingForResponse = false;
+
+        const trial = this.trials[this.currentTrialIndex];
+        const isCorrect = (trial.condition === responseType);
+
+        this.results.push({
+            ...trial,
+            response: responseType,
+            rt: rt,
+            correct: isCorrect
+        });
+
+        document.getElementById('response-area').style.display = 'none';
+        this.clearScene();
+        
+        setTimeout(() => {
+            this.currentTrialIndex++;
+            this.nextTrial();
+        }, 500);
+    }
+
+    endExperiment() {
+        this.clearScene();
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('response-area').style.display = 'none';
+
+        // 集計
+        const totalRT = this.results.reduce((acc, curr) => acc + curr.rt, 0);
+        const correctCount = this.results.filter(r => r.correct).length;
+        const avgRT = Math.round(totalRT / this.results.length);
+        const accuracy = Math.round((correctCount / this.results.length) * 100);
+
+        document.getElementById('avg-rt').textContent = `${avgRT} ms`;
+        document.getElementById('accuracy').textContent = `${accuracy} %`;
+        
+        // 保存モードバッジ更新
+        const mode = this.settings.storageMode;
+        const saveBadge = document.getElementById('save-mode-badge');
+        if(saveBadge) saveBadge.innerText = mode.toUpperCase();
+
+        // 角度別集計表示
+        this.renderAngleTable();
+        // 詳細データ表示
+        this.renderDetailTable();
+
+        // GASモードなら表示を更新
+        this.toggleGasInput();
+    }
+
+    renderAngleTable() {
+        const angleTbody = document.querySelector('#angle-results-table tbody');
+        angleTbody.innerHTML = '';
+        const sortedAngles = [...this.config.angles].sort((a,b) => a - b);
+        
+        sortedAngles.forEach(angle => {
+            const angleTrials = this.results.filter(r => r.angle === angle);
+            const correctTrials = angleTrials.filter(r => r.correct);
+            const meanRT = correctTrials.length > 0 
+                ? Math.round(correctTrials.reduce((sum, r) => sum + r.rt, 0) / correctTrials.length) 
+                : '-';
+            const acc = angleTrials.length > 0 
+                ? Math.round((correctTrials.length / angleTrials.length) * 100) 
+                : '-';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="font-bold">${angle}°</td>
+                <td class="text-yellow-400 font-bold">${meanRT}</td>
+                <td class="text-blue-400 font-bold">${acc}</td>
+                <td class="text-gray-400 text-sm">${angleTrials.length}</td>
+            `;
+            angleTbody.appendChild(tr);
+        });
+    }
+
+    renderDetailTable() {
+        const tbody = document.querySelector('#results-table tbody');
+        tbody.innerHTML = '';
+        this.results.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.id}</td>
+                <td>${r.angle}°</td>
+                <td>${r.condition === 'same' ? '同じ' : '違う'}</td>
+                <td>${r.response === 'same' ? '同じ' : '違う'}</td>
+                <td>${Math.round(r.rt)}</td>
+                <td style="color: ${r.correct ? '#4ade80' : '#ef4444'}">${r.correct ? '○' : '×'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- 保存機能 ---
+
+    async saveResults() {
+        const mode = this.settings.storageMode;
+        const statusEl = document.getElementById('save-status');
+        const overlay = document.getElementById('loading-overlay');
+        
+        statusEl.innerText = "";
+        statusEl.className = "text-sm font-bold mt-2 h-6";
+
+        if (mode === 'csv') {
+            await this.downloadCSV();
+            statusEl.innerText = "CSVダウンロード完了";
+            statusEl.classList.add("text-green-400");
+        } else if (mode === 'firebase') {
+            if (!this.firebaseInitialized) {
+                alert("Firebaseが初期化されていないため、CSVで保存します。");
+                await this.downloadCSV();
+                return;
+            }
+            overlay.style.display = "flex";
+            await this.saveToFirebase();
+            overlay.style.display = "none";
+        } else if (mode === 'gas') {
+            if (!this.settings.gasUrl) {
+                alert("GASのURLが入力されていません。CSVで保存します。");
+                await this.downloadCSV();
+                return;
+            }
+            overlay.style.display = "flex";
+            await this.saveToGAS();
+            overlay.style.display = "none";
+        }
+    }
+
+    async saveToFirebase() {
+        const statusEl = document.getElementById('save-status');
+        try {
+            if (!this.auth.currentUser) {
+                throw new Error("User not authenticated");
+            }
+            
+            // ルール1: Strict Path
+            const colRef = collection(this.db, 'artifacts', this.appId, 'public', 'data', 'mental_rotation_results');
+            
+            const data = {
+                participantId: this.settings.participantId,
+                age: this.settings.age, // 追加
+                gender: this.settings.gender, // 追加
+                timestamp: new Date().toISOString(),
+                trials: this.results,
+                summary: {
+                    avgRT: document.getElementById('avg-rt').textContent,
+                    accuracy: document.getElementById('accuracy').textContent
+                }
+            };
+            
+            await addDoc(colRef, data);
+            
+            statusEl.innerText = "Firebaseへの保存完了！";
+            statusEl.classList.add("text-green-400");
+        } catch (err) {
+            console.error(err);
+            statusEl.innerText = "保存失敗: " + err.message;
+            statusEl.classList.add("text-red-400");
+        }
+    }
+
+    async saveToGAS() {
+        const statusEl = document.getElementById('save-status');
+        try {
+            const data = {
+                participantId: this.settings.participantId,
+                age: this.settings.age, // 追加
+                gender: this.settings.gender, // 追加
+                timestamp: new Date().toISOString(),
+                results: this.results
+            };
+            
+            // GASへPOST
+            // mode: 'no-cors' はレスポンスが不透明になるが、GASのCORSエラー回避によく使われる。
+            await fetch(this.settings.gasUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain' 
+                },
+                body: JSON.stringify(data)
+            });
+            
+            statusEl.innerText = "データ送信完了 (GAS)";
+            statusEl.classList.add("text-green-400");
+        } catch (err) {
+            console.error(err);
+            statusEl.innerText = "GAS送信失敗: " + err.message;
+            statusEl.classList.add("text-red-400");
+        }
+    }
+
+    async downloadCSV() {
+        // ヘッダーに Age, Gender を追加
+        const headers = ["ParticipantID", "Age", "Gender", "TrialID", "Angle", "Axis", "Condition", "UserResponse", "RT_ms", "IsCorrect"];
+        
+        // データ行にも Age, Gender を追加
+        const rows = this.results.map(r => [
+            this.settings.participantId,
+            this.settings.age,
+            this.settings.gender,
+            r.id,
+            r.angle,
+            r.axis,
+            r.condition,
+            r.response,
+            r.rt.toFixed(2),
+            r.correct ? 1 : 0
+        ]);
+
+        const csvString = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+        const blob = new Blob([bom, csvString], { type: 'text/csv' });
+
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: `results_${this.settings.participantId}.csv`,
+                    types: [{
+                        description: 'CSV File',
+                        accept: { 'text/csv': ['.csv'] },
+                    }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `results_${this.settings.participantId}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+}
+
+// グローバルスコープに登録してHTMLから呼び出せるようにする
+window.app = new App();
+</script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Frame Timing Diagnostics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600&display=swap');
+
+        :root {
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --bg-dark: #0a0a0f;
+            --panel-bg: #13131f;
+            --text-main: #e0e0e0;
+            --success: #00ff9d;
+            --warning: #ffbf00;
+            --danger: #ff0055;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Neon Glow Effects */
+        .neon-text {
+            text-shadow: 0 0 5px rgba(0, 242, 255, 0.5);
+        }
+        .neon-border {
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.1), inset 0 0 20px rgba(0, 242, 255, 0.05);
+            border: 1px solid rgba(0, 242, 255, 0.3);
+        }
+        
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Scanline Effect for Charts */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            margin-top: -6px;
+            box-shadow: 0 0 10px var(--primary);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        .stat-value.good { color: var(--success); text-shadow: 0 0 10px rgba(0, 255, 157, 0.3); }
+        .stat-value.warn { color: var(--warning); text-shadow: 0 0 10px rgba(255, 191, 0, 0.3); }
+        .stat-value.bad { color: var(--danger); text-shadow: 0 0 10px rgba(255, 0, 85, 0.3); }
+
+        /* Select box styling */
+        select {
+            background-color: #1f2937;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            outline: none;
+            cursor: pointer;
+        }
+        select:hover {
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col p-4 md:p-6 gap-6">
+
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 neon-text">
+                FRAME TIMING <span class="text-gray-500 font-light">DIAGNOSTICS</span>
+            </h1>
+            <p class="text-sm text-gray-400 mt-1" data-i18n="subtitle">High-Precision Browser Rendering Analyzer</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <!-- Language Selector -->
+            <select id="lang-select" class="font-mono text-xs mr-2">
+                <option value="ja">日本語</option>
+                <option value="en">English</option>
+                <option value="sv">Svenska</option>
+            </select>
+
+            <div id="status-indicator" class="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-700">
+                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse" id="status-dot"></div>
+                <span class="text-xs font-mono text-gray-400" id="status-text" data-i18n="stopped">STOPPED</span>
+            </div>
+            
+            <button id="export-btn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-600 px-4 py-2 rounded transition-all font-mono text-sm tracking-wider flex items-center gap-2" title="Download CSV">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                CSV
+            </button>
+
+            <button id="toggle-btn" class="bg-cyan-900 hover:bg-cyan-800 text-cyan-100 border border-cyan-500 px-6 py-2 rounded transition-all font-mono text-sm tracking-wider shadow-[0_0_15px_rgba(0,242,255,0.2)] hover:shadow-[0_0_25px_rgba(0,242,255,0.4)]">
+                <span data-i18n="start_btn">START MONITOR</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Controls & Visuals -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+            
+            <!-- Visual Check Area (Canvas) -->
+            <div class="panel rounded-lg overflow-hidden relative group neon-border">
+                <div class="absolute top-2 left-3 z-10 text-xs font-mono text-cyan-500/70 pointer-events-none" data-i18n="visual_context">VISUAL RENDERING CONTEXT</div>
+                <canvas id="visualCanvas" class="w-full h-[300px] block bg-gray-900"></canvas>
+                
+                <!-- Overlay Info -->
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pointer-events-none">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <div class="text-xs text-gray-400 mb-1" data-i18n="render_mode">RENDER MODE</div>
+                            <div class="text-sm font-bold text-white">Gravity Particles</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs text-gray-400 mb-1" data-i18n="objects">OBJECTS</div>
+                            <div class="text-xl font-mono text-cyan-400" id="particle-count">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph Area -->
+            <div class="panel rounded-lg p-4 neon-border flex-1 flex flex-col min-h-[250px] relative">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-semibold text-gray-300 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+                        <span data-i18n="chart_title">FRAME TIME HISTORY</span>
+                    </h3>
+                    <div class="text-xs font-mono text-gray-500" data-i18n="chart_target">Target: 16.67ms (60fps) / 600 Frames</div>
+                </div>
+                <div class="relative w-full flex-1 border border-gray-800 bg-black/50 rounded overflow-hidden">
+                    <canvas id="chartCanvas" class="w-full h-full block"></canvas>
+                    <div class="scanlines absolute inset-0"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Metrics & Settings -->
+        <div class="flex flex-col gap-6">
+
+            <!-- Primary Metrics -->
+            <div class="grid grid-cols-2 gap-4">
+                <div class="panel p-4 rounded-lg border-t-2 border-cyan-500">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest mb-1" data-i18n="current_fps">Current FPS</div>
+                    <div class="text-4xl font-bold font-mono text-white" id="fps-val">--</div>
+                    <div class="text-xs text-gray-500 mt-2" id="fps-detail">Target: 60</div>
+                </div>
+                <div class="panel p-4 rounded-lg border-t-2 border-purple-500">
+                    <div class="text-xs text-gray-400 uppercase tracking-widest mb-1" data-i18n="stability">Stability (SD)</div>
+                    <div class="text-4xl font-bold font-mono text-white" id="sd-ifi">--</div>
+                    <div class="text-xs text-gray-500 mt-2" data-i18n="ms_deviation">ms deviation</div>
+                </div>
+            </div>
+
+            <!-- Detailed Stats -->
+            <div class="panel p-5 rounded-lg flex-1">
+                <h3 class="text-sm font-semibold text-gray-300 mb-4 border-b border-gray-800 pb-2" data-i18n="diagnostics">DIAGNOSTICS</h3>
+                
+                <div class="space-y-5">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400" data-i18n="frame_time_avg">Frame Time (Avg)</span>
+                            <span class="font-mono text-cyan-300" id="mean-ifi">-- ms</span>
+                        </div>
+                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                            <div id="bar-time" class="bg-cyan-500 h-full rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400" data-i18n="dropped_frames">Dropped Frames (Jank)</span>
+                            <span class="font-mono text-red-400" id="jank-count">0</span>
+                        </div>
+                        <div class="text-[10px] text-gray-600 leading-tight" data-i18n="jank_desc">
+                            Frames taking > 1.2x longer than refresh rate.
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs text-gray-300 font-semibold" data-i18n="particle_load">PARTICLE LOAD</label>
+                            <span class="text-xs font-mono text-cyan-500" id="load-val">1000</span>
+                        </div>
+                        <input type="range" id="load-slider" min="100" max="10000" step="100" value="1000" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                            <span data-i18n="light">Light</span>
+                            <span data-i18n="heavy">Heavy</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs text-gray-300 font-semibold" data-i18n="draw_area">DRAW AREA</label>
+                            <select id="area-select" class="bg-gray-700 border border-gray-600 text-xs rounded px-2 py-1 outline-none focus:border-cyan-500">
+                                <option value="1.0" data-i18n="area_100">100% (Full)</option>
+                                <option value="0.75" data-i18n="area_75">75% (Center)</option>
+                                <option value="0.5" data-i18n="area_50">50% (Center)</option>
+                                <option value="0.25" data-i18n="area_25">25% (Center)</option>
+                            </select>
+                        </div>
+                        <div class="text-[10px] text-gray-500 mt-1" data-i18n="area_desc">
+                            Reduce draw area to lower GPU load.
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs text-gray-300 font-semibold" data-i18n="artificial_lag">ARTIFICIAL LAG (CPU BLOCK)</label>
+                            <span class="text-xs font-mono text-red-500" id="lag-val">0ms</span>
+                        </div>
+                        <input type="range" id="lag-slider" min="0" max="50" step="1" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                        <div class="text-[10px] text-gray-500 mt-1" data-i18n="lag_desc">
+                            Simulate heavy JS execution per frame.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 評価基準（Reference） -->
+                <div class="mt-6 bg-black/40 p-4 rounded border border-gray-800 text-xs text-gray-400 leading-relaxed grid grid-cols-1 gap-4">
+                    
+                    <!-- Stability -->
+                    <div>
+                        <strong class="text-gray-200 block mb-2 text-xs uppercase tracking-wider" data-i18n="ref_stability">Stability (SD)</strong>
+                        <ul class="space-y-1 font-mono text-[11px]">
+                            <li class="flex justify-between items-center"><span class="text-green-400">● &lt; 0.5ms</span> <span data-i18n="ref_excellent">Excellent</span></li>
+                            <li class="flex justify-between items-center"><span class="text-yellow-400">● 0.5-2.0ms</span> <span data-i18n="ref_acceptable">Acceptable</span></li>
+                            <li class="flex justify-between items-center"><span class="text-red-400">● &gt; 2.0ms</span> <span data-i18n="ref_stuttery">Stuttery</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- FPS -->
+                    <div>
+                        <strong class="text-gray-200 block mb-2 text-xs uppercase tracking-wider" data-i18n="ref_perf">Performance (FPS)</strong>
+                        <ul class="space-y-1 font-mono text-[11px]">
+                            <li class="flex justify-between items-center"><span class="text-green-400">● 60 FPS</span> <span data-i18n="ref_smooth">Smooth</span></li>
+                            <li class="flex justify-between items-center"><span class="text-yellow-400">● 30-59 FPS</span> <span data-i18n="ref_playable">Playable</span></li>
+                            <li class="flex justify-between items-center"><span class="text-red-400">● &lt; 30 FPS</span> <span data-i18n="ref_laggy">Laggy</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="pt-2 border-t border-gray-800">
+                        <div class="text-[10px] text-gray-500" data-i18n="ref_note">
+                            * Jank: Count of frames >22ms. Ideally 0.<br>
+                            * Auto-export CSV after 600 frames.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Translations ---
+        const i18n = {
+            en: {
+                subtitle: "High-Precision Browser Rendering Analyzer",
+                start_btn: "START MONITOR",
+                stop_btn: "STOP MONITOR",
+                stopped: "STOPPED",
+                running: "RUNNING",
+                visual_context: "VISUAL RENDERING CONTEXT",
+                render_mode: "RENDER MODE",
+                objects: "OBJECTS",
+                chart_title: "FRAME TIME HISTORY",
+                chart_target: "Target: 16.67ms (60fps) / 600 Frames",
+                current_fps: "Current FPS",
+                stability: "Stability (SD)",
+                ms_deviation: "ms deviation",
+                diagnostics: "DIAGNOSTICS",
+                frame_time_avg: "Frame Time (Avg)",
+                dropped_frames: "Dropped Frames (Jank)",
+                jank_desc: "Frames taking > 1.2x longer than refresh rate.",
+                particle_load: "PARTICLE LOAD",
+                light: "Light",
+                heavy: "Heavy",
+                artificial_lag: "ARTIFICIAL LAG (CPU BLOCK)",
+                lag_desc: "Simulate heavy JS execution per frame.",
+                draw_area: "DRAW AREA",
+                area_100: "100% (Full)",
+                area_75: "75% (Center)",
+                area_50: "50% (Center)",
+                area_25: "25% (Center)",
+                area_desc: "Reduce draw area to lower GPU load.",
+                ref_stability: "Stability (SD)",
+                ref_excellent: "Excellent",
+                ref_acceptable: "Acceptable",
+                ref_stuttery: "Stuttery",
+                ref_perf: "Performance (FPS)",
+                ref_smooth: "Smooth",
+                ref_playable: "Playable",
+                ref_laggy: "Laggy",
+                ref_note: "* Jank: Count of frames >22ms. Ideally 0.<br>* Auto-export CSV after 600 frames.",
+                csv_headers: ["Frame Index", "Frame Time (ms)", "Instant FPS"],
+                csv_metadata_labels: ["Export Date", "Particle Load", "Draw Area", "Artificial Lag (ms)", "Average FPS", "Average Frame Time (ms)", "Stability (SD)", "Jank Count", "Note"],
+                csv_note_content: "\"Frame Index\" represents the sequential frame number starting from the beginning of this measurement.",
+                alert_no_data: "No data to export. Please run the monitor first."
+            },
+            ja: {
+                subtitle: "高精度ブラウザレンダリング診断ツール",
+                start_btn: "計測開始",
+                stop_btn: "計測停止",
+                stopped: "停止中",
+                running: "計測中",
+                visual_context: "描画レンダリング確認",
+                render_mode: "レンダリングモード",
+                objects: "オブジェクト数",
+                chart_title: "フレームタイム履歴",
+                chart_target: "目標: 16.67ms (60fps) / 600フレーム",
+                current_fps: "現在 FPS",
+                stability: "安定性 (SD)",
+                ms_deviation: "ms 偏差",
+                diagnostics: "診断結果",
+                frame_time_avg: "フレーム時間 (平均)",
+                dropped_frames: "コマ落ち (Jank)",
+                jank_desc: "リフレッシュレートの1.2倍以上かかったフレーム",
+                particle_load: "パーティクル負荷",
+                light: "軽量",
+                heavy: "高負荷",
+                artificial_lag: "人工ラグ (CPUブロック)",
+                lag_desc: "フレーム毎の重いJS処理をシミュレート",
+                draw_area: "描画範囲 (クリッピング)",
+                area_100: "100% (全画面)",
+                area_75: "75% (中央)",
+                area_50: "50% (中央)",
+                area_25: "25% (中央)",
+                area_desc: "描画範囲を狭めGPU負荷を低減します。",
+                ref_stability: "安定性評価 (SD)",
+                ref_excellent: "非常に優秀 (滑らか)",
+                ref_acceptable: "許容範囲",
+                ref_stuttery: "不安定 (カクつき)",
+                ref_perf: "パフォーマンス (FPS)",
+                ref_smooth: "滑らか",
+                ref_playable: "プレイ可能",
+                ref_laggy: "遅延あり",
+                ref_note: "* Jank: 22msを超えたフレーム数。0が理想。<br>* 600フレーム計測後に自動でCSV出力します。",
+                csv_headers: ["フレーム番号", "フレーム時間 (ms)", "瞬時FPS"],
+                csv_metadata_labels: ["出力日時", "パーティクル負荷", "描画範囲", "人工ラグ (ms)", "平均FPS", "平均フレーム時間 (ms)", "安定性 (SD)", "Jank数", "注記"],
+                csv_note_content: "「フレーム番号」は計測開始からの連番を表します。",
+                alert_no_data: "データがありません。先に計測を実行してください。"
+            },
+            sv: {
+                subtitle: "Högprecisionsanalys av webbläsarrendering",
+                start_btn: "Starta Övervakning",
+                stop_btn: "Stoppa Övervakning",
+                stopped: "Stoppad",
+                running: "Körs",
+                visual_context: "Visuell Rendering",
+                render_mode: "Renderingsläge",
+                objects: "Objekt",
+                chart_title: "Historik för Bildtid",
+                chart_target: "Mål: 16.67ms (60fps) / 600 bildrutor",
+                current_fps: "Nuvarande FPS",
+                stability: "Stabilitet (SD)",
+                ms_deviation: "ms avvikelse",
+                diagnostics: "Diagnostik",
+                frame_time_avg: "Bildtid (Genomsnitt)",
+                dropped_frames: "Tappade Bildrutor",
+                jank_desc: "Bildrutor som tar > 1.2x längre tid.",
+                particle_load: "Partikelbelastning",
+                light: "Lätt",
+                heavy: "Tung",
+                artificial_lag: "Artificiell Fördröjning",
+                lag_desc: "Simulera tung JS-exekvering per bildruta.",
+                draw_area: "RITOMRÅDE",
+                area_100: "100% (Full)",
+                area_75: "75% (Center)",
+                area_50: "50% (Center)",
+                area_25: "25% (Center)",
+                area_desc: "Minska ritområdet för att sänka GPU-belastningen.",
+                ref_stability: "Stabilitet (SD)",
+                ref_excellent: "Utmärkt",
+                ref_acceptable: "Godkänd",
+                ref_stuttery: "Instabil",
+                ref_perf: "Prestanda (FPS)",
+                ref_smooth: "Smidig",
+                ref_playable: "Spelbar",
+                ref_laggy: "Laggig",
+                ref_note: "* Jank: Antal bildrutor >22ms. Helst 0.<br>* Auto-export av CSV efter 600 bildrutor.",
+                csv_headers: ["Bildruteindex", "Bildtid (ms)", "Momentan FPS"],
+                csv_metadata_labels: ["Exportdatum", "Partikelbelastning", "Ritområde", "Artificiell Fördröjning (ms)", "Genomsnittlig FPS", "Genomsnittlig Bildtid (ms)", "Stabilitet (SD)", "Antal Jank", "Notera"],
+                csv_note_content: "\"Bildruteindex\" representerar det sekventiella bildnumret från början av denna mätning.",
+                alert_no_data: "Ingen data att exportera. Vänligen kör övervakningen först."
+            }
+        };
+
+        // --- Configuration & State ---
+        const MAX_SAMPLES = 600; 
+        
+        const state = {
+            isRunning: false,
+            animationId: null,
+            lastTime: 0,
+            // Optimization: Use TypedArray to avoid GC during runtime
+            intervals: new Float64Array(MAX_SAMPLES),
+            intervalsIdx: 0,
+            intervalsFilled: false,
+            jankCount: 0,
+            particleCount: 1000,
+            drawArea: 1.0, // 1.0 = 100%
+            artificialLag: 0,
+            particles: [],
+            canvasSize: { w: 0, h: 0 },
+            lang: 'ja' 
+        };
+
+        // --- DOM Elements ---
+        const els = {
+            btn: document.getElementById('toggle-btn'),
+            btnText: document.querySelector('#toggle-btn span'),
+            exportBtn: document.getElementById('export-btn'),
+            statusDot: document.getElementById('status-dot'),
+            statusText: document.getElementById('status-text'),
+            visualCanvas: document.getElementById('visualCanvas'),
+            chartCanvas: document.getElementById('chartCanvas'),
+            fpsVal: document.getElementById('fps-val'),
+            meanVal: document.getElementById('mean-ifi'),
+            sdVal: document.getElementById('sd-ifi'),
+            jankVal: document.getElementById('jank-count'),
+            particleCount: document.getElementById('particle-count'),
+            loadSlider: document.getElementById('load-slider'),
+            loadVal: document.getElementById('load-val'),
+            areaSelect: document.getElementById('area-select'),
+            lagSlider: document.getElementById('lag-slider'),
+            lagVal: document.getElementById('lag-val'),
+            barTime: document.getElementById('bar-time'),
+            langSelect: document.getElementById('lang-select')
+        };
+
+        // Optimization: Disable alpha to speed up compositing
+        const ctxVisual = els.visualCanvas.getContext('2d', { alpha: false }); 
+        const ctxChart = els.chartCanvas.getContext('2d', { alpha: false });
+
+        // --- Language Handler ---
+        function updateLanguage(lang) {
+            state.lang = lang;
+            const t = i18n[lang];
+            
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) {
+                    el.innerHTML = t[key]; 
+                }
+            });
+            
+            // Re-populate options text properly
+            const opts = els.areaSelect.options;
+            opts[0].text = t.area_100;
+            opts[1].text = t.area_75;
+            opts[2].text = t.area_50;
+            opts[3].text = t.area_25;
+
+            if (state.isRunning) {
+                els.btnText.textContent = t.stop_btn;
+                els.statusText.textContent = t.running;
+            } else {
+                els.btnText.textContent = t.start_btn;
+                els.statusText.textContent = t.stopped;
+            }
+        }
+
+        els.langSelect.addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
+        });
+
+        // --- Resize Handler (HiDPI Aware) ---
+        function resize() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Visual Canvas
+            const rectV = els.visualCanvas.getBoundingClientRect();
+            // Set actual size in memory (scaled to account for extra pixel density)
+            els.visualCanvas.width = Math.round(rectV.width * dpr);
+            els.visualCanvas.height = Math.round(rectV.height * dpr);
+            
+            // Normalize coordinate system to use css pixels
+            ctxVisual.scale(dpr, dpr);
+            
+            state.canvasSize.w = rectV.width;
+            state.canvasSize.h = rectV.height;
+
+            // Chart Canvas
+            const rectC = els.chartCanvas.getBoundingClientRect();
+            els.chartCanvas.width = Math.round(rectC.width * dpr);
+            els.chartCanvas.height = Math.round(rectC.height * dpr);
+            ctxChart.scale(dpr, dpr);
+
+            initParticles();
+            drawChart(); 
+        }
+        window.addEventListener('resize', resize);
+
+        // --- Particle System ---
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * state.canvasSize.w;
+                this.y = Math.random() * state.canvasSize.h;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = Math.random() * 2 + 1;
+                const colors = ['#00f2ff', '#7000ff', '#ffffff', '#00ff9d'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > state.canvasSize.w) this.vx *= -1;
+                if (this.y < 0 || this.y > state.canvasSize.h) this.vy *= -1;
+            }
+
+            draw(ctx) {
+                ctx.fillStyle = this.color;
+                // Optimization: Use Math.floor to snap to pixels for crisper/faster rendering
+                ctx.fillRect(Math.floor(this.x), Math.floor(this.y), Math.floor(this.size), Math.floor(this.size));
+            }
+        }
+
+        function initParticles() {
+            state.particles = [];
+            for (let i = 0; i < state.particleCount; i++) {
+                state.particles.push(new Particle());
+            }
+            els.particleCount.textContent = state.particleCount;
+        }
+
+        // --- Statistics Logic ---
+        function calculateStats() {
+            const count = state.intervalsFilled ? MAX_SAMPLES : state.intervalsIdx;
+            if (count === 0) return null;
+
+            let sum = 0;
+            for(let i = 0; i < count; i++) {
+                sum += state.intervals[i];
+            }
+            
+            const mean = sum / count;
+            
+            let sumVariance = 0;
+            for(let i = 0; i < count; i++) {
+                sumVariance += Math.pow(state.intervals[i] - mean, 2);
+            }
+            const variance = sumVariance / count;
+            const sd = Math.sqrt(variance);
+            const fps = 1000 / mean;
+
+            return { mean, sd, fps, count };
+        }
+
+        // --- Core Loop ---
+        function loop(timestamp) {
+            if (!state.isRunning) return;
+
+            if (state.artificialLag > 0) {
+                const startBlock = performance.now();
+                while (performance.now() - startBlock < state.artificialLag) {
+                }
+            }
+
+            const currentTimestamp = performance.now(); 
+            const delta = currentTimestamp - state.lastTime;
+            state.lastTime = currentTimestamp;
+
+            if (delta < 500) { 
+                // Ring buffer logic for zero-allocation
+                state.intervals[state.intervalsIdx] = delta;
+                state.intervalsIdx++;
+                
+                if (state.intervalsIdx >= MAX_SAMPLES) {
+                    // Buffer full
+                    if (!state.intervalsFilled) {
+                        state.intervalsFilled = true;
+                    }
+                    stopMonitor();
+                    downloadCSV();
+                    return; 
+                }
+
+                if (delta > 22) {
+                    state.jankCount++;
+                }
+            }
+
+            // 1. Draw Background (Clear full screen)
+            ctxVisual.fillStyle = '#13131f'; 
+            ctxVisual.fillRect(0, 0, state.canvasSize.w, state.canvasSize.h);
+            
+            // 2. Setup Clipping for Draw Area
+            const useClip = state.drawArea < 1.0;
+            if (useClip) {
+                ctxVisual.save();
+                const w = state.canvasSize.w;
+                const h = state.canvasSize.h;
+                const aw = w * state.drawArea;
+                const ah = h * state.drawArea;
+                const ax = (w - aw) / 2;
+                const ay = (h - ah) / 2;
+                
+                ctxVisual.beginPath();
+                ctxVisual.rect(ax, ay, aw, ah);
+                ctxVisual.clip();
+                
+                // Optional: Slightly darken outside area? 
+                // No, clip prevents drawing outside entirely, so "background" remains.
+            }
+
+            // 3. Grid (Affected by clip)
+            ctxVisual.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctxVisual.lineWidth = 1;
+            ctxVisual.beginPath();
+            // Use bitwise OR 0 to round to integer for faster path generation
+            for(let i=0; i<state.canvasSize.w; i+=40) { ctxVisual.moveTo(i|0, 0); ctxVisual.lineTo(i|0, state.canvasSize.h|0); }
+            for(let i=0; i<state.canvasSize.h; i+=40) { ctxVisual.moveTo(0, i|0); ctxVisual.lineTo(state.canvasSize.w|0, i|0); }
+            ctxVisual.stroke();
+
+            // 4. Particles (Affected by clip)
+            for (let i = 0; i < state.particles.length; i++) {
+                const p = state.particles[i];
+                p.update();
+                p.draw(ctxVisual);
+            }
+            
+            // 5. Restore clip
+            if (useClip) {
+                ctxVisual.restore();
+                
+                // Draw a border to visualize the active area
+                const w = state.canvasSize.w;
+                const h = state.canvasSize.h;
+                const aw = w * state.drawArea;
+                const ah = h * state.drawArea;
+                const ax = (w - aw) / 2;
+                const ay = (h - ah) / 2;
+                
+                ctxVisual.strokeStyle = 'rgba(0, 242, 255, 0.3)';
+                ctxVisual.lineWidth = 2;
+                ctxVisual.strokeRect(ax, ay, aw, ah);
+            }
+
+            drawChart();
+
+            // Throttle UI updates
+            if (state.intervalsIdx % 5 === 0) {
+                updateUI();
+            }
+
+            state.animationId = requestAnimationFrame(loop);
+        }
+
+        function drawChart() {
+            // NOTE: We are drawing in logical CSS pixels due to scale() in resize()
+            // but the internal buffer is high-res.
+            const w = state.canvasSize.w; // Logic width
+            const h = state.canvasSize.h; // Logic height
+            const ctx = ctxChart;
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, w, h);
+
+            const scaleY = 5; 
+            
+            const y60 = h - (16.66 * scaleY);
+            const y30 = h - (33.33 * scaleY);
+
+            // Lines
+            ctx.beginPath();
+            ctx.strokeStyle = '#006400';
+            ctx.setLineDash([4, 4]);
+            ctx.moveTo(0, y60); ctx.lineTo(w, y60);
+            ctx.stroke();
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '10px monospace';
+            ctx.fillText('16.6ms', 5, y60 - 2);
+
+            ctx.beginPath();
+            ctx.strokeStyle = '#646400';
+            ctx.moveTo(0, y30); ctx.lineTo(w, y30);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+
+            // Plot Data
+            const count = state.intervalsFilled ? MAX_SAMPLES : state.intervalsIdx;
+            if (count < 2) return;
+
+            ctx.beginPath();
+            const xStep = w / MAX_SAMPLES;
+            
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2; // HiDPI -> This will look like 2 physical pixels roughly
+
+            // Optimize: Draw as a single path, color is determined by gradient.
+            // Loop through the valid data in the ring buffer
+            // Since we stop when full, we can just iterate 0 to count-1
+            
+            // Pre-calculate gradient based on overall performance? 
+            // Or just use fixed gradient across the screen height.
+            const gradient = ctx.createLinearGradient(0, h, 0, 0);
+            gradient.addColorStop(0, '#00f2ff');   
+            gradient.addColorStop(0.3, '#00f2ff'); 
+            gradient.addColorStop(0.5, '#ffbf00'); 
+            gradient.addColorStop(1, '#ff0055');   
+            ctx.strokeStyle = gradient;
+
+            // Start Path
+            const startY = h - (state.intervals[0] * scaleY);
+            ctx.moveTo(0, startY < 0 ? 0 : startY);
+
+            for (let i = 1; i < count; i++) {
+                const val = state.intervals[i];
+                const x = i * xStep;
+                let y = h - (val * scaleY);
+                if (y < 0) y = 0; 
+                ctx.lineTo(x, y);
+            }
+
+            ctx.stroke();
+            
+            // Fill
+            ctx.lineTo((count - 1) * xStep, h);
+            ctx.lineTo(0, h);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(0, 242, 255, 0.1)';
+            ctx.fill();
+        }
+
+        function updateUI() {
+            const stats = calculateStats();
+            if (!stats) return;
+
+            els.fpsVal.textContent = stats.fps.toFixed(1);
+            els.meanVal.textContent = stats.mean.toFixed(2) + ' ms';
+            
+            const sd = stats.sd;
+            els.sdVal.textContent = sd.toFixed(3);
+            els.sdVal.className = 'text-4xl font-bold font-mono stat-value ' + 
+                (sd < 0.5 ? 'good' : (sd < 2.0 ? 'warn' : 'bad'));
+
+            els.jankVal.textContent = state.jankCount;
+
+            const p = Math.min((stats.mean / 33) * 100, 100);
+            els.barTime.style.width = `${p}%`;
+            els.barTime.className = `h-full rounded-full ${stats.mean > 18 ? 'bg-yellow-500' : 'bg-cyan-500'}`;
+        }
+
+        function startMonitor() {
+            const t = i18n[state.lang];
+            state.isRunning = true;
+            // Reset state
+            state.intervals.fill(0);
+            state.intervalsIdx = 0;
+            state.intervalsFilled = false;
+            
+            state.jankCount = 0;
+            state.lastTime = performance.now();
+            
+            els.btnText.textContent = t.stop_btn;
+            els.btn.classList.remove('bg-cyan-900', 'border-cyan-500', 'text-cyan-100');
+            els.btn.classList.add('bg-red-900', 'border-red-500', 'text-red-100');
+
+            els.statusDot.classList.remove('bg-red-500');
+            els.statusDot.classList.add('bg-green-500');
+            els.statusText.textContent = t.running;
+            els.statusText.classList.remove('text-gray-400');
+            els.statusText.classList.add('text-green-400');
+
+            loop();
+        }
+
+        function stopMonitor() {
+            const t = i18n[state.lang];
+            state.isRunning = false;
+            cancelAnimationFrame(state.animationId);
+            
+            els.btnText.textContent = t.start_btn;
+            els.btn.classList.remove('bg-red-900', 'border-red-500', 'text-red-100');
+            els.btn.classList.add('bg-cyan-900', 'border-cyan-500', 'text-cyan-100');
+            
+            els.statusDot.classList.remove('bg-green-500');
+            els.statusDot.classList.add('bg-red-500');
+            els.statusText.textContent = t.stopped;
+            els.statusText.classList.remove('text-green-400');
+            els.statusText.classList.add('text-green-400');
+        }
+
+        function downloadCSV() {
+            const t = i18n[state.lang];
+            
+            const stats = calculateStats();
+            // If stopped very early, stats might be null
+            if (!stats || stats.count === 0) {
+                alert(t.alert_no_data);
+                return;
+            }
+
+            const date = new Date();
+            const timestampStr = date.toISOString();
+
+            const lbl = t.csv_metadata_labels;
+            // Metadata
+            const metadata = [
+                `# ${lbl[0]}: ${timestampStr}`,
+                `# ${lbl[1]}: ${state.particleCount}`,
+                `# ${lbl[2]}: ${els.areaSelect.options[els.areaSelect.selectedIndex].text}`, // Draw Area
+                `# ${lbl[3]}: ${state.artificialLag}`,
+                `# ${lbl[4]}: ${stats.fps.toFixed(2)}`,
+                `# ${lbl[5]}: ${stats.mean.toFixed(2)}`,
+                `# ${lbl[6]}: ${stats.sd.toFixed(3)}`,
+                `# ${lbl[7]}: ${state.jankCount}`,
+                `# ${lbl[8]}: ${t.csv_note_content}`,
+                "" 
+            ];
+
+            const rows = [];
+            const count = state.intervalsFilled ? MAX_SAMPLES : state.intervalsIdx;
+            
+            for(let i=0; i<count; i++) {
+                const val = state.intervals[i];
+                // Prevent division by zero if val is 0
+                const instantFPS = val > 0 ? (1000 / val).toFixed(2) : "∞";
+                rows.push([i + 1, val.toFixed(4), instantFPS].join(","));
+            }
+
+            const csvContent = [...metadata, t.csv_headers.join(","), ...rows].join("\n");
+            // Add BOM for UTF-8 support in Excel
+            const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            const timestamp = date.toISOString().replace(/[:.]/g, "-").slice(0, 19);
+            link.setAttribute("download", `frame_timing_export_${state.lang}_${timestamp}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- Event Listeners ---
+        els.exportBtn.addEventListener('click', downloadCSV);
+
+        els.btn.addEventListener('click', () => {
+            if (state.isRunning) {
+                stopMonitor();
+            } else {
+                startMonitor();
+            }
+        });
+
+        els.loadSlider.addEventListener('input', (e) => {
+            state.particleCount = parseInt(e.target.value);
+            els.loadVal.textContent = state.particleCount;
+            initParticles();
+        });
+        
+        els.areaSelect.addEventListener('change', (e) => {
+            state.drawArea = parseFloat(e.target.value);
+        });
+
+        els.lagSlider.addEventListener('input', (e) => {
+            state.artificialLag = parseInt(e.target.value);
+            els.lagVal.textContent = state.artificialLag + 'ms';
+            if(state.artificialLag > 0) {
+                els.lagVal.classList.add('animate-pulse');
+            } else {
+                els.lagVal.classList.remove('animate-pulse');
+            }
+        });
+
+        // Init
+        updateLanguage('ja');
+        resize(); // Trigger resize to setup correct canvas scale
+        // initParticles is called inside resize
+        drawChart(); 
+
+    </script>
+</body>
+</html>
