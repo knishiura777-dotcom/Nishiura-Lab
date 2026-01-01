@@ -43,10 +43,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Changed from center to flex-start to ensure scrolling works */
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 40px 20px; /* Add vertical padding */
+            padding: 40px 20px 80px 20px; /* 下部のパディングを増やして見切れ防止 */
             overflow-x: hidden;
         }
 
@@ -154,10 +154,9 @@
             box-shadow: var(--shadow-soft);
             margin-bottom: 24px;
             position: relative;
-            /* Animation for win */
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            width: 100%; /* Ensure it takes full width of container */
-            max-width: 440px; /* Slight increase to wrapper max-width */
+            width: 100%;
+            max-width: 440px;
             display: flex;
             justify-content: center;
         }
@@ -166,14 +165,14 @@
             display: grid;
             grid-template-columns: repeat(9, 1fr);
             grid-template-rows: repeat(9, 1fr);
-            gap: 1px; /* The gap creates the grid lines */
-            background-color: var(--bg-board); /* Color of the lines */
+            gap: 1px;
+            background-color: var(--bg-board);
             border: 2px solid var(--color-primary);
             border-radius: var(--radius-m);
             overflow: hidden;
             width: 100%;
             max-width: 400px;
-            aspect-ratio: 1;
+            aspect-ratio: 1 / 1; /* 明示的な比率指定 */
         }
 
         .cell {
@@ -181,16 +180,20 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.5rem;
+            /* 修正: フォントサイズを画面幅に応じて可変にし、はみ出しを防ぐ */
+            font-size: clamp(1rem, 4.5vw, 1.5rem);
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.1s;
             position: relative;
+            
+            /* 重要修正: グリッドアイテムのサイズが中身に引っ張られないようにする */
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden; 
         }
 
-        /* 3x3 Grid Separation using specific margins on cells visually? 
-           Easier: Add extra borders to specific cells or use thicker gaps. 
-           Let's use pseudo-elements or specific borders for the 3x3 effect */
+        /* 3x3 Grid Separation */
         .cell:nth-child(3n) {
             border-right: 2px solid var(--bg-board);
         }
@@ -214,13 +217,11 @@
             font-weight: 600;
         }
 
-        /* Selected State - Soft Focus */
         .cell.selected {
             background-color: var(--color-secondary) !important;
             color: white !important;
         }
 
-        /* Highlight Same Number */
         .cell.same-number {
             background-color: var(--color-highlight);
         }
@@ -233,7 +234,6 @@
             background-color: #fee2e2 !important;
         }
 
-        /* Input Animation */
         @keyframes cell-pop {
             0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
@@ -241,6 +241,8 @@
         .cell span {
             animation: cell-pop 0.2s ease-out;
             display: block;
+            /* 数字のセンタリングを確実にする */
+            line-height: 1;
         }
 
         /* --- Numpad --- */
@@ -259,13 +261,14 @@
             color: var(--text-main);
             font-size: 1.25rem;
             font-weight: 600;
-            border-radius: 50%; /* Circular buttons */
+            border-radius: 50%;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 0; /* 余計なパディングを削除 */
         }
 
         .num-btn:hover {
@@ -287,7 +290,6 @@
             background-color: #fef2f2;
         }
 
-        /* Message Overlay/Text */
         .status-area {
             height: 30px;
             display: flex;
@@ -303,14 +305,12 @@
             opacity: 1;
         }
 
-        /* Win Animation Classes */
         .win-state .game-wrapper {
             transform: scale(1.02);
             box-shadow: 0 20px 40px rgba(16, 185, 129, 0.2);
             border: 2px solid var(--color-success);
         }
         
-        /* Stats Pop Animation */
         @keyframes pop-stats {
             0% { transform: scale(1); }
             50% { transform: scale(1.2); }
@@ -321,7 +321,7 @@
         }
 
         @media (max-width: 500px) {
-            body { padding: 20px 10px; }
+            body { padding: 20px 10px 60px 10px; }
             h1 { font-size: 2rem; }
             .sudoku-board { max-width: 100%; }
             .numpad { gap: 8px; }
@@ -371,7 +371,6 @@
         <button class="num-btn" onclick="inputNumber(7)">7</button>
         <button class="num-btn" onclick="inputNumber(8)">8</button>
         <button class="num-btn" onclick="inputNumber(9)">9</button>
-        <!-- Use SVG for backspace for cleaner look -->
         <button class="num-btn delete" onclick="inputNumber(null)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
         </button>
@@ -396,7 +395,6 @@
         const statsContainer = document.getElementById('stats-container');
         const gameWrapper = document.getElementById('game-wrapper');
 
-        // Helper: Check if placing num at board[row][col] is valid
         function isValid(board, row, col, num) {
             for (let i = 0; i < 9; i++) {
                 if (board[row][i] === num && i !== col) return false;
@@ -536,7 +534,6 @@
                 cell.classList.remove('user-input', 'error');
                 puzzle[row][col] = 0;
             } else {
-                // Add span for animation
                 cell.innerHTML = `<span>${num}</span>`;
                 cell.classList.add('user-input');
                 puzzle[row][col] = num;
@@ -547,7 +544,6 @@
                     cell.classList.remove('error');
                 }
                 
-                // Highlight same numbers
                 document.querySelectorAll('.cell').forEach(c => c.classList.remove('same-number'));
                 document.querySelectorAll('.cell').forEach(c => {
                     if (c.textContent == num) c.classList.add('same-number');
@@ -597,7 +593,6 @@
             
             showMessage(`Complete! +${pointsEarned}pts`, false);
             
-            // Celebration styles
             document.body.classList.add('win-state');
             
             statsContainer.classList.remove('animate-pop');
