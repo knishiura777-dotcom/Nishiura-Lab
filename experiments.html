@@ -119,6 +119,7 @@
             card: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="2" y1="10" x2="22" y2="10" /></>,
             camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></>,
             layers: <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
+            // 追加: AIカウンセリング用アイコン
             heartHandshake: <><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.92 0l.29.29"></path></>
         };
 
@@ -293,95 +294,13 @@
             { id: 14, title: { ja: "数独 (Sudoku)", en: "Sudoku", se: "Sudoku" }, category: "cat_ProblemSolving", duration: "5-20 min", difficulty: "diff_Medium", description: { ja: "論理的推論とワーキングメモリを要する数字パズル。", en: "Number puzzle requiring logical reasoning and working memory.", se: "Sifferpussel som kräver logiskt resonemang." }, icon: "grid", link: "./Exp_Sudoku.html" },
             { id: 15, title: { ja: "AI心理相談ロールプレイ", en: "AI Counseling Roleplay", se: "AI Rådgivning Rollspel" }, category: "cat_Social", duration: "15-30 min", difficulty: "diff_Hard", description: { ja: "生成AI（Gemini）を相手に、カウンセリングのロールプレイを行うシステムです。ロジャーズやユングなどのペルソナを持つAIカウンセラーに相談したり、逆にAIクライエントの相談に乗る練習が可能です。", en: "A system for roleplaying counseling with Generative AI (Gemini). Consult with AI counselors simulating Rogers or Jung, or practice counseling AI clients.", se: "Ett system för att rollspela rådgivning med Generativ AI (Gemini). Konsultera AI-rådgivare eller öva på att ge råd till AI-klienter." }, icon: "heartHandshake", link: "./AI_counceling_roleplay.html" },
             { id: 6, title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" }, category: "cat_Memory", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", en: "Respond if stimulus matches N steps back. Measures working memory updating.", se: "Svara om stimulit matchar N steg tillbaka. Mäter arbetsminne." }, icon: "brain", link: "./Exp_Working_memory.html" },
-            { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
+            { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
             { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity" },
         ];
 
         const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
 
         // --- Components ---
-        const LanguageSwitcher = ({ currentLang, setLang }) => (
-            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
-            </div>
-        );
-
-        const FeaturedResearch = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8">
-                    <h2 className="text-3xl font-serif font-semibold text-slate-900">{t.featured_title}</h2>
-                    <span className="text-xs text-slate-400 uppercase tracking-widest mt-2 md:mt-0">From Lab to Field</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Card 1: RSVP/Attention */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group">
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.layers} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_1_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_1_desc}</p>
-                    </div>
-                    {/* Card 2: Gamification */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.1s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.card} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_2_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_2_desc}</p>
-                    </div>
-                    {/* Card 3: AI/Sensing */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.2s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.camera} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_3_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_3_desc}</p>
-                    </div>
-                </div>
-            </div>
-        );
-
-        const FilterTab = ({ label, active, onClick }) => (
-            <button 
-                onClick={onClick}
-                className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 border ${
-                    active ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
-                }`}
-            >
-                {label}
-            </button>
-        );
-
-        const ExperimentCard = ({ data, index, lang, t }) => {
-            const delayStyle = { animationDelay: `${index * 0.05}s` };
-            const content = (
-                <>
-                    <div className="flex justify-between items-start mb-6">
-                        <div className={`p-3 rounded-xl transition-colors duration-500 ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
-                            <Icon path={icons[data.icon]} size={28} />
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{t[data.category]}</span>
-                    </div>
-                    <div className="flex-grow">
-                        <h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">{data.title[lang]}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed font-body mb-6 line-clamp-3 whitespace-pre-wrap">{data.description[lang]}</p>
-                    </div>
-                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                        <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1.5"><Icon path={icons.clock} size={14} />{data.duration}</span>
-                            <span className="flex items-center gap-1.5"><Icon path={icons.activity} size={14} />{t[data.difficulty]}</span>
-                        </div>
-                        <div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>
-                            {t.startBtn} <Icon path={icons.play} size={10} className="fill-current" />
-                        </div>
-                    </div>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
-                </>
-            );
-            if (data.link) {
-                return <a href={data.link} style={delayStyle} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</a>;
-            }
-            return <div style={delayStyle} onClick={() => alert(t.alertMsg)} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</div>;
-        };
-
         const TechCheck = ({ t }) => (
             <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
                 <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
