@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Nishiura Lab.</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
@@ -47,7 +46,7 @@
     /* Nav */
     .nav{
       position:fixed; inset:0 0 auto 0;
-      z-index:999; /* 他の要素より手前に表示されるよう強化 */
+      z-index:999;
       padding:28px 0;
       transition: all .35s ease;
       background:transparent;
@@ -164,7 +163,7 @@
       position:relative;
       min-height: 700px;
       height: 100vh;
-      padding: 80px 0 48px; /* 修正: 120px -> 80px ヘッダー直下から開始 */
+      padding: 80px 0 48px;
       background: var(--white);
       overflow:hidden;
     }
@@ -220,7 +219,7 @@
 
     .hero-type{
       position:relative;
-      margin-top: 24px; /* 修正: 64px -> 24px タイトルを上に詰める */
+      margin-top: 24px;
       width: min(90%, 980px);
     }
     .hero-type h1{
@@ -783,7 +782,6 @@
 </head>
 
 <body>
-  <!-- NAV -->
   <header class="nav" id="siteNav">
     <div class="nav-inner">
       <a class="brand" href="#home" aria-label="Nishiura Lab Home">
@@ -814,7 +812,6 @@
     </div>
   </header>
 
-  <!-- HERO -->
   <main>
     <section id="home" class="hero">
       <div class="dot-grid"></div>
@@ -855,7 +852,6 @@
       </div>
     </section>
 
-    <!-- ABOUT -->
     <section id="about" class="section about">
       <div class="container">
         <div class="about-grid">
@@ -906,7 +902,6 @@
       </div>
     </section>
 
-    <!-- RESEARCH -->
     <section id="research" class="section research">
       <div class="container">
         <div class="section-head">
@@ -917,7 +912,6 @@
         </div>
 
         <div class="cards">
-          <!-- LINK TO EXPERIMENTS -->
           <a href="experiments.html" class="card fade-up" style="display:block; text-decoration:none;">
             <div class="card-top">
               <div class="pill">ET</div>
@@ -930,20 +924,18 @@
             </div>
           </a>
 
-          <!-- LINK TO CREATIVITY -->
           <a href="creativity_learning.html" class="card fade-up" style="display:block; text-decoration:none;">
             <div class="card-top">
               <div class="pill">CL</div>
               <div class="num">02</div>
             </div>
-            <h3 data-i18n="res_2_title">Creativity &amp; Learning</h3>
+            <h3 data-i18n="res_2_title">Creativity & Learning</h3>
             <p data-i18n="res_2_text">創造的問題解決（Creative Problem Solving）の心理学的メカニズムの解明と、それを育むための教育メソッドの開発に取り組んでいます。</p>
             <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
                <span data-i18n="view_creativity">View Creativity</span> &rarr;
             </div>
           </a>
 
-          <!-- LINK TO WELL-BEING -->
           <a href="well-being_and_psychology.html" class="card fade-up" style="display:block; text-decoration:none;">
             <div class="card-top">
               <div class="pill">WB</div>
@@ -959,7 +951,6 @@
       </div>
     </section>
 
-    <!-- PUBLICATIONS -->
     <section id="publications" class="section pub">
       <div class="container">
         <div class="center">
@@ -968,7 +959,6 @@
         </div>
 
         <div class="list">
-          <!-- 論文情報を翻訳対応 -->
           <div class="item fade-up">
             <div class="year">2022</div>
             <div class="grow">
@@ -1022,7 +1012,6 @@
       </div>
     </section>
 
-    <!-- CONTACT -->
     <section id="contact" class="contact">
       <div class="container contact-grid">
         <div class="fade-up">
