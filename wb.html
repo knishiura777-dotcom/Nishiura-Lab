@@ -10,57 +10,576 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
 
   <style>
+    /* Inherited Styles from index.html / creativity_learning.html */
     :root{
       --bg:#f8fafc;
       --text:#0f172a;
       --muted:#64748b;
+      --muted2:#94a3b8;
+      --line:#e2e8f0;
+      --white:#ffffff;
       --indigo:#4f46e5;
+      --indigo2:#312e81;
+      --dark:#0b1220;
+      --dark2:#020617;
+      --shadow: 0 8px 24px rgba(2,6,23,0.06);
       --max: 1120px;
     }
 
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
     body{
       margin:0;
-      font-family:"Noto Sans JP", system-ui, sans-serif;
+      font-family:"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
       background:var(--bg);
       color:var(--text);
+      overflow-x:hidden;
+    }
+    ::selection{ background: rgba(79,70,229,.18); color: var(--indigo2); }
+
+    h1,h2,h3,.serif{ font-family:"Noto Serif JP", serif; }
+    .english-title{ font-family:"Cinzel", serif; }
+    .sans-english{ font-family:"Inter", system-ui, sans-serif; }
+
+    a{ color:inherit; text-decoration:none; }
+    .container{ width:min(var(--max), 92%); margin:0 auto; }
+
+    /* Nav */
+    .nav{
+      position:fixed; inset:0 0 auto 0;
+      z-index:999;
+      padding:28px 0;
+      transition: all .35s ease;
+      background:transparent;
+    }
+    .nav.scrolled{
+      padding:14px 0;
+      background:rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(226,232,240,.8);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .nav-inner{
+      width:min(95%, 1280px);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand-mark{
+      width:40px; height:40px;
+      display:grid; place-items:center;
+      background: #0f172a;
+      color:#fff;
+      transition: background .35s ease;
+      font-family:"Noto Serif JP", serif;
+      font-weight:300;
+      font-size:18px;
+    }
+    .brand:hover .brand-mark{ background: var(--indigo); }
+    .brand-title{
+      display:flex; flex-direction:column; line-height:1.1;
+    }
+    .brand-title strong{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .brand-title span{
+      font-size:10px;
+      letter-spacing:.08em;
+      color:var(--muted);
+      display:none;
+    }
+    @media (min-width: 768px){
+      .brand-title span{ display:block; }
     }
 
-    .container{ width:min(var(--max), 92%); margin:0 auto; padding: 60px 0; }
-    
-    /* Simple Header for sub-pages */
-    header { padding: 20px 0; border-bottom: 1px solid #e2e8f0; margin-bottom: 40px; }
-    .back-link { font-size: 14px; color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-    .back-link:hover { color: var(--indigo); }
-    
-    h1 { font-family: "Noto Serif JP", serif; font-size: 36px; margin-bottom: 16px; }
-    p { line-height: 1.8; color: var(--muted); }
+    .nav-actions { display: flex; align-items: center; gap: 28px; }
+    .nav-links{ display:none; gap:28px; align-items:center; }
+    @media (min-width: 900px){ .nav-links{ display:flex; } }
 
-    .content-box {
+    .nav-links a{
+      position:relative;
+      padding:6px 6px;
+      font-size:11px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color: #64748b;
+      transition: color .25s ease;
+    }
+    .nav-links a:hover{ color: var(--indigo); }
+    .nav-links a.active{ color: var(--indigo2); font-weight:700; }
+
+    /* Language Switcher */
+    .lang-switch {
+      display: flex; align-items: center; gap: 8px;
+      font-family: "Inter", sans-serif; font-size: 11px; font-weight: 600;
+      color: #64748b; margin-left: 12px; border-left: 1px solid #e2e8f0; padding-left: 20px;
+    }
+    .lang-btn { cursor: pointer; opacity: 0.5; transition: opacity 0.2s, color 0.2s; }
+    .lang-btn:hover { opacity: 1; color: var(--indigo); }
+    .lang-btn.active { opacity: 1; color: var(--indigo2); text-decoration: underline; text-underline-offset: 4px; }
+
+    /* Hero for Subpage */
+    .hero-sub{
+      position:relative;
+      min-height: 50vh;
+      padding: 160px 0 80px;
+      background: var(--white);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+    }
+    .dot-grid{
+      position:absolute; inset:0;
+      opacity:.40; pointer-events:none;
+      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
+    }
+    
+    .page-header h1{
+      font-size: clamp(36px, 7vw, 72px);
+      line-height: 1.1;
+      margin: 0 0 24px;
+      color: var(--dark);
+      letter-spacing: -0.02em;
+    }
+    .page-header .subtitle{
+      font-family: "Inter", sans-serif;
+      color: var(--indigo);
+      font-size: 14px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: block;
+    }
+    .page-desc{
+      max-width: 600px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.8;
+      font-weight: 300;
+    }
+
+    /* Concept Section */
+    .concept-section { padding: 100px 0; background: #fff; }
+    .text-block h3 { font-size: 28px; margin-bottom: 24px; color: var(--dark); }
+    .text-block p { color: var(--muted); line-height: 1.9; margin-bottom: 24px; font-weight: 300; }
+    
+    /* Global Network & Tools Grid */
+    .tools-section { background: #f1f5f9; padding: 100px 0; }
+    .grid-3 {
+      display: grid; grid-template-columns: 1fr; gap: 32px;
+    }
+    @media (min-width: 900px){ .grid-3{ grid-template-columns: repeat(3, 1fr); } }
+    
+    .tool-card {
       background: #fff;
-      padding: 40px;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      min-height: 400px;
+      padding: 40px 32px;
+      border: 1px solid rgba(226,232,240,0.8);
+      transition: all 0.3s ease;
+      position: relative;
     }
+    .tool-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+      border-color: rgba(79,70,229,0.3);
+    }
+    .tool-icon {
+      width: 56px; height: 56px;
+      background: #f8fafc;
+      color: var(--indigo);
+      display: grid; place-items: center;
+      margin-bottom: 24px;
+      font-size: 24px;
+      border-radius: 8px;
+    }
+    .tool-card h4 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      color: var(--dark);
+      line-height: 1.4;
+    }
+    .tool-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+    .tag-list {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .tag {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      background: #f1f5f9;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    
+    /* Research List (Simple) */
+    .research-list-sec { padding: 100px 0; }
+    .res-item {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .res-item:first-child { border-top: 1px solid var(--line); }
+    .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; }
+    .res-meta { font-size: 13px; color: var(--muted); }
+
+    /* Footer */
+    footer{
+      background:#020617;
+      padding: 16px 0;
+      text-align:center;
+      color: rgba(148,163,184,.75);
+      font-size: 11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    /* Motion */
+    .fade-up{ opacity:0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
+    .fade-up.show{ opacity:1; transform: translateY(0); }
+    .mt-48 { margin-top: 48px; }
   </style>
 </head>
-<body>
 
-  <header>
-    <div class="container" style="padding:0;">
-      <a href="./index.html" class="back-link">&larr; Back to Home</a>
+<body>
+  <header class="nav" id="siteNav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <div class="brand-mark">N</div>
+        <div class="brand-title">
+          <strong data-i18n="lab_name_short">Nishiura Lab.</strong>
+          <span data-i18n="univ_name_short">Miyagi Gakuin Women's Univ.</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <nav class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="#concept" data-i18n="nav_concept">Concept</a>
+          <a href="#collab" data-i18n="nav_collab">Collaboration</a>
+          <a href="#cases" data-i18n="nav_cases">Cases</a>
+          <a href="index.html#contact">Contact</a>
+        </nav>
+
+        <div class="lang-switch">
+          <span class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span class="lang-btn active" onclick="setLanguage('ja')">JP</span>
+          <span class="lang-btn" onclick="setLanguage('se')">SE</span>
+        </div>
+      </div>
     </div>
   </header>
 
-  <div class="container">
-    <div class="content-box">
-      <h1>Well-being & Psychology</h1>
-      <p>
-        教育心理学・健康心理学の観点から、学習者のウェルビーイングや動機づけ、ストレス対処能力（SOC）に関する研究を行っています。<br><br>
-        （ここに詳細な研究内容が入ります）
-      </p>
+  <header class="hero-sub">
+    <div class="dot-grid"></div>
+    <div class="container">
+      <div class="page-header fade-up">
+        <span class="subtitle">Research Field 03</span>
+        <h1 data-i18n="page_title">Well-being &amp;<br>Psychology</h1>
+        <div class="page-desc">
+          <p data-i18n="page_desc">
+            私たちは、心理学とテクノロジーの融合を通じて、人間の「ウェルビーイング（身体的・精神的・社会的に満たされた状態）」を科学的に探求しています。北欧の先進的な知見と、最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
+  </header>
 
+  <section id="concept" class="concept-section">
+    <div class="container">
+      <div class="text-block fade-up">
+        <span class="kicker">Evidence-Based Well-being</span>
+        <h3 data-i18n="concept_head">多面的アプローチによる心の健康</h3>
+        <p data-i18n="concept_body">
+          現代社会におけるウェルビーイングは、単なる「幸福感」という主観的な指標だけでは測りきれません。<br>
+          当研究室では、脳波や自律神経系といった生理学的指標（Biometrics）と、自己効力感やレジリエンスといった心理学的指標（Psychometrics）を組み合わせた多面的なアプローチを採用しています。<br><br>
+          特に、スウェーデン・ストックホルム商科大学 CWWH (Center for Wellbeing, Welfare and Happiness) との連携を通じて、「いま・ここ」の気づき（Awareness of the Here and Now）がもたらす心身への影響を解明し、政策提言や教育プログラムへの応用を進めています。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="collab" class="tools-section">
+    <div class="container">
+      <div class="fade-up" style="margin-bottom:48px;">
+        <span class="kicker">Projects & Collaborations</span>
+        <h2 style="font-size:36px; margin:0;" data-i18n="collab_title">Strategic Initiatives</h2>
+        <p style="color:var(--muted); margin-top:12px;" data-i18n="collab_sub">
+          国際的な学術連携と、最先端技術を用いた実装研究のハイブリッドアプローチ。
+        </p>
+      </div>
+
+      <div class="grid-3">
+        <article class="tool-card fade-up">
+          <div class="tool-icon">🇸🇪</div>
+          <h4 data-i18n="proj_1_name">Collaboration with CWWH (Stockholm School of Economics)</h4>
+          <p data-i18n="proj_1_desc">
+            ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。
+          </p>
+          <div class="tag-list">
+            <span class="tag">International</span>
+            <span class="tag">Policy Making</span>
+            <span class="tag">IDGs</span>
+          </div>
+        </article>
+
+        <article class="tool-card fade-up" style="transition-delay: 0.1s;">
+          <div class="tool-icon">📷</div>
+          <h4 data-i18n="proj_2_name">AI-Based Well-being Evaluation</h4>
+          <p data-i18n="proj_2_desc">
+            保育現場における子どもの行動センシング（表情・視線・姿勢）から、主観的ウェルビーイングを推定するAI評価法を開発中（科研費基盤B）。「見えない心」を客観的データとして可視化します。
+          </p>
+          <div class="tag-list">
+            <span class="tag">AI/Sensing</span>
+            <span class="tag">Early Childhood</span>
+            <span class="tag">NLP</span>
+          </div>
+        </article>
+
+        <article class="tool-card fade-up" style="transition-delay: 0.2s;">
+          <div class="tool-icon">🤲</div>
+          <h4 data-i18n="proj_3_name">Neuroscience of Tactile Care</h4>
+          <p data-i18n="proj_3_desc">
+            スウェーデン発祥の「タクティールケア」が脳波（前頭葉活動）や自律神経系に及ぼす影響を生理学的に検証。身体的接触がもたらす安心感とストレス低減のメカニズムを解明しています。
+          </p>
+          <div class="tag-list">
+            <span class="tag">Neuroscience</span>
+            <span class="tag">Touch Care</span>
+            <span class="tag">Relaxation</span>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="cases" class="research-list-sec">
+    <div class="container">
+      <div class="fade-up">
+        <span class="kicker">Selected Works</span>
+        <h2 style="font-size:36px; margin:0 0 32px;" data-i18n="cases_title">Key Publications in Well-being</h2>
+      </div>
+
+      <div class="list">
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="work_1_title">
+            Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health
+          </span>
+          <div class="res-meta">
+            Spring Symposium 2025, Center for Wellbeing, Welfare and Happiness, Stockholm School of Economics (Invited Talk) | <span data-i18n="work_role_single">単著</span>
+          </div>
+        </div>
+
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="work_2_title">
+            Preliminary study on frontal lobe activity of EEG by Japanese tactile care
+          </span>
+          <div class="res-meta">
+            32nd International Congress of Psychology (2021) | <span data-i18n="work_role_single">単著</span>
+          </div>
+        </div>
+
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="work_3_title">
+            Effect of baseline self-efficacy on physical activity and psychological stress after a one-week pedometer intervention
+          </span>
+          <div class="res-meta">
+            Perceptual and Motor Skills, 114(2) (2012) | <span data-i18n="work_role_co">共著</span>
+          </div>
+        </div>
+
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="work_4_title">
+            Effects of Reducing Stress Reaction with Brainstorming Card Game
+          </span>
+          <div class="res-meta">
+            29th International Congress of Psychology (2008) | <span data-i18n="work_role_co">共著</span>
+          </div>
+        </div>
+        
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="work_5_title">
+            『脳と学習一未来の学校に必要な知識』 (Neuroscience basis for well-being)
+          </span>
+          <div class="res-meta">
+            宮城学院女子大学 西浦研究室 (2022/2023) | <span data-i18n="work_role_edit">編訳</span>
+          </div>
+        </div>
+
+      </div>
+      
+      <div class="mt-48 fade-up">
+        <a href="index.html#publications" class="viewall">
+          <span class="mini-arrow" style="transform:rotate(135deg); display:inline-block; border-color:var(--indigo);"></span>
+          <span data-i18n="back_home">Back to All Publications</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; <span id="year"></span> Nishiura Laboratory. All Rights Reserved.
+  </footer>
+
+  <script>
+    // --- Translation Data for this page ---
+    const translations = {
+      ja: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Women's Univ.",
+        nav_concept: "Concept",
+        nav_collab: "Collaboration",
+        nav_cases: "Cases",
+        page_title: "Well-being &<br>Psychology",
+        page_desc: "私たちは、心理学とテクノロジーの融合を通じて、人間の「ウェルビーイング（身体的・精神的・社会的に満たされた状態）」を科学的に探求しています。北欧の先進的な知見と、最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。",
+        concept_head: "多面的アプローチによる心の健康",
+        concept_body: `現代社会におけるウェルビーイングは、単なる「幸福感」という主観的な指標だけでは測りきれません。<br>
+          当研究室では、脳波や自律神経系といった生理学的指標（Biometrics）と、自己効力感やレジリエンスといった心理学的指標（Psychometrics）を組み合わせた多面的なアプローチを採用しています。<br><br>
+          特に、スウェーデン・ストックホルム商科大学 CWWH (Center for Wellbeing, Welfare and Happiness) との連携を通じて、「いま・ここ」の気づき（Awareness of the Here and Now）がもたらす心身への影響を解明し、政策提言や教育プログラムへの応用を進めています。`,
+        collab_title: "Strategic Initiatives",
+        collab_sub: "国際的な学術連携と、最先端技術を用いた実装研究のハイブリッドアプローチ。",
+        proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
+        proj_1_desc: "ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。",
+        proj_2_name: "AI-Based Well-being Evaluation",
+        proj_2_desc: "保育現場における子どもの行動センシング（表情・視線・姿勢）から、主観的ウェルビーイングを推定するAI評価法を開発中（科研費基盤B）。「見えない心」を客観的データとして可視化します。",
+        proj_3_name: "Neuroscience of Tactile Care",
+        proj_3_desc: "スウェーデン発祥の「タクティールケア」が脳波（前頭葉活動）や自律神経系に及ぼす影響を生理学的に検証。身体的接触がもたらす安心感とストレス低減のメカニズムを解明しています。",
+        cases_title: "Key Publications in Well-being",
+        work_1_title: "ウェルビーイングへの多面的アプローチ：「いま・ここ」の気づきが心身の健康にもたらす効果",
+        work_2_title: "日本式タクティールケアによる脳波（前頭葉活動）に関する予備的研究",
+        work_3_title: "1週間の歩数計介入後の身体活動と心理的ストレスにおけるベースライン自己効力感の影響",
+        work_4_title: "カードゲーム型ブレインストーミングによるストレス反応低減効果",
+        work_5_title: "『脳と学習一未来の学校に必要な知識』(Neuroscience basis for well-being)",
+        work_role_single: "単著",
+        work_role_co: "共著",
+        work_role_edit: "編訳",
+        back_home: "全業績リストへ戻る"
+      },
+      en: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Women's Univ.",
+        nav_concept: "Concept",
+        nav_collab: "Collaboration",
+        nav_cases: "Cases",
+        page_title: "Well-being &<br>Psychology",
+        page_desc: "We scientifically explore human 'well-being'—a state of physical, mental, and social fulfillment—through the fusion of psychology and technology. Combining advanced Nordic insights with the latest sensing technology, we create new value in education and care settings.",
+        concept_head: "Multidimensional Approach to Mental Health",
+        concept_body: `Well-being in modern society cannot be measured solely by subjective indicators of 'happiness.'<br>
+          Our laboratory adopts a multidimensional approach that combines physiological indicators (Biometrics) such as EEG and autonomic nervous systems with psychological indicators (Psychometrics) like self-efficacy and resilience.<br><br>
+          In particular, through collaboration with the CWWH (Center for Wellbeing, Welfare and Happiness) at the Stockholm School of Economics in Sweden, we are elucidating the impact of 'Awareness of the Here and Now' on the mind and body, and advancing applications in policy recommendations and educational programs.`,
+        collab_title: "Strategic Initiatives",
+        collab_sub: "A hybrid approach of international academic collaboration and implementation research using cutting-edge technology.",
+        proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
+        proj_1_desc: "Collaborating with the Center for Wellbeing, Welfare and Happiness at the Stockholm School of Economics to conduct joint research and policy recommendations for applying the Nordic well-being model to Japanese child policy.",
+        proj_2_name: "AI-Based Well-being Evaluation",
+        proj_2_desc: "Developing an AI evaluation method to estimate subjective well-being from child behavior sensing (facial expressions, gaze, posture) in childcare settings (KAKENHI Grant-in-Aid for Scientific Research B). Visualizing the 'invisible mind' as objective data.",
+        proj_3_name: "Neuroscience of Tactile Care",
+        proj_3_desc: "Physiologically verifying the effects of Swedish 'Tactile Care' on EEG (frontal lobe activity) and the autonomic nervous system. Elucidating the mechanism of security and stress reduction brought about by physical touch.",
+        cases_title: "Key Publications in Well-being",
+        work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
+        work_2_title: "Preliminary study on frontal lobe activity of EEG by Japanese tactile care",
+        work_3_title: "Effect of baseline self-efficacy on physical activity and psychological stress after a one-week pedometer intervention",
+        work_4_title: "Effects of Reducing Stress Reaction with Brainstorming Card Game",
+        work_5_title: "'Brain and Learning: Knowledge Required for Future Schools'",
+        work_role_single: "Single Author",
+        work_role_co: "Co-author",
+        work_role_edit: "Ed/Trans",
+        back_home: "Back to All Publications"
+      },
+      se: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Kvinnouniversitet",
+        nav_concept: "Koncept",
+        nav_collab: "Samarbete",
+        nav_cases: "Publikationer",
+        page_title: "Välbefinnande &<br>Psykologi",
+        page_desc: "Vi utforskar vetenskapligt mänskligt 'välbefinnande' genom en fusion av psykologi och teknik. Genom att kombinera nordiska insikter med den senaste sensortekniken skapar vi nya värden inom utbildning och omsorg.",
+        concept_head: "Ett multidimensionellt tillvägagångssätt",
+        concept_body: `Välbefinnande i det moderna samhället kan inte mätas enbart med subjektiva indikatorer på lycka.<br>
+          Vårt laboratorium antar ett multidimensionellt tillvägagångssätt som kombinerar fysiologiska indikatorer (Biometri) såsom EEG med psykologiska indikatorer (Psykometri) som självförmåga och resiliens.<br><br>
+          Särskilt genom samarbete med CWWH (Center for Wellbeing, Welfare and Happiness) vid Handelshögskolan i Stockholm, klargör vi effekterna av 'medvetenhet om här och nu' och främjar tillämpningar i policyrekommendationer.`,
+        collab_title: "Strategiska Initiativ",
+        collab_sub: "Ett hybridtillvägagångssätt med internationellt akademiskt samarbete och implementeringsforskning.",
+        proj_1_name: "Samarbete med CWWH (Handelshögskolan i Stockholm)",
+        proj_1_desc: "Samarbete med Center for Wellbeing, Welfare and Happiness för att tillämpa den nordiska välfärdsmodellen på japansk barnpolitik genom gemensam forskning.",
+        proj_2_name: "AI-baserad utvärdering av välbefinnande",
+        proj_2_desc: "Utveckling av en AI-metod för att uppskatta subjektivt välbefinnande från barnens beteende (ansiktsuttryck, blick, hållning) i förskolemiljöer.",
+        proj_3_name: "Neurovetenskap och Taktil Care",
+        proj_3_desc: "Fysiologisk verifiering av effekterna av svensk 'Taktil Care' på EEG och det autonoma nervsystemet. Vi klargör mekanismen för trygghet och stressreducering genom fysisk beröring.",
+        cases_title: "Nyckelpublikationer inom Välbefinnande",
+        work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
+        work_2_title: "Preliminär studie om frontallobsaktivitet vid japansk taktil massage",
+        work_3_title: "Effekten av grundläggande självförmåga på fysisk aktivitet och psykologisk stress",
+        work_4_title: "Effekter av stressreducering med brainstorming-kortspel",
+        work_5_title: "'Hjärnan och lärande: Kunskap som krävs för framtidens skolor'",
+        work_role_single: "Enskild författare",
+        work_role_co: "Medförfattare",
+        work_role_edit: "Red/Övers",
+        back_home: "Tillbaka till alla publikationer"
+      }
+    };
+
+    // --- I18n Logic ---
+    const setLanguage = (lang) => {
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+        const btnText = btn.textContent.toLowerCase();
+        if (lang === 'ja' && btnText === 'jp') btn.classList.add('active');
+        else if (lang === 'en' && btnText === 'en') btn.classList.add('active');
+        else if (lang === 'se' && btnText === 'se') btn.classList.add('active');
+      });
+
+      const data = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (data[key]) {
+          if (key.includes('body') || key.includes('title') || key.includes('desc')) {
+            el.innerHTML = data[key];
+          } else {
+            el.textContent = data[key];
+          }
+        }
+      });
+      document.documentElement.lang = lang;
+    };
+
+    const initLanguage = () => {
+      const browserLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
+      if (browserLang === 'ja') setLanguage('ja');
+      else if (browserLang === 'sv') setLanguage('se');
+      else setLanguage('en');
+    };
+    initLanguage();
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const nav = document.getElementById('siteNav');
+    const onScroll = () => {
+      if (window.scrollY > 50) nav.classList.add('scrolled');
+      else nav.classList.remove('scrolled');
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Fade-up on view
+    const fades = document.querySelectorAll('.fade-up');
+    const fadeObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('show');
+      });
+    }, { threshold: 0.12 });
+    fades.forEach(el => fadeObs.observe(el));
+  </script>
 </body>
 </html>
