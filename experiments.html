@@ -245,4 +245,278 @@
 
                 featured_title: "Avancerad Forskning",
                 feat_1_title: "Uppmärksamhet & RSVP",
-                feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation
+                feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation (RSVP)'. Grundforskning om metakognitiva gränser.",
+                feat_2_title: "Spelifiering för CPS",
+                feat_2_desc: "Utveckling av kortspel för att främja kreativ problemlösning (CPS). Vi verifierar stressreducering och regelinlärning genom analys av speldata.",
+                feat_3_title: "AI & Bio-Sensing",
+                feat_3_desc: "Vi utvecklar system för att objektivt utvärdera välbefinnande och koncentration genom att kombinera beteendeavkänning (AI) och EEG-mätningar i utbildningsmiljöer.",
+
+                libraryTitle: "Experimentbibliotek",
+                searchPlaceholder: "Sök experiment...",
+                filterAll: "Alla",
+                startBtn: "Starta",
+                alertMsg: "Under förberedelse.",
+                footerRights: "Nishiura Laboratory. Med ensamrätt.",
+                cat_Cognition: "Kognition",
+                cat_Memory: "Minne",
+                cat_Attention: "Uppmärksamhet",
+                cat_Perception: "Perception",
+                cat_Spatial: "Spatial",
+                cat_Inhibition: "Inhibition",
+                cat_Social: "Social",
+                cat_ProblemSolving: "Problemlösning",
+                diff_Easy: "Lätt",
+                diff_Medium: "Medium",
+                diff_Hard: "Svår",
+                precautionTitle: "Försiktighetsåtgärder",
+                precautionSubtitle: "Tekniska kontroller för datatillförlitlighet",
+                prec_screen_title: "Högupplöst presentation",
+                prec_screen_desc: "Konsekventa uppdateringsfrekvenser är avgörande för noggrannhet. Kontrollera din skärm.",
+                prec_screen_link: "Diagnostik av Bildtider",
+                prec_input_title: "Mäta reaktionstid",
+                prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
+                prec_input_link: "Key Response Benchmark",
+            }
+        };
+
+        // --- Data ---
+        const experimentsData = [
+            { id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
+            { id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
+            { id: 7, title: { ja: "ミュラー・リヤー錯視", en: "Müller-Lyer Illusion", se: "Müller-Lyer-illusion" }, category: "cat_Perception", duration: "2-3 min", difficulty: "diff_Easy", description: { ja: "矢羽の向きによって線の長さが異なって見える錯視量を調整法を用いて定量的に測定します。", en: "Quantitatively measures illusion magnitude using the adjustment method.", se: "Mäter kvantitativt illusionsstorlek med justeringsmetoden." }, icon: "eye", link: "./Exp_Muller-Lyer_illusion.html" },
+            { id: 4, title: { ja: "短期記憶 (Digit Span)", en: "Short-term Memory", se: "Korttidsminne" }, category: "cat_Memory", duration: "2-4 min", difficulty: "diff_Easy", description: { ja: "数字や文字の系列を再生し、マジカルナンバー（7±2）などの短期記憶容量を測定します。", en: "Reproduces sequences to measure short-term memory capacity (Magical Number 7±2).", se: "Återger sekvenser för att mäta korttidsminneskapacitet." }, icon: "database", link: "./Exp_Short_term_memory.html" },
+            { id: 9, title: { ja: "チェンジ・ブラインドネス", en: "Change Blindness", se: "Förändringsblindhet" }, category: "cat_Perception", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "画像の大きな変化であっても、瞬きや画面切り替えの間に起こると気づかない現象を体験します。", en: "Experience phenomena where large changes go unnoticed during blinks.", se: "Upplev fenomen där stora förändringar går obemärkta förbi." }, icon: "eye", link: "./Exp_Change_blindness.html" },
+            { id: 10, title: { ja: "ポズナーの手がかり課題", en: "Posner Cueing", se: "Posner Cueing" }, category: "cat_Attention", duration: "4-7 min", difficulty: "diff_Medium", description: { ja: "手がかり刺激（Cue）が注意の移動に与える促進・抑制効果を測定する空間的注意の実験です。", en: "Measures facilitation/inhibition effects of cues on attentional shifts.", se: "Mäter effekter av ledtrådar på uppmärksamhetsförskjutningar." }, icon: "activity", link: "./Exp_Posner.html" },
+            { id: 11, title: { ja: "アッシュの同調実験", en: "Asch Conformity", se: "Asch Konformitet" }, category: "cat_Social", duration: "5-10 min", difficulty: "diff_Easy", description: { ja: "集団圧力によって個人の判断が歪められる同調現象を体験する実験です。", en: "Experience how group pressure distorts individual judgment.", se: "Upplev hur grupptryck snedvrider individuella bedömningar." }, icon: "users", link: "./Exp_Ash_conformity.html" },
+            { id: 12, title: { ja: "表情認知", en: "Face Recognition", se: "Ansiktsigenkänning" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Medium", description: { ja: "表情認知における倒立効果や提示時間の影響を検討します。", en: "Examines inversion effects and presentation time in face recognition.", se: "Undersöker inversionseffekter vid ansiktsigenkänning." }, icon: "smile", link: "./Exp_Face_recognition.html" },
+            { id: 13, title: { ja: "ホビットとオーク", en: "Hobbits and Orcs", se: "Hobbitar och Orcher" }, category: "cat_ProblemSolving", duration: "5-15 min", difficulty: "diff_Hard", description: { ja: "川渡り問題を用いた問題解決プロセスの実験。手段目標分析などの思考過程を体験します。", en: "River crossing problem to experience means-ends analysis.", se: "Flodövergångsproblem för att uppleva medel-mål-analys." }, icon: "map", link: "./Exp_Hobit_and orc.html" },
+            { id: 14, title: { ja: "数独 (Sudoku)", en: "Sudoku", se: "Sudoku" }, category: "cat_ProblemSolving", duration: "5-20 min", difficulty: "diff_Medium", description: { ja: "論理的推論とワーキングメモリを要する数字パズル。", en: "Number puzzle requiring logical reasoning and working memory.", se: "Sifferpussel som kräver logiskt resonemang." }, icon: "grid", link: "./Exp_Sudoku.html" },
+            { id: 15, title: { ja: "AI心理相談ロールプレイ", en: "AI Counseling Roleplay", se: "AI Rådgivning Rollspel" }, category: "cat_Social", duration: "15-30 min", difficulty: "diff_Hard", description: { ja: "生成AI（Gemini）を相手に、カウンセリングのロールプレイを行うシステムです。ロジャーズやユングなどのペルソナを持つAIカウンセラーに相談したり、逆にAIクライエントの相談に乗る練習が可能です。", en: "A system for roleplaying counseling with Generative AI (Gemini). Consult with AI counselors simulating Rogers or Jung, or practice counseling AI clients.", se: "Ett system för att rollspela rådgivning med Generativ AI (Gemini). Konsultera AI-rådgivare eller öva på att ge råd till AI-klienter." }, icon: "heartHandshake", link: "./AI_counceling_roleplay.html" },
+            { id: 6, title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" }, category: "cat_Memory", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", en: "Respond if stimulus matches N steps back. Measures working memory updating.", se: "Svara om stimulit matchar N steg tillbaka. Mäter arbetsminne." }, icon: "brain", link: "./Exp_Working_memory.html" },
+            { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
+            { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity" },
+        ];
+
+        const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
+
+        // --- Components ---
+        const LanguageSwitcher = ({ currentLang, setLang }) => (
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
+                <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
+                <span className="text-slate-300">|</span>
+                <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
+                <span className="text-slate-300">|</span>
+                <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
+            </div>
+        );
+
+        const FeaturedResearch = ({ t }) => (
+            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
+                <div className="flex flex-col md:flex-row justify-between items-end mb-8">
+                    <h2 className="text-3xl font-serif font-semibold text-slate-900">{t.featured_title}</h2>
+                    <span className="text-xs text-slate-400 uppercase tracking-widest mt-2 md:mt-0">From Lab to Field</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Card 1: RSVP/Attention */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group">
+                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.layers} size={32} /></div>
+                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_1_title}</h3>
+                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_1_desc}</p>
+                    </div>
+                    {/* Card 2: Gamification */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.1s'}}>
+                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.card} size={32} /></div>
+                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_2_title}</h3>
+                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_2_desc}</p>
+                    </div>
+                    {/* Card 3: AI/Sensing */}
+                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.2s'}}>
+                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.camera} size={32} /></div>
+                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_3_title}</h3>
+                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_3_desc}</p>
+                    </div>
+                </div>
+            </div>
+        );
+
+        const FilterTab = ({ label, active, onClick }) => (
+            <button 
+                onClick={onClick}
+                className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 border ${
+                    active ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
+                }`}
+            >
+                {label}
+            </button>
+        );
+
+        const ExperimentCard = ({ data, index, lang, t }) => {
+            const delayStyle = { animationDelay: `${index * 0.05}s` };
+            const content = (
+                <>
+                    <div className="flex justify-between items-start mb-6">
+                        <div className={`p-3 rounded-xl transition-colors duration-500 ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
+                            <Icon path={icons[data.icon]} size={28} />
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{t[data.category]}</span>
+                    </div>
+                    <div className="flex-grow">
+                        <h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">{data.title[lang]}</h3>
+                        <p className="text-sm text-slate-500 leading-relaxed font-body mb-6 line-clamp-3 whitespace-pre-wrap">{data.description[lang]}</p>
+                    </div>
+                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                        <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1.5"><Icon path={icons.clock} size={14} />{data.duration}</span>
+                            <span className="flex items-center gap-1.5"><Icon path={icons.activity} size={14} />{t[data.difficulty]}</span>
+                        </div>
+                        <div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>
+                            {t.startBtn} <Icon path={icons.play} size={10} className="fill-current" />
+                        </div>
+                    </div>
+                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
+                </>
+            );
+            if (data.link) {
+                return <a href={data.link} style={delayStyle} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</a>;
+            }
+            return <div style={delayStyle} onClick={() => alert(t.alertMsg)} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</div>;
+        };
+
+        const TechCheck = ({ t }) => (
+            <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
+                    <div className="mb-4">
+                        <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><Icon path={icons.alert} size={20} className="text-slate-500" />{t.precautionTitle}</h3>
+                        <p className="text-xs text-slate-500">{t.precautionSubtitle}</p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="./Frame_rate_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
+                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition"><Icon path={icons.monitor} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-indigo-500 transition" /></div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-700 transition">{t.prec_screen_title}</h4>
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_screen_desc}</p>
+                            <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_screen_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
+                        </a>
+                        <a href="./Key_response_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
+                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition"><Icon path={icons.zap} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-emerald-500 transition" /></div>
+                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-emerald-700 transition">{t.prec_input_title}</h4>
+                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_input_desc}</p>
+                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">{t.prec_input_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        );
+
+        function ExperimentLibrary() {
+            const [activeCategory, setActiveCategory] = useState("All");
+            const [searchQuery, setSearchQuery] = useState("");
+            const [lang, setLang] = useState("en");
+
+            useEffect(() => {
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.startsWith('ja')) setLang('ja');
+                else if (browserLang.startsWith('sv')) setLang('se');
+                else setLang('en');
+            }, []);
+
+            useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
+
+            const t = translations[lang];
+            const filteredExperiments = useMemo(() => {
+                return experimentsData.filter(exp => {
+                    const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
+                    const titleMatch = exp.title[lang].toLowerCase().includes(searchQuery.toLowerCase());
+                    const descMatch = exp.description[lang].toLowerCase().includes(searchQuery.toLowerCase());
+                    return matchesCategory && (titleMatch || descMatch);
+                });
+            }, [activeCategory, searchQuery, lang]);
+
+            return (
+                <div className="min-h-screen pb-24 font-sans">
+                    <header className="glass sticky top-0 z-50 transition-all duration-300">
+                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <a href="index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
+                                <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white"><Icon path={icons.arrowLeft} size={14} /></div>
+                                <span className="text-xs font-bold tracking-widest uppercase font-serif">{t.lab_name}</span>
+                            </a>
+                            <div className="flex items-center gap-6">
+                                <nav className="hidden md:flex gap-6 text-xs uppercase tracking-widest font-medium text-slate-500">
+                                    <a href="index.html" className="hover:text-indigo-600 transition-colors">{t.nav_home}</a>
+                                    <a href="#concept" className="hover:text-indigo-600 transition-colors">Concept</a>
+                                    <a href="#library" className="hover:text-indigo-600 transition-colors">Library</a>
+                                    <a href="index.html#contact" className="hover:text-indigo-600 transition-colors">{t.nav_contact}</a>
+                                </nav>
+                                <LanguageSwitcher currentLang={lang} setLang={setLang} />
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Hero Section */}
+                    <header className="relative min-h-[50vh] pt-40 pb-20 bg-white overflow-hidden flex items-center">
+                        <div className="dot-grid"></div>
+                        <div className="container max-w-7xl mx-auto px-6 relative z-10">
+                            <div className="animate-fade-up">
+                                <span className="block font-sans text-indigo-600 text-sm tracking-[0.2em] uppercase font-bold mb-4">{t.page_subtitle}</span>
+                                <h1 className="text-5xl md:text-7xl font-serif text-slate-900 leading-[1.1] mb-6 tracking-tight" dangerouslySetInnerHTML={{__html: t.page_title}}></h1>
+                                <p className="max-w-2xl text-slate-500 text-lg font-light leading-relaxed">{t.page_desc}</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Concept Section */}
+                    <section id="concept" className="py-24 bg-white">
+                        <div className="container max-w-7xl mx-auto px-6">
+                            <div className="max-w-3xl animate-fade-up">
+                                <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-3">{t.concept_kicker}</span>
+                                <h3 className="text-3xl font-serif text-slate-800 mb-6">{t.concept_head}</h3>
+                                <p className="text-slate-500 leading-loose whitespace-pre-wrap font-light">{t.concept_body}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Featured Research (Edgy Content from PDF) */}
+                    <FeaturedResearch t={t} />
+
+                    {/* Experiment Library Section */}
+                    <div id="library" className="bg-slate-50 pt-24 pb-12">
+                        <div className="container max-w-7xl mx-auto px-6">
+                            <div className="text-center mb-16 animate-fade-up">
+                                <h2 className="text-4xl font-serif text-slate-900 mb-4">{t.libraryTitle}</h2>
+                                <div className="relative max-w-md mx-auto mt-8">
+                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400"><Icon path={icons.search} size={18} /></div>
+                                    <input type="text" placeholder={t.searchPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-0 rounded-full text-sm outline-none transition-all shadow-sm" />
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-2 mt-8">
+                                    <FilterTab label={t.filterAll} active={activeCategory === "All"} onClick={() => setActiveCategory("All")} />
+                                    {categoriesList.map(catKey => (<FilterTab key={catKey} label={t[catKey]} active={activeCategory === catKey} onClick={() => setActiveCategory(catKey)} />))}
+                                </div>
+                            </div>
+
+                            <TechCheck t={t} />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredExperiments.map((exp, index) => (<ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} />))}
+                            </div>
+                            {filteredExperiments.length === 0 && (
+                                <div className="text-center py-32 animate-fade-in">
+                                    <div className="inline-block p-4 rounded-full bg-white text-slate-300 mb-4 shadow-sm"><Icon path={icons.search} size={32} /></div>
+                                    <p className="text-slate-500 font-medium">No experiments found.</p>
+                                    <button onClick={() => {setActiveCategory("All"); setSearchQuery("");}} className="mt-4 text-indigo-600 text-sm hover:text-indigo-800 font-bold underline underline-offset-4">View all experiments</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <footer className="bg-slate-900 text-slate-400 py-12 text-center text-xs uppercase tracking-widest">
+                        <p>&copy; {new Date().getFullYear()} {t.footerRights}</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ExperimentLibrary />);
+    </script>
+</body>
+</html>
