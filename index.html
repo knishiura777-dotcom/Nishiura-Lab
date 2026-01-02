@@ -1,4 +1,917 @@
-<div class="cards">
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nishiura Lab.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --text:#0f172a;
+      --muted:#64748b;
+      --muted2:#94a3b8;
+      --line:#e2e8f0;
+      --white:#ffffff;
+      --indigo:#4f46e5;
+      --indigo2:#312e81;
+      --dark:#0b1220;
+      --dark2:#020617;
+      --shadow: 0 8px 24px rgba(2,6,23,0.06);
+      --max: 1120px;
+    }
+
+    *{ box-sizing:border-box; }
+    html{ scroll-behavior:smooth; }
+    body{
+      margin:0;
+      font-family:"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
+    }
+    ::selection{ background: rgba(79,70,229,.18); color: var(--indigo2); }
+
+    h1,h2,h3,.serif{ font-family:"Noto Serif JP", serif; }
+    .english-title{ font-family:"Cinzel", serif; }
+    .sans-english{ font-family:"Inter", system-ui, sans-serif; }
+
+    a{ color:inherit; text-decoration:none; }
+    .container{ width:min(var(--max), 92%); margin:0 auto; }
+
+    /* Nav */
+    .nav{
+      position:fixed; inset:0 0 auto 0;
+      z-index:999;
+      padding:28px 0;
+      transition: all .35s ease;
+      background:transparent;
+    }
+    .nav.scrolled{
+      padding:14px 0;
+      background:rgba(255,255,255,.95);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(226,232,240,.8);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    .nav-inner{
+      width:min(95%, 1280px);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+    }
+    .brand-mark{
+      width:40px; height:40px;
+      display:grid; place-items:center;
+      background: #0f172a;
+      color:#fff;
+      transition: background .35s ease;
+      font-family:"Noto Serif JP", serif;
+      font-weight:300;
+      font-size:18px;
+    }
+    .brand:hover .brand-mark{ background: var(--indigo); }
+    .brand-title{
+      display:flex; flex-direction:column; line-height:1.1;
+    }
+    .brand-title strong{
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+    .brand-title span{
+      font-size:10px;
+      letter-spacing:.08em;
+      color:var(--muted);
+      display:none;
+    }
+    @media (min-width: 768px){
+      .brand-title span{ display:block; }
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links{
+      display:none;
+      gap:28px;
+      align-items:center;
+    }
+    @media (min-width: 900px){
+      .nav-links{ display:flex; }
+    }
+
+    .nav-links a{
+      position:relative;
+      padding:6px 6px;
+      font-size:11px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color: #64748b;
+      transition: color .25s ease;
+    }
+    .nav-links a:hover{ color: var(--indigo); }
+    .nav-links a.active{
+      color: var(--indigo2);
+      font-weight:700;
+    }
+
+    /* Language Switcher */
+    .lang-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      margin-left: 12px;
+      border-left: 1px solid #e2e8f0;
+      padding-left: 20px;
+    }
+    .lang-btn {
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .lang-btn:hover {
+      opacity: 1;
+      color: var(--indigo);
+    }
+    .lang-btn.active {
+      opacity: 1;
+      color: var(--indigo2);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+
+
+    /* Hero */
+    .hero{
+      position:relative;
+      min-height: 700px;
+      height: 100vh;
+      padding: 80px 0 48px;
+      background: var(--white);
+      overflow:hidden;
+    }
+    .dot-grid{
+      position:absolute; inset:0;
+      opacity:.40;
+      pointer-events:none;
+      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
+    }
+    .ring{
+      position:absolute;
+      top:50%; left:50%;
+      transform: translate(-50%, -50%);
+      width: min(60vh, 620px);
+      height: min(60vh, 620px);
+      border-radius:999px;
+      border:1px solid rgba(226,232,240,.9);
+      opacity:.55;
+      pointer-events:none;
+    }
+    .ring::before{
+      content:"";
+      position:absolute; inset:0;
+      margin:auto;
+      width:100%; height:100%;
+      border-radius:999px;
+      border:1px solid rgba(203,213,225,.9);
+      animation: spin 60s linear infinite;
+    }
+    .ring::after{
+      content:"";
+      position:absolute;
+      inset:15%;
+      border-radius:999px;
+      border:1px solid rgba(226,232,240,.85);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hero-top{
+      position:relative;
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      font-weight:700;
+      color:var(--muted2);
+      margin-top: 6px;
+    }
+    .hero-top .right{ display:none; }
+    @media (min-width: 768px){ .hero-top .right{ display:block; } }
+
+    .hero-type{
+      position:relative;
+      margin-top: 24px;
+      width: min(90%, 980px);
+    }
+    .hero-type h1{
+      margin:0;
+      line-height:.85;
+      letter-spacing:-0.03em;
+      color: #0f172a;
+      mix-blend-mode: multiply;
+      font-size: 13vw;
+      font-weight:600;
+    }
+    @media (min-width: 768px){
+      .hero-type h1{ font-size: 11vw; }
+    }
+    .hero-row{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      align-items:flex-end;
+    }
+    @media (min-width: 768px){
+      .hero-row{
+        flex-direction:row;
+        align-items:center;
+        gap:28px;
+      }
+    }
+    .hero-row .design{
+      font-style:italic;
+      font-weight:300;
+      color: rgba(49,46,129,.92);
+      text-align:right;
+      width:100%;
+    }
+    @media (min-width: 768px){
+      .hero-row .design{
+        text-align:left;
+        width:auto;
+      }
+    }
+    .hero-row .rule{
+      display:none;
+      height:1px; width:128px;
+      background:#0f172a;
+      margin-bottom: 12px;
+    }
+    @media (min-width: 768px){ .hero-row .rule{ display:block; } }
+    .hero-row .sub{
+      font-size: 12px;
+      letter-spacing:.3em;
+      text-transform:uppercase;
+      color: #475569;
+      margin-bottom: 8px;
+      white-space:nowrap;
+      font-weight:300;
+    }
+    @media (min-width: 768px){
+      .hero-row .sub{ font-size: 20px; margin-bottom: 18px; }
+    }
+
+    .hero-bottom{
+      position:relative;
+      margin-top: 38px;
+      display:flex;
+      flex-direction:column;
+      gap:22px;
+      justify-content:space-between;
+      align-items:flex-start;
+    }
+    @media (min-width: 768px){
+      .hero-bottom{
+        flex-direction:row;
+        align-items:flex-end;
+      }
+    }
+    .hero-desc{
+      max-width: 520px;
+      color: #64748b;
+      font-weight:300;
+      line-height:1.8;
+      font-size: 14px;
+    }
+    .hero-desc strong{ color:#0f172a; font-weight:700; }
+    .hero-desc .jp{ font-size:12px; color:#94a3b8; display:block; margin-top:4px; }
+
+    .scroll-cta{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .scroll-cta span{
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:.3em;
+      color:#0f172a;
+      transition: color .2s ease;
+    }
+    .scroll-cta:hover span{ color: var(--indigo); }
+    .circle-btn{
+      width:64px; height:64px;
+      border-radius:999px;
+      border:1px solid rgba(226,232,240,.9);
+      display:grid;
+      place-items:center;
+      transition: all .25s ease;
+      background:transparent;
+    }
+    .scroll-cta:hover .circle-btn{
+      background: var(--indigo);
+      border-color: var(--indigo);
+      transform: translateY(-2px);
+    }
+    .arrow{
+      width:18px; height:18px;
+      border-right:2px solid #0f172a;
+      border-bottom:2px solid #0f172a;
+      transform: rotate(-45deg);
+      transition: all .25s ease;
+    }
+    .scroll-cta:hover .arrow{
+      border-color:#fff;
+      transform: rotate(45deg);
+    }
+
+    /* Sections */
+    section{ scroll-margin-top: 92px; }
+    .section{
+      padding: 120px 0;
+    }
+    .kicker{
+      color: var(--indigo);
+      font-size:12px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      font-weight:700;
+      display:block;
+      margin-bottom: 12px;
+    }
+
+    /* About */
+    .about{
+      background: #f1f5f9;
+      position:relative;
+    }
+    .about-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 42px;
+      align-items:start;
+    }
+    @media (min-width: 900px){
+      .about-grid{
+        grid-template-columns: 5fr 7fr;
+        gap: 56px;
+      }
+    }
+    .sticky{
+      position:relative;
+    }
+    @media (min-width: 900px){
+      .sticky{ position:sticky; top:110px; }
+    }
+    .about-title{
+      font-size: 54px;
+      line-height:1.05;
+      margin: 0 0 22px;
+    }
+    .about-title em{
+      font-style:italic;
+      font-weight:300;
+      color:#94a3b8;
+    }
+    .portrait{
+      position:relative;
+      width: min(380px, 100%);
+      aspect-ratio: 3/4;
+      background:#e2e8f0;
+      overflow:hidden;
+      filter: grayscale(1);
+      transition: filter .6s ease;
+    }
+    .portrait:hover{ filter: grayscale(0); }
+    .portrait .placeholder{
+      position:absolute; inset:0;
+      display:grid; place-items:center;
+      background:#f1f5f9;
+      color:#cbd5e1;
+      font-size: 44px;
+      font-weight: 600;
+      font-family:"Inter", system-ui, sans-serif;
+    }
+    .portrait::after{
+      content:"";
+      position:absolute; inset:0;
+      background: rgba(49,46,129,.10);
+      mix-blend-mode:multiply;
+      pointer-events:none;
+    }
+
+    .about-right h3{
+      margin:0 0 14px;
+      font-size: 22px;
+      color:#1e293b;
+    }
+    .about-right p{
+      margin:0 0 22px;
+      color:#475569;
+      line-height:1.9;
+      font-weight:300;
+      font-size: 18px;
+      text-align: justify;
+    }
+    .meta{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 32px;
+      margin-top: 28px;
+    }
+    @media (min-width: 640px){
+      .meta{ grid-template-columns: 1fr 1fr; }
+    }
+    .meta h4{
+      margin:0 0 10px;
+      font-size: 14px;
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:99px;background:rgba(79,70,229,.9);
+      display:inline-block;
+    }
+    .meta ul{
+      margin:0; padding-left: 18px;
+      color:#475569;
+      font-size: 14px;
+      line-height:1.8;
+    }
+
+    /* Research */
+    .research{
+      background:#fff;
+    }
+    .section-head{
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+      justify-content:space-between;
+      align-items:flex-start;
+      border-bottom: 1px solid rgba(226,232,240,.7);
+      padding-bottom: 18px;
+      margin-bottom: 42px;
+    }
+    @media (min-width: 768px){
+      .section-head{
+        flex-direction:row;
+        align-items:flex-end;
+      }
+    }
+    .section-head h2{
+      margin:0;
+      font-size: 44px;
+    }
+    .section-head .caption{
+      font-size: 12px;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+      color:#64748b;
+      font-weight:700;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      border-left: 1px solid rgba(226,232,240,.7);
+    }
+    @media (min-width: 900px){
+      .cards{ grid-template-columns: repeat(3, 1fr); }
+    }
+    .card{
+      background:#fff;
+      border:1px solid rgba(241,245,249,.9);
+      padding: 28px;
+      position:relative;
+      overflow:hidden;
+      transition: border-color .35s ease;
+      min-height: 210px;
+      display: block; /* for link */
+    }
+    .card:hover{ border-color: rgba(79,70,229,.75); }
+    .card::before{
+      content:"";
+      position:absolute;
+      top:0; left:0;
+      width:4px; height:0;
+      background: var(--indigo);
+      transition: height .35s ease;
+    }
+    .card:hover::before{ height:100%; }
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom: 14px;
+    }
+    .pill{
+      width:38px; height:38px;
+      display:grid; place-items:center;
+      background:#f8fafc;
+      border:1px solid rgba(226,232,240,.7);
+      transition: all .25s ease;
+      font-weight:700;
+      color:#0f172a;
+      font-family:"Inter", system-ui, sans-serif;
+      font-size: 12px;
+    }
+    .card:hover .pill{
+      background: rgba(79,70,229,.08);
+      border-color: rgba(79,70,229,.25);
+      color: var(--indigo);
+    }
+    .num{
+      font-size: 42px;
+      color:#e2e8f0;
+      font-weight:200;
+      letter-spacing:-.02em;
+      transition: color .25s ease;
+      font-family:"Inter", system-ui, sans-serif;
+    }
+    .card:hover .num{ color: rgba(79,70,229,.16); }
+    .card h3{
+      margin:0 0 8px;
+      font-size: 18px;
+      color:#0f172a;
+      letter-spacing:-.01em;
+    }
+    .card p{
+      margin:0;
+      color:#64748b;
+      line-height:1.8;
+      font-size: 13px;
+    }
+
+    /* Publications */
+    .pub{
+      background:#f1f5f9;
+    }
+    .center{ text-align:center; }
+    .pub h2{ margin:0; font-size: 44px; }
+    .list{
+      margin-top: 28px;
+      background:#fff;
+      border:1px solid rgba(226,232,240,.7);
+      box-shadow: var(--shadow);
+    }
+    .item{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      padding: 18px 18px;
+      border-bottom:1px solid rgba(226,232,240,.85);
+      transition: background .2s ease;
+    }
+    .item:hover{ background:#f8fafc; }
+    @media (min-width: 768px){
+      .item{
+        flex-direction:row;
+        gap: 18px;
+        align-items:flex-start;
+      }
+    }
+    .year{
+      width: 90px;
+      flex: 0 0 auto;
+      color:#94a3b8;
+      font-weight:600;
+      font-family:"Noto Serif JP", serif;
+    }
+    .item:hover .year{ color: var(--indigo); }
+    .it-title{
+      font-weight:700;
+      color:#1e293b;
+      line-height:1.5;
+      margin-bottom: 6px;
+    }
+    .it-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px 14px;
+      font-size: 13px;
+      color:#64748b;
+      align-items:center;
+    }
+    .role{
+      font-size: 11px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      padding: 3px 8px;
+      background:#f1f5f9;
+      border:1px solid rgba(226,232,240,.8);
+      color:#475569;
+    }
+    .viewall{
+      margin-top: 18px;
+      display:inline-flex;
+      gap: 10px;
+      align-items:center;
+      font-size: 13px;
+      font-weight:700;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#0f172a;
+      transition: color .2s ease;
+    }
+    .viewall:hover{ color: var(--indigo); }
+    .mini-arrow{
+      width:10px; height:10px;
+      border-right:2px solid currentColor;
+      border-bottom:2px solid currentColor;
+      transform: rotate(-45deg);
+      transition: transform .2s ease;
+    }
+    .viewall:hover .mini-arrow{ transform: rotate(-45deg) translateX(2px); }
+
+    /* Contact */
+    .contact{
+      background: #0f172a;
+      color:#fff;
+      position:relative;
+      overflow:hidden;
+      padding: 90px 0;
+    }
+    .contact::before{
+      content:"";
+      position:absolute; inset:0;
+      opacity:.20;
+      background-image: radial-gradient(#ffffff 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events:none;
+    }
+    .contact-grid{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 38px;
+      align-items:start;
+    }
+    @media (min-width: 900px){
+      .contact-grid{ grid-template-columns: 1fr 1fr; gap: 56px; }
+    }
+    .contact h2{
+      margin:0 0 18px;
+      font-size: 52px;
+      line-height:1.05;
+    }
+    .contact p{
+      margin:0 0 18px;
+      color: rgba(226,232,240,.75);
+      line-height:1.8;
+      max-width: 520px;
+    }
+    .mail{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight:300;
+      color:#fff;
+      transition: color .2s ease;
+      width: fit-content;
+    }
+    .mail:hover{ color: rgba(129,140,248,.95); }
+    .mail .icon{
+      width:22px;height:16px; position:relative;
+      border:2px solid currentColor;
+      border-radius:3px;
+    }
+    .mail .icon:before{
+      content:"";
+      position:absolute;
+      left:2px; right:2px; top:2px;
+      height: 0;
+      border-top:2px solid currentColor;
+      transform: skewY(-18deg);
+    }
+    .contact-right{
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      align-items:flex-start;
+      gap: 18px;
+    }
+    @media (min-width: 900px){
+      .contact-right{ align-items:flex-end; text-align:right; }
+    }
+    .contact-right strong{
+      display:block;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .contact-right .small{ font-size: 13px; color: rgba(226,232,240,.75); }
+    .contact-right .tiny{ font-size: 12px; color: rgba(148,163,184,.85); }
+
+    .contact-links{
+      margin-top: 16px;
+      display:flex;
+      gap: 18px;
+      flex-wrap:wrap;
+    }
+    .contact-links a{
+      font-size: 11px;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color: rgba(148,163,184,.9);
+      transition: color .2s ease;
+    }
+    .contact-links a:hover{ color:#fff; }
+
+    .grad-line{
+      height:4px;
+      background: linear-gradient(to right, #312e81, #4f46e5, #0f172a);
+      margin-top: 30px;
+    }
+    footer{
+      background:#020617;
+      padding: 16px 0;
+      text-align:center;
+      color: rgba(148,163,184,.75);
+      font-size: 11px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    /* Motion-lite */
+    .fade-up{ opacity:0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
+    .fade-up.show{ opacity:1; transform: translateY(0); }
+
+    /* Mobile nav notice */
+    .mobile-hint{
+      display:block;
+      font-size: 11px;
+      color: rgba(100,116,139,.85);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    @media (min-width: 768px){ .mobile-hint{ display:none; } }
+
+    /* Utility */
+    .mt-12{ margin-top: 12px; }
+    .mt-24{ margin-top: 24px; }
+    .mt-36{ margin-top: 36px; }
+  </style>
+</head>
+
+<body>
+  <header class="nav" id="siteNav">
+    <div class="nav-inner">
+      <a class="brand" href="#home" aria-label="Nishiura Lab Home">
+        <div class="brand-mark">N</div>
+        <div class="brand-title">
+          <strong data-i18n="lab_name_short">Nishiura Lab.</strong>
+          <span data-i18n="univ_name_short">Miyagi Gakuin Women's Univ.</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#home" data-link="home" data-i18n="nav_home">home</a>
+          <a href="#about" data-link="about" data-i18n="nav_about">about</a>
+          <a href="#research" data-link="research" data-i18n="nav_research">research</a>
+          <a href="#publications" data-link="publications" data-i18n="nav_publications">publications</a>
+          <a href="#contact" data-link="contact" data-i18n="nav_contact">contact</a>
+        </nav>
+
+        <div class="lang-switch">
+          <span class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span class="lang-btn active" onclick="setLanguage('ja')">JP</span>
+          <span class="lang-btn" onclick="setLanguage('se')">SE</span>
+        </div>
+      </div>
+
+      <div class="mobile-hint">scroll / tap sections</div>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="dot-grid"></div>
+      <div class="ring" aria-hidden="true"></div>
+
+      <div class="container">
+        <div class="hero-top fade-up">
+          <div>Est. 1886</div>
+          <div class="right" data-i18n="location">Sendai, Japan</div>
+        </div>
+
+        <div class="hero-type mt-36">
+          <div class="fade-up">
+            <h1 data-i18n="hero_h1_1">Learning</h1>
+          </div>
+
+          <div class="hero-row fade-up">
+            <h1 class="design" data-i18n="hero_h1_2">Design</h1>
+            <div class="rule"></div>
+            <div class="sub" data-i18n="hero_sub">&amp; Psychology</div>
+          </div>
+        </div>
+
+        <div class="hero-bottom mt-36">
+          <div class="hero-desc fade-up">
+            <p class="mt-12">
+              <strong data-i18n="hero_desc_strong">Kazuki Nishiura Laboratory</strong> 
+              <span data-i18n="hero_desc_text">explores the intersection of Technology, Mind, and Creativity.</span>
+            </p>
+            <p class="jp" data-i18n="hero_desc_sub">宮城学院女子大学 教育学部 / 教育心理学・健康心理学</p>
+          </div>
+
+          <a class="scroll-cta fade-up" href="#about" aria-label="Scroll to About section">
+            <span data-i18n="scroll_down">SCROLL DOWN</span>
+            <div class="circle-btn"><div class="arrow"></div></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section about">
+      <div class="container">
+        <div class="about-grid">
+          <div class="sticky">
+            <span class="kicker fade-up" data-i18n="about_kicker">About Professor</span>
+            <h2 class="about-title fade-up">Kazuki<br><em>Nishiura</em></h2>
+
+             <div class="portrait" aria-label="Professor photo">
+              <img src="./profile.jpg" 
+                   alt="Kazuki Nishiura" 
+                   style="width:100%; height:100%; object-fit:cover;"
+                   onerror="this.onerror=null; this.src='https://placehold.co/400x533?text=Profile+Image\n(Download+to+see+local+file)';">
+            </div>
+
+          </div>
+
+          <div class="about-right">
+            <div class="fade-up">
+              <h3 data-i18n="about_head">教育と心理の架け橋</h3>
+              <p data-i18n="about_body">
+                宮城学院女子大学 教育学部 教育学科 教授。<br>
+                専門は教育心理学、健康心理学、教育工学。私たちは、単に知識を伝達するだけでなく、学習者一人ひとりの内発的な動機づけ（Motivation）と創造性（Creativity）をいかに引き出すかを問い続けています。<br><br>
+                北欧スウェーデンのウェルビーイングと最新のICT技術を融合させ、心理学を基盤とした新しい学びの生態系をデザインすること。それが私たちのミッションです。
+              </p>
+            </div>
+
+            <div class="meta fade-up" aria-label="Background and affiliations">
+              <div>
+                <h4><span class="dot"></span> <span data-i18n="about_bg_title">Background</span></h4>
+                <ul data-i18n="about_bg_list">
+                  <li>博士（心理学）</li>
+                  <li>宮城学院女子大学 教育学部 教授</li>
+                  <li>ストックホルム商科大学 客員教授</li>
+                </ul>
+              </div>
+              <div>
+                <h4><span class="dot"></span> <span data-i18n="about_aff_title">Affiliations</span></h4>
+                <ul data-i18n="about_aff_list">
+                  <li>日本心理学会</li>
+                  <li>日本教育心理学会</li>
+                  <li>日本教育工学会 (JSET)</li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="research" class="section research">
+      <div class="container">
+        <div class="section-head">
+          <div class="fade-up">
+            <h2 data-i18n="research_title">Research Areas</h2>
+          </div>
+          <div class="caption fade-up" data-i18n="research_caption">Core Focus &amp; Methodology</div>
+        </div>
+
+        <div class="cards">
           <a href="./experiments.html" class="card fade-up" style="display:block; text-decoration:none;">
             <div class="card-top">
               <div class="pill">ET</div>
@@ -18,7 +931,7 @@
             </div>
             <h3 data-i18n="res_2_title">Creativity & Learning</h3>
             <p data-i18n="res_2_text">創造的問題解決（Creative Problem Solving）の心理学的メカニズムの解明と、それを育むための教育メソッドの開発に取り組んでいます。</p>
-            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
+             <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
                View Creativity &rarr;
             </div>
           </a>
@@ -30,8 +943,405 @@
             </div>
             <h3 data-i18n="res_3_title">Well-being & Psychology</h3>
             <p data-i18n="res_3_text">教育心理学・健康心理学の観点から、学習者のウェルビーイングや動機づけ、ストレス対処能力（SOC）に関する研究を行っています。</p>
-            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
+             <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
               View Well-being &rarr;
             </div>
           </a>
         </div>
+      </div>
+    </section>
+
+    <section id="publications" class="section pub">
+      <div class="container">
+        <div class="center">
+          <span class="kicker fade-up" data-i18n="pub_kicker">Archive</span>
+          <h2 class="fade-up" data-i18n="pub_title">Selected Publications</h2>
+        </div>
+
+        <div class="list">
+          <div class="item fade-up">
+            <div class="year">2022</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_1_title">脳と学習ー未来の学校に必要な知識</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_1_source">宮城学院女子大学西浦研究室 (編訳)</em></span>
+                <span class="role" data-i18n="role_edit_trans">編訳</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item fade-up">
+            <div class="year">2021</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_2_title">森のこども園の誕生、現在、そして未来</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_2_source">宮城学院女子大学附属発達科学研究所</em></span>
+                <span class="role" data-i18n="role_coauthor">共著</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item fade-up">
+            <div class="year">2016</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_3_title">北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_3_source">北大路書房</em></span>
+                <span class="role" data-i18n="role_cotrans">共訳</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="item fade-up" style="border-bottom:none;">
+            <div class="year">2010</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_4_title">青年期女性の食行動異常に関する心理学的研究</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_4_source">岩手大学教育学部附属教育実践総合センター研究紀要</em></span>
+                <span class="role" data-i18n="role_coauthor">共著</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="center mt-24">
+          <a class="viewall" href="https://researchmap.jp/read0063225" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="view_researchmap">View all on Researchmap</span> <span class="mini-arrow" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="container contact-grid">
+        <div class="fade-up">
+          <h2 data-i18n="contact_title">Let's Connect</h2>
+          <p data-i18n="contact_text">研究に関するお問い合わせ、大学院進学のご相談はメールにて受け付けています。教育とテクノロジーの未来について語り合いましょう。</p>
+
+          <a class="mail" href="mailto:nishiura@mgu.ac.jp" aria-label="Send email">
+            <span class="icon" aria-hidden="true"></span>
+            <span>nishiura@mgu.ac.jp</span>
+          </a>
+        </div>
+
+        <div class="contact-right fade-up">
+          <div>
+            <strong data-i18n="univ_name">Miyagi Gakuin Women's University</strong>
+            <div class="small" data-i18n="faculty_name">Faculty of Education</div>
+            <div class="tiny" data-i18n="address">9-1-1 Sakuragaoka, Aoba-ku, Sendai, Miyagi 981-8557</div>
+          </div>
+
+          <div class="contact-links">
+            <a href="https://www.mgu.ac.jp/" target="_blank" rel="noopener noreferrer" data-i18n="univ_site">University Site</a>
+            <a href="#" onclick="alert('準備中です（後でPrivacy Policyページに差し替え）'); return false;" data-i18n="privacy">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="grad-line" aria-hidden="true"></div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; <span id="year"></span> Nishiura Laboratory. All Rights Reserved.
+  </footer>
+
+  <script>
+    // --- Translation Data ---
+    const translations = {
+      ja: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Women's Univ.",
+        nav_home: "home",
+        nav_about: "about",
+        nav_research: "research",
+        nav_publications: "publications",
+        nav_contact: "contact",
+        location: "Sendai, Japan",
+        hero_h1_1: "Learning",
+        hero_h1_2: "Design",
+        hero_sub: "& Psychology",
+        hero_desc_strong: "Kazuki Nishiura Laboratory",
+        hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
+        hero_desc_sub: "宮城学院女子大学 教育学部 / 教育心理学・健康心理学",
+        scroll_down: "SCROLL DOWN",
+        about_kicker: "About Professor",
+        about_head: "教育と心理の架け橋",
+        about_body: `宮城学院女子大学 教育学部 教育学科 教授。<br>
+          専門は教育心理学、健康心理学、教育工学。私たちは、単に知識を伝達するだけでなく、学習者一人ひとりの内発的な動機づけ（Motivation）と創造性（Creativity）をいかに引き出すかを問い続けています。<br><br>
+          北欧スウェーデンのウェルビーイングと最新のICT技術を融合させ、心理学を基盤とした新しい学びの生態系をデザインすること。それが私たちのミッションです。`,
+        about_bg_title: "Background",
+        about_bg_list: `
+          <li>博士（心理学）</li>
+          <li>宮城学院女子大学 教育学部 教授</li>
+          <li>ストックホルム商科大学 客員教授</li>`,
+        about_aff_title: "Affiliations",
+        about_aff_list: `
+          <li>日本心理学会</li>
+          <li>日本教育心理学会</li>
+          <li>日本教育工学会 (JSET)</li>`,
+        research_title: "Research Areas",
+        research_caption: "Core Focus & Methodology",
+        res_1_title: "Educational Technology",
+        res_1_text: "e-learning、LMS、ICTを活用した学習環境の構築と、その教育効果の検証。テクノロジーが学習者の創造性や自律性をどう支援するかを探求します。",
+        view_experiments: "View Experiments",
+        res_2_title: "Creativity & Learning",
+        res_2_text: "創造的問題解決（Creative Problem Solving）の心理学的メカニズムの解明と、それを育むための教育メソッドの開発に取り組んでいます。",
+        view_creativity: "View Creativity",
+        res_3_title: "Well-being & Psychology",
+        res_3_text: "教育心理学・健康心理学の観点から、学習者のウェルビーイングや動機づけ、ストレス対処能力（SOC）に関する研究を行っています。",
+        view_wellbeing: "View Well-being",
+        pub_kicker: "Archive",
+        pub_title: "Selected Publications",
+        // Publications Translations (JA)
+        pub_1_title: "脳と学習ー未来の学校に必要な知識",
+        pub_1_source: "宮城学院女子大学西浦研究室 (編訳)",
+        pub_2_title: "森のこども園の誕生、現在、そして未来",
+        pub_2_source: "宮城学院女子大学附属発達科学研究所",
+        pub_3_title: "北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育",
+        pub_3_source: "北大路書房",
+        pub_4_title: "青年期女性の食行動異常に関する心理学的研究",
+        pub_4_source: "岩手大学教育学部附属教育実践総合センター研究紀要",
+        
+        role_edit_trans: "編訳",
+        role_coauthor: "共著",
+        role_cotrans: "共訳",
+        view_researchmap: "View all on Researchmap",
+        contact_title: "Let's Connect",
+        contact_text: "研究に関するお問い合わせ、大学院進学のご相談はメールにて受け付けています。教育とテクノロジーの未来について語り合いましょう。",
+        univ_name: "Miyagi Gakuin Women's University",
+        faculty_name: "Faculty of Education",
+        address: "9-1-1 Sakuragaoka, Aoba-ku, Sendai, Miyagi 981-8557",
+        univ_site: "University Site",
+        privacy: "Privacy Policy"
+      },
+      en: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Women's Univ.",
+        nav_home: "home",
+        nav_about: "about",
+        nav_research: "research",
+        nav_publications: "publications",
+        nav_contact: "contact",
+        location: "Sendai, Japan",
+        hero_h1_1: "Learning",
+        hero_h1_2: "Design",
+        hero_sub: "& Psychology",
+        hero_desc_strong: "Kazuki Nishiura Laboratory",
+        hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
+        hero_desc_sub: "Faculty of Education, Miyagi Gakuin Women's Univ.",
+        scroll_down: "SCROLL DOWN",
+        about_kicker: "About Professor",
+        about_head: "Bridging Education and Psychology",
+        about_body: `Professor, Faculty of Education, Miyagi Gakuin Women's University.<br>
+          Specializing in Educational Psychology, Health Psychology, and Educational Technology. We continuously ask not only how to transmit knowledge, but how to elicit intrinsic Motivation and Creativity from each learner.<br><br>
+          Our mission is to design a new ecosystem of learning based on psychology, fusing Nordic/Swedish well-being with the latest ICT technology.`,
+        about_bg_title: "Background",
+        about_bg_list: `
+          <li>Ph.D. in Psychology</li>
+          <li>Professor, Miyagi Gakuin Women's Univ.</li>
+          <li>Visiting Professor, Stockholm School of Economics</li>`,
+        about_aff_title: "Affiliations",
+        about_aff_list: `
+          <li>Japanese Psychological Association</li>
+          <li>Jpn. Assoc. of Educational Psychology</li>
+          <li>Jpn. Soc. for Educational Technology (JSET)</li>`,
+        research_title: "Research Areas",
+        research_caption: "Core Focus & Methodology",
+        res_1_title: "Educational Technology",
+        res_1_text: "Building learning environments using e-learning, LMS, and ICT, and verifying their educational effects. We explore how technology supports learner creativity and autonomy.",
+        view_experiments: "View Experiments",
+        res_2_title: "Creativity & Learning",
+        res_2_text: "Elucidating the psychological mechanisms of Creative Problem Solving and developing educational methods to nurture them.",
+        view_creativity: "View Creativity",
+        res_3_title: "Well-being & Psychology",
+        res_3_text: "Researching learner well-being, motivation, and Sense of Coherence (SOC) from the perspectives of educational and health psychology.",
+        view_wellbeing: "View Well-being",
+        pub_kicker: "Archive",
+        pub_title: "Selected Publications",
+        // Publications Translations (EN)
+        pub_1_title: "Brain and Learning: Knowledge for Future Schools",
+        pub_1_source: "Nishiura Lab, Miyagi Gakuin Women's Univ. (Ed/Trans)",
+        pub_2_title: "The Birth, Present, and Future of Forest Kindergartens",
+        pub_2_source: "Institute for Development Science, MGWU",
+        pub_3_title: "Forest Classrooms from Sweden: Outdoor Education",
+        pub_3_source: "Kitaohji Shobo",
+        pub_4_title: "Psychological Study on Abnormal Eating Behaviors",
+        pub_4_source: "Bulletin of the Center for Edu. Research, Iwate Univ.",
+
+        role_edit_trans: "Ed/Trans",
+        role_coauthor: "Co-author",
+        role_cotrans: "Co-trans",
+        view_researchmap: "View all on Researchmap",
+        contact_title: "Let's Connect",
+        contact_text: "We welcome inquiries regarding research and graduate school consultations via email. Let's discuss the future of education and technology.",
+        univ_name: "Miyagi Gakuin Women's University",
+        faculty_name: "Faculty of Education",
+        address: "9-1-1 Sakuragaoka, Aoba-ku, Sendai, Miyagi 981-8557",
+        univ_site: "University Site",
+        privacy: "Privacy Policy"
+      },
+      se: {
+        lab_name_short: "Nishiura Lab.",
+        univ_name_short: "Miyagi Gakuin Kvinnouniversitet",
+        nav_home: "hem",
+        nav_about: "om oss",
+        nav_research: "forskning",
+        nav_publications: "publikationer",
+        nav_contact: "kontakt",
+        location: "Sendai, Japan",
+        hero_h1_1: "Lärande",
+        hero_h1_2: "Design",
+        hero_sub: "& Psykologi",
+        hero_desc_strong: "Kazuki Nishiura Laboratory",
+        hero_desc_text: "utforskar skärningspunkten mellan teknik, sinne och kreativitet.",
+        hero_desc_sub: "Pedagogiska fakulteten, Miyagi Gakuin Kvinnouniversitet",
+        scroll_down: "SCROLLA NER",
+        about_kicker: "Om Professorn",
+        about_head: "En bro mellan utbildning och psykologi",
+        about_body: `Professor vid Pedagogiska fakulteten, Miyagi Gakuin Kvinnouniversitet.<br>
+          Specialiserad på pedagogisk psykologi, hälsopsykologi och utbildningsteknologi. Vi frågar oss ständigt inte bara hur man förmedlar kunskap, utan hur man lockar fram inre motivation och kreativitet hos varje inlärare.<br><br>
+          Vårt uppdrag är att utforma ett nytt ekosystem för lärande baserat på psykologi, genom att förena nordiskt/svenskt välbefinnande (well-being) med den senaste IKT-tekniken.`,
+        about_bg_title: "Bakgrund",
+        about_bg_list: `
+          <li>Fil.dr i psykologi</li>
+          <li>Professor, Miyagi Gakuin Kvinnouniversitet</li>
+          <li>Gästprofessor, Handelshögskolan i Stockholm</li>`,
+        about_aff_title: "Affiliations",
+        about_aff_list: `
+          <li>Japanese Psychological Association</li>
+          <li>Jpn. Assoc. of Educational Psychology</li>
+          <li>Jpn. Soc. for Educational Technology (JSET)</li>`,
+        research_title: "Forskningsområden",
+        research_caption: "Fokus & Metodik",
+        res_1_title: "Utbildningsteknologi",
+        res_1_text: "Bygga lärmiljöer med e-learning, LMS och IKT, och verifiera deras pedagogiska effekter. Vi undersöker hur teknik stödjer inlärarens kreativitet och autonomi.",
+        view_experiments: "Se experiment",
+        res_2_title: "Kreativitet & Lärande",
+        res_2_text: "Klarläggande av de psykologiska mekanismerna bakom kreativ problemlösning och utveckling av pedagogiska metoder för att främja dem.",
+        view_creativity: "Se Kreativitet",
+        res_3_title: "Välbefinnande & Psykologi",
+        res_3_text: "Forskning om inlärarens välbefinnande, motivation och känsla av sammanhang (KASAM/SOC) ur ett pedagogiskt och hälsopsykologiskt perspektiv.",
+        view_wellbeing: "Se Välbefinnande",
+        pub_kicker: "Arkiv",
+        pub_title: "Utvalda Publikationer",
+        // Publications Translations (SE)
+        pub_1_title: "Hjärnan och lärande: Kunskap för framtidens skolor",
+        pub_1_source: "Nishiura Lab, Miyagi Gakuin Kvinnouniversitet (Red/Övers)",
+        pub_2_title: "Skogsförskolans födelse, nutid och framtid",
+        pub_2_source: "Institutet för utvecklingsvetenskap, MGWU",
+        pub_3_title: "Skogsklassrum från Sverige: Utomhuspedagogik",
+        pub_3_source: "Kitaohji Shobo",
+        pub_4_title: "Psykologisk studie om onormala ätbeteenden",
+        pub_4_source: "Bulletin of the Center for Edu. Research, Iwate Univ.",
+
+        role_edit_trans: "Red/Övers",
+        role_coauthor: "Medförf",
+        role_cotrans: "Medövers",
+        view_researchmap: "Visa alla på Researchmap",
+        contact_title: "Kontakta oss",
+        contact_text: "Vi välkomnar förfrågningar om forskning och konsultationer om forskarutbildning via e-post. Låt oss diskutera framtiden för utbildning och teknik.",
+        univ_name: "Miyagi Gakuin Kvinnouniversitet",
+        faculty_name: "Pedagogiska fakulteten",
+        address: "9-1-1 Sakuragaoka, Aoba-ku, Sendai, Miyagi 981-8557, Japan",
+        univ_site: "Universitetswebbplats",
+        privacy: "Integritetspolicy"
+      }
+    };
+
+    // --- I18n Logic ---
+    const setLanguage = (lang) => {
+      // 1. Update active button state
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        // Reset all active classes first for safety
+        btn.classList.remove('active');
+        
+        // Add active class based on lang code
+        const btnText = btn.textContent.toLowerCase();
+        if (lang === 'ja' && btnText === 'jp') btn.classList.add('active');
+        else if (lang === 'en' && btnText === 'en') btn.classList.add('active');
+        else if (lang === 'se' && btnText === 'se') btn.classList.add('active');
+      });
+
+      // 2. Update text content
+      const data = translations[lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (data[key]) {
+          // Use innerHTML for content with <br> or <li>
+          if (key.includes('body') || key.includes('list')) {
+            el.innerHTML = data[key];
+          } else {
+            el.textContent = data[key];
+          }
+        }
+      });
+
+      // 3. Update html lang attribute
+      document.documentElement.lang = lang;
+    };
+
+    // --- Initialize Language based on Browser Settings ---
+    const initLanguage = () => {
+      // Get browser language (e.g., "ja", "en-US", "sv-SE")
+      const browserLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
+      
+      if (browserLang === 'ja') {
+        setLanguage('ja');
+      } else if (browserLang === 'sv') {
+        setLanguage('se'); // Browser returns 'sv' for Swedish, map to our 'se' key
+      } else {
+        setLanguage('en'); // Default to English for all other languages
+      }
+    };
+    
+    // Execute initialization
+    initLanguage();
+
+
+    // Footer year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Nav style on scroll
+    const nav = document.getElementById('siteNav');
+    const onScroll = () => {
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('load', onScroll);
+    window.addEventListener('pageshow', onScroll);
+    onScroll();
+
+    // Active nav highlight
+    const sections = ['home','about','research','publications','contact']
+      .map(id => document.getElementById(id))
+      .filter(Boolean);
+    const links = Array.from(document.querySelectorAll('.nav-links a[data-link]'));
+
+    const setActive = (id) => {
+      links.forEach(a => a.classList.toggle('active', a.dataset.link === id));
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter(e => e.isIntersecting)
+        .sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (visible && visible.target && visible.target.id) setActive(visible.target.id);
+    }, { root: null, threshold: [0.2, 0.35, 0.5, 0.65] });
+
+    sections.forEach(s => observer.observe(s));
+
+    // Fade-up on view
+    const fades = document.querySelectorAll('.fade-up');
+    const fadeObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('show');
+      });
+    }, { threshold: 0.12 });
+    fades.forEach(el => fadeObs.observe(el));
+  </script>
+</body>
+</html>
