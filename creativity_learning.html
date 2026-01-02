@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Creativity & Learning | Nishiura Lab.</title>
 
-  <!-- Fonts (Consistent with index.html) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
 
   <style>
-    /* Inherited Styles from index.html 
-      デザインの一貫性を保つため、共通のCSS変数とスタイルを使用しています。
-    */
+    /* Shared Variables & Basic Reset */
     :root{
       --bg:#f8fafc;
       --text:#0f172a;
@@ -42,12 +39,11 @@
 
     h1,h2,h3,.serif{ font-family:"Noto Serif JP", serif; }
     .english-title{ font-family:"Cinzel", serif; }
-    .sans-english{ font-family:"Inter", system-ui, sans-serif; }
 
     a{ color:inherit; text-decoration:none; }
     .container{ width:min(var(--max), 92%); margin:0 auto; }
 
-    /* Nav */
+    /* Nav (Consistent with index) */
     .nav{
       position:fixed; inset:0 0 auto 0;
       z-index:999;
@@ -65,55 +61,27 @@
     .nav-inner{
       width:min(95%, 1280px);
       margin:0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
+      display:flex; align-items:center; justify-content:space-between; gap:18px;
     }
-    .brand{
-      display:flex; align-items:center; gap:12px;
-    }
+    .brand{ display:flex; align-items:center; gap:12px; }
     .brand-mark{
-      width:40px; height:40px;
-      display:grid; place-items:center;
-      background: #0f172a;
-      color:#fff;
-      transition: background .35s ease;
-      font-family:"Noto Serif JP", serif;
-      font-weight:300;
-      font-size:18px;
+      width:40px; height:40px; display:grid; place-items:center;
+      background: #0f172a; color:#fff; transition: background .35s ease;
+      font-family:"Noto Serif JP", serif; font-weight:300; font-size:18px;
     }
     .brand:hover .brand-mark{ background: var(--indigo); }
-    .brand-title{
-      display:flex; flex-direction:column; line-height:1.1;
-    }
-    .brand-title strong{
-      font-size:12px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-    }
-    .brand-title span{
-      font-size:10px;
-      letter-spacing:.08em;
-      color:var(--muted);
-      display:none;
-    }
-    @media (min-width: 768px){
-      .brand-title span{ display:block; }
-    }
+    .brand-title{ display:flex; flex-direction:column; line-height:1.1; }
+    .brand-title strong{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
+    .brand-title span{ font-size:10px; letter-spacing:.08em; color:var(--muted); display:none; }
+    @media (min-width: 768px){ .brand-title span{ display:block; } }
 
     .nav-actions { display: flex; align-items: center; gap: 28px; }
     .nav-links{ display:none; gap:28px; align-items:center; }
     @media (min-width: 900px){ .nav-links{ display:flex; } }
 
     .nav-links a{
-      position:relative;
-      padding:6px 6px;
-      font-size:11px;
-      letter-spacing:.2em;
-      text-transform:uppercase;
-      color: #64748b;
-      transition: color .25s ease;
+      position:relative; padding:6px 6px; font-size:11px; letter-spacing:.2em;
+      text-transform:uppercase; color: #64748b; transition: color .25s ease;
     }
     .nav-links a:hover{ color: var(--indigo); }
     .nav-links a.active{ color: var(--indigo2); font-weight:700; }
@@ -128,135 +96,89 @@
     .lang-btn:hover { opacity: 1; color: var(--indigo); }
     .lang-btn.active { opacity: 1; color: var(--indigo2); text-decoration: underline; text-underline-offset: 4px; }
 
-    /* Hero for Subpage */
+    /* Hero Subpage */
     .hero-sub{
-      position:relative;
-      min-height: 50vh;
-      padding: 160px 0 80px;
-      background: var(--white);
-      overflow:hidden;
-      display:flex;
-      align-items:center;
+      position:relative; min-height: 50vh; padding: 160px 0 80px;
+      background: var(--white); overflow:hidden; display:flex; align-items:center;
     }
     .dot-grid{
-      position:absolute; inset:0;
-      opacity:.40; pointer-events:none;
+      position:absolute; inset:0; opacity:.40; pointer-events:none;
       background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
       background-size: 32px 32px;
     }
-    
     .page-header h1{
-      font-size: clamp(40px, 8vw, 80px);
-      line-height: 1.1;
-      margin: 0 0 24px;
-      color: var(--dark);
-      letter-spacing: -0.02em;
+      font-size: clamp(40px, 8vw, 80px); line-height: 1.1; margin: 0 0 24px;
+      color: var(--dark); letter-spacing: -0.02em;
     }
     .page-header .subtitle{
-      font-family: "Inter", sans-serif;
-      color: var(--indigo);
-      font-size: 14px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-bottom: 16px;
-      display: block;
+      font-family: "Inter", sans-serif; color: var(--indigo);
+      font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase;
+      font-weight: 700; margin-bottom: 16px; display: block;
     }
     .page-desc{
-      max-width: 600px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.8;
-      font-weight: 300;
+      max-width: 680px; color: var(--muted); font-size: 16px;
+      line-height: 1.8; font-weight: 300;
     }
 
-    /* Concept Section */
+    /* Sections */
     .concept-section { padding: 100px 0; background: #fff; }
-    .text-block h3 { font-size: 28px; margin-bottom: 24px; color: var(--dark); }
-    .text-block p { color: var(--muted); line-height: 1.9; margin-bottom: 24px; font-weight: 300; }
+    .kicker { color: var(--indigo); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom: 12px; }
     
-    /* Tools Grid */
-    .tools-section { background: #f1f5f9; padding: 100px 0; }
-    .grid-3 {
-      display: grid; grid-template-columns: 1fr; gap: 32px;
-    }
+    /* Research Themes Grid */
+    .themes-section { background: #f1f5f9; padding: 100px 0; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 32px; }
     @media (min-width: 900px){ .grid-3{ grid-template-columns: repeat(3, 1fr); } }
     
-    .tool-card {
-      background: #fff;
-      padding: 40px 32px;
+    .theme-card {
+      background: #fff; padding: 40px 32px;
       border: 1px solid rgba(226,232,240,0.8);
-      transition: all 0.3s ease;
-      position: relative;
+      transition: all 0.3s ease; position: relative;
+      display:flex; flex-direction:column; justify-content:space-between;
     }
-    .tool-card:hover {
+    .theme-card:hover {
       transform: translateY(-8px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.05);
       border-color: rgba(79,70,229,0.3);
     }
-    .tool-icon {
-      width: 56px; height: 56px;
-      background: #f8fafc;
-      color: var(--indigo);
-      display: grid; place-items: center;
-      margin-bottom: 24px;
-      font-size: 24px;
-      border-radius: 8px;
+    .theme-icon {
+      font-size: 32px; margin-bottom: 24px; color: var(--indigo);
     }
-    .tool-card h4 {
-      margin: 0 0 16px;
-      font-size: 20px;
-      color: var(--dark);
-    }
-    .tool-card p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 24px;
-    }
-    .tag-list {
-      display: flex; flex-wrap: wrap; gap: 8px;
-    }
-    .tag {
-      font-size: 10px;
-      padding: 4px 10px;
-      border-radius: 99px;
-      background: #f1f5f9;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      font-weight: 600;
+    .theme-card h4 { margin: 0 0 16px; font-size: 20px; color: var(--dark); }
+    .theme-card p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+    .theme-meta {
+      font-size: 11px; font-family:"Inter", sans-serif; color: var(--muted2);
+      text-transform: uppercase; letter-spacing: 0.05em; border-top: 1px solid var(--line);
+      padding-top: 16px;
     }
 
-    /* Research List (Simple) */
+    /* Papers List */
     .research-list-sec { padding: 100px 0; }
-    .res-item {
-      padding: 24px 0;
-      border-bottom: 1px solid var(--line);
-    }
+    .res-item { padding: 24px 0; border-bottom: 1px solid var(--line); }
     .res-item:first-child { border-top: 1px solid var(--line); }
-    .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; }
+    .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; line-height:1.6; }
     .res-meta { font-size: 13px; color: var(--muted); }
-
-    /* Footer */
+    
+    /* Footer & Utils */
     footer{
-      background:#020617;
-      padding: 16px 0;
-      text-align:center;
-      color: rgba(148,163,184,.75);
-      font-size: 11px;
-      letter-spacing:.14em;
-      text-transform:uppercase;
+      background:#020617; padding: 16px 0; text-align:center;
+      color: rgba(148,163,184,.75); font-size: 11px; letter-spacing:.14em; text-transform:uppercase;
     }
-
-    /* Motion */
     .fade-up{ opacity:0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
     .fade-up.show{ opacity:1; transform: translateY(0); }
-    .mt-48 { margin-top: 48px; }
+    .viewall {
+      margin-top: 48px; display: inline-flex; gap: 10px; align-items: center;
+      font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--dark); transition: color .2s ease;
+    }
+    .viewall:hover { color: var(--indigo); }
+    .mini-arrow {
+      width: 10px; height: 10px; border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor; transform: rotate(-45deg);
+    }
   </style>
 </head>
 
 <body>
-  <!-- NAV -->
   <header class="nav" id="siteNav">
     <div class="nav-inner">
       <a class="brand" href="index.html">
@@ -271,8 +193,8 @@
         <nav class="nav-links">
           <a href="index.html">Home</a>
           <a href="#concept" data-i18n="nav_concept">Concept</a>
-          <a href="#tools" data-i18n="nav_tools">Tools</a>
-          <a href="#cases" data-i18n="nav_cases">Cases</a>
+          <a href="#themes" data-i18n="nav_themes">Themes</a>
+          <a href="#papers" data-i18n="nav_papers">Papers</a>
           <a href="index.html#contact">Contact</a>
         </nav>
 
@@ -285,7 +207,6 @@
     </div>
   </header>
 
-  <!-- HERO -->
   <header class="hero-sub">
     <div class="dot-grid"></div>
     <div class="container">
@@ -294,139 +215,122 @@
         <h1 data-i18n="page_title">Creativity &amp;<br>Learning</h1>
         <div class="page-desc">
           <p data-i18n="page_desc">
-            私たちは「創造性（Creativity）」を、一部の天才の才能ではなく、誰もが持つ潜在能力として捉えています。心理学と教育工学の視点から、そのメカニズムを解明し、引き出すためのツールと環境をデザインします。
+            創造性は、脳内だけで完結するプロセスではありません。私たちは、テクノロジー（AI・ロボット）、身体性（五感・環境）、そして認知メカニズムの交差点から、人間の創造的振る舞いを科学的に解明し、拡張することを目指しています。
           </p>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- CONCEPT -->
   <section id="concept" class="concept-section">
     <div class="container">
-      <div class="text-block fade-up">
-        <span class="kicker">Psychological Approach</span>
-        <h3 data-i18n="concept_head">創造的問題解決（CPS）とは？</h3>
-        <p data-i18n="concept_body">
-          Creative Problem Solving (CPS) は、創造性を「意図的に」発揮するためのフレームワークです。<br>
-          多くの学習現場では「正解を覚える」収束的思考が重視されがちですが、実社会の課題解決には、多様なアイデアを生み出す「発散的思考（Divergent Thinking）」と、それを統合・評価する「収束的思考（Convergent Thinking）」の両立が不可欠です。<br><br>
-          私たちの研究室では、ブレインストーミングやKJ法といった技法を、認知心理学の知見に基づいて再構築し、教育現場で実践可能なメソッドとして体系化しています。
+      <div class="fade-up" style="max-width:800px;">
+        <span class="kicker">Overview</span>
+        <h3 style="font-size:28px; margin-bottom:24px; color:var(--dark);" data-i18n="concept_head">
+          「発想」を科学し、<br>「環境」をデザインする。
+        </h3>
+        <p style="color:var(--muted); line-height:1.9; font-weight:300;" data-i18n="concept_body">
+          従来の創造性研究は、個人の能力や性格特性に焦点を当てがちでした。しかし、私たちは「環境との相互作用」こそが創造性の鍵であると考えます。<br><br>
+          例えば、ストレス下での注意制御（Attention Control）はどう変化するのか？ 北欧のアウトドア教育に見られる「自然環境」は脳にどのような影響を与えるのか？ そして、ヒト型ロボットやAIとの対話は、私たちの物語生成能力をどう拡張するのか？<br><br>
+          認知心理学の厳密な実験手法と、教育工学的なシステム開発を組み合わせ、研究室（Lab）とフィールド（Field）の両面からアプローチします。
         </p>
       </div>
     </div>
   </section>
 
-  <!-- TOOLS (PROPOSAL) -->
-  <section id="tools" class="tools-section">
+  <section id="themes" class="themes-section">
     <div class="container">
       <div class="fade-up" style="margin-bottom:48px;">
-        <span class="kicker">Developed Tools & Methods</span>
-        <h2 style="font-size:36px; margin:0;" data-i18n="tools_title">Proposed Educational Tools</h2>
-        <p style="color:var(--muted); margin-top:12px;" data-i18n="tools_sub">
-          研究成果に基づいて開発された、創造性と学習を支援する独自のツール群です。
-        </p>
+        <span class="kicker">Core Research Themes</span>
+        <h2 style="font-size:36px; margin:0;" data-i18n="themes_title">Multidimensional Approaches</h2>
       </div>
 
       <div class="grid-3">
-        <!-- TOOL 1: Brester -->
-        <article class="tool-card fade-up">
-          <div class="tool-icon">🃏</div>
-          <h4 data-i18n="tool_1_name">Gamified Brainstorming "Brester"</h4>
-          <p data-i18n="tool_1_desc">
-            ブレインストーミングの4原則（批判禁止・自由奔放・質より量・結合改善）を、ゲームルールとして組み込んだカードゲーム教材。心理的ストレスを低減させながら、発想の流暢性を高めます。
-          </p>
-          <div class="tag-list">
-            <span class="tag">Gamification</span>
-            <span class="tag">Ideation</span>
-            <span class="tag">Stress Reduction</span>
+        <article class="theme-card fade-up">
+          <div>
+            <div class="theme-icon">🤖</div>
+            <h4 data-i18n="theme_1_title">Human-Agent Interaction</h4>
+            <p data-i18n="theme_1_desc">
+              ヒト型ロボット（Pepper等）や生成AIを「共創パートナー」として教育現場に導入する研究です。ロボットを用いたデジタル紙芝居（Digital Storytelling）が、幼児の感情理解や創造的表現に与える影響を検証しています。
+            </p>
           </div>
+          <div class="theme-meta">Target: Early Childhood / AI</div>
         </article>
 
-        <!-- TOOL 2: Digital CPS -->
-        <article class="tool-card fade-up" style="transition-delay: 0.1s;">
-          <div class="tool-icon">💻</div>
-          <h4 data-i18n="tool_2_name">Digital CPS Support (Brester AIR)</h4>
-          <p data-i18n="tool_2_desc">
-            カードゲームの効果をデジタル環境へ拡張。遠隔地との協調学習や、アイデアの記録・分類（収束プロセス）を支援するアプリケーション。ICTを活用した現代的な教室環境に対応します。
-          </p>
-          <div class="tag-list">
-            <span class="tag">e-Learning</span>
-            <span class="tag">Remote Work</span>
-            <span class="tag">Adobe Flex/AIR</span>
+        <article class="theme-card fade-up" style="transition-delay: 0.1s;">
+          <div>
+            <div class="theme-icon">🧠</div>
+            <h4 data-i18n="theme_2_title">Cognitive & Neuroscience</h4>
+            <p data-i18n="theme_2_desc">
+              高速継時呈示（RSVP）課題を用いた注意資源の消費メカニズムや、タッチケア・創造的作業中の脳波トポグラフィ測定を実施。ストレスやリラックス状態がいかに「ひらめき」や学習効率に影響するかを生理指標から解明します。
+            </p>
           </div>
+          <div class="theme-meta">Method: EEG / RSVP / Exp.</div>
         </article>
 
-        <!-- TOOL 3: Scales -->
-        <article class="tool-card fade-up" style="transition-delay: 0.2s;">
-          <div class="tool-icon">📊</div>
-          <h4 data-i18n="tool_3_name">Psychological Assessment Scales</h4>
-          <p data-i18n="tool_3_desc">
-            「ホスピタリティ尺度」や「学習観尺度」など、学習者の内面的な変容を可視化する心理尺度を開発。教育介入の効果を、単なる成績だけでなく、モチベーションや態度の変容から科学的に測定します。
-          </p>
-          <div class="tag-list">
-            <span class="tag">Measurement</span>
-            <span class="tag">Evaluation</span>
-            <span class="tag">Hospitality</span>
+        <article class="theme-card fade-up" style="transition-delay: 0.2s;">
+          <div>
+            <div class="theme-icon">🌲</div>
+            <h4 data-i18n="theme_3_title">Ecological & Outdoor Edu.</h4>
+            <p data-i18n="theme_3_desc">
+              スウェーデンのアウトドア教育（Outdoor Education）をモデルに、自然環境下での「生きる知恵」と感覚経験が、創造的な問題解決能力（CPS）をどう育むかを研究。教室という枠を超えた学びの場をデザインします。
+            </p>
           </div>
+          <div class="theme-meta">Field: Sweden / Forest Kinder</div>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- SELECTED CASES/PUBLICATIONS -->
-  <section id="cases" class="research-list-sec">
+  <section id="papers" class="research-list-sec">
     <div class="container">
       <div class="fade-up">
-        <span class="kicker">Selected Works</span>
-        <h2 style="font-size:36px; margin:0 0 32px;" data-i18n="cases_title">Key Publications in Creativity</h2>
+        <span class="kicker">Selected Publications</span>
+        <h2 style="font-size:36px; margin:0 0 32px;" data-i18n="papers_title">Key Research Achievements</h2>
       </div>
 
       <div class="list">
-        <!-- Work 1 -->
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_1_title">
-            ゲーム利用教育の学習評価：研究プロセスの現状と今後の課題
+          <span class="res-title" data-i18n="paper_1_title">
+            The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot
           </span>
           <div class="res-meta">
-            日本教育工学会 第31回全国大会 SIGセッション (2015) | <span data-i18n="work_role_co">共著</span>
+            OMEP (World Assembly and Conference) 2025, Bologna | <span data-i18n="role_presen">共著・国際会議発表</span>
           </div>
         </div>
 
-        <!-- Work 2 -->
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_2_title">
+          <span class="res-title" data-i18n="paper_2_title">
+            タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究
+          </span>
+          <div class="res-meta">
+            日本創造学会 第43回研究大会 (2021) | <span data-i18n="role_single">単著</span>
+          </div>
+        </div>
+
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="paper_3_title">
+            高速度継時呈示事態における注意資源の消費とモニタリングに関する研究
+          </span>
+          <div class="res-meta">
+            心理学研究 第69巻 (1998) | <span data-i18n="role_single">単著</span>
+          </div>
+        </div>
+
+        <div class="res-item fade-up">
+          <span class="res-title" data-i18n="paper_4_title">
             カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討
           </span>
           <div class="res-meta">
-            山形大学紀要 Vol.17 (2011) | <span data-i18n="work_role_co">共著</span>
-          </div>
-        </div>
-
-        <!-- Work 3 -->
-        <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_3_title">
-            創造性育成を目指した教育ツール開発と評価に関する研究：ブレインストーミング法によるストレス反応軽減効果
-          </span>
-          <div class="res-meta">
-            宮城学院女子大学発達科学研究 第8号 (2008) | <span data-i18n="work_role_co">共著</span>
-          </div>
-        </div>
-
-        <!-- Work 4 -->
-        <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_4_title">
-            CPSによる授業実践:笑顔の訓練マニュアル作成の試み
-          </span>
-          <div class="res-meta">
-            『創造的問題解決:なぜ問題が解決できないのか』(2006) | <span data-i18n="work_role_co">共著・分担執筆</span>
+            山形大学紀要 Vol.17 (2011) | <span data-i18n="role_co">共著</span>
           </div>
         </div>
       </div>
       
-      <div class="mt-48 fade-up">
+      <div class="fade-up">
         <a href="index.html#publications" class="viewall">
-          <span class="mini-arrow" style="transform:rotate(135deg); display:inline-block; border-color:var(--indigo);"></span>
           <span data-i18n="back_home">Back to All Publications</span>
+          <span class="mini-arrow"></span>
         </a>
       </div>
     </div>
@@ -437,95 +341,122 @@
   </footer>
 
   <script>
-    // --- Translation Data for this page ---
+    // --- Translation Data ---
     const translations = {
       ja: {
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Women's Univ.",
         nav_concept: "Concept",
-        nav_tools: "Tools",
-        nav_cases: "Cases",
+        nav_themes: "Themes",
+        nav_papers: "Papers",
+        
         page_title: "Creativity &<br>Learning",
-        page_desc: "私たちは「創造性（Creativity）」を、一部の天才の才能ではなく、誰もが持つ潜在能力として捉えています。心理学と教育工学の視点から、そのメカニズムを解明し、引き出すためのツールと環境をデザインします。",
-        concept_head: "創造的問題解決（CPS）とは？",
-        concept_body: `Creative Problem Solving (CPS) は、創造性を「意図的に」発揮するためのフレームワークです。<br>
-          多くの学習現場では「正解を覚える」収束的思考が重視されがちですが、実社会の課題解決には、多様なアイデアを生み出す「発散的思考（Divergent Thinking）」と、それを統合・評価する「収束的思考（Convergent Thinking）」の両立が不可欠です。<br><br>
-          私たちの研究室では、ブレインストーミングやKJ法といった技法を、認知心理学の知見に基づいて再構築し、教育現場で実践可能なメソッドとして体系化しています。`,
-        tools_title: "Proposed Educational Tools",
-        tools_sub: "研究成果に基づいて開発された、創造性と学習を支援する独自のツール群です。",
-        tool_1_name: "Gamified Brainstorming 'Brester'",
-        tool_1_desc: "ブレインストーミングの4原則（批判禁止・自由奔放・質より量・結合改善）を、ゲームルールとして組み込んだカードゲーム教材。心理的ストレスを低減させながら、発想の流暢性を高めます。",
-        tool_2_name: "Digital CPS Support (Brester AIR)",
-        tool_2_desc: "カードゲームの効果をデジタル環境へ拡張。遠隔地との協調学習や、アイデアの記録・分類（収束プロセス）を支援するアプリケーション。ICTを活用した現代的な教室環境に対応します。",
-        tool_3_name: "Psychological Assessment Scales",
-        tool_3_desc: "「ホスピタリティ尺度」や「学習観尺度」など、学習者の内面的な変容を可視化する心理尺度を開発。教育介入の効果を、単なる成績だけでなく、モチベーションや態度の変容から科学的に測定します。",
-        cases_title: "Key Publications in Creativity",
-        work_1_title: "ゲーム利用教育の学習評価：研究プロセスの現状と今後の課題",
-        work_2_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
-        work_3_title: "創造性育成を目指した教育ツール開発と評価に関する研究：ブレインストーミング法によるストレス反応軽減効果",
-        work_4_title: "CPSによる授業実践:笑顔の訓練マニュアル作成の試み",
-        work_role_co: "共著",
+        page_desc: "創造性は、脳内だけで完結するプロセスではありません。私たちは、テクノロジー（AI・ロボット）、身体性（五感・環境）、そして認知メカニズムの交差点から、人間の創造的振る舞いを科学的に解明し、拡張することを目指しています。",
+        
+        concept_head: "「発想」を科学し、<br>「環境」をデザインする。",
+        concept_body: `従来の創造性研究は、個人の能力や性格特性に焦点を当てがちでした。しかし、私たちは「環境との相互作用」こそが創造性の鍵であると考えます。<br><br>
+          例えば、ストレス下での注意制御（Attention Control）はどう変化するのか？ 北欧のアウトドア教育に見られる「自然環境」は脳にどのような影響を与えるのか？ そして、ヒト型ロボットやAIとの対話は、私たちの物語生成能力をどう拡張するのか？<br><br>
+          認知心理学の厳密な実験手法と、教育工学的なシステム開発を組み合わせ、研究室（Lab）とフィールド（Field）の両面からアプローチします。`,
+        
+        themes_title: "Multidimensional Approaches",
+        
+        theme_1_title: "Human-Agent Interaction",
+        theme_1_desc: "ヒト型ロボット（Pepper等）や生成AIを「共創パートナー」として教育現場に導入する研究です。ロボットを用いたデジタル紙芝居（Digital Storytelling）が、幼児の感情理解や創造的表現に与える影響を検証しています。",
+        
+        theme_2_title: "Cognitive & Neuroscience",
+        theme_2_desc: "高速継時呈示（RSVP）課題を用いた注意資源の消費メカニズムや、タッチケア・創造的作業中の脳波トポグラフィ測定を実施。ストレスやリラックス状態がいかに「ひらめき」や学習効率に影響するかを生理指標から解明します。",
+        
+        theme_3_title: "Ecological & Outdoor Edu.",
+        theme_3_desc: "スウェーデンのアウトドア教育（Outdoor Education）をモデルに、自然環境下での「生きる知恵」と感覚経験が、創造的な問題解決能力（CPS）をどう育むかを研究。教室という枠を超えた学びの場をデザインします。",
+        
+        papers_title: "Key Research Achievements",
+        paper_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果 (The Effect of Digital Storytelling...)",
+        paper_2_title: "タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究",
+        paper_3_title: "高速度継時呈示事態における注意資源の消費とモニタリングに関する研究",
+        paper_4_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
+        
+        role_presen: "共著・国際会議発表",
+        role_single: "単著",
+        role_co: "共著",
         back_home: "全業績リストへ戻る"
       },
       en: {
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Women's Univ.",
         nav_concept: "Concept",
-        nav_tools: "Tools",
-        nav_cases: "Cases",
+        nav_themes: "Themes",
+        nav_papers: "Papers",
+        
         page_title: "Creativity &<br>Learning",
-        page_desc: "We view 'Creativity' not as a talent for a few geniuses, but as a potential everyone possesses. From the perspectives of psychology and educational technology, we unravel its mechanisms and design tools and environments to unlock it.",
-        concept_head: "What is Creative Problem Solving (CPS)?",
-        concept_body: `Creative Problem Solving (CPS) is a framework for intentionally exercising creativity.<br>
-          While many learning environments tend to emphasize 'Convergent Thinking' to find a single correct answer, real-world problem solving requires a balance of 'Divergent Thinking' to generate diverse ideas and 'Convergent Thinking' to integrate and evaluate them.<br><br>
-          Our laboratory reconstructs techniques such as Brainstorming and the KJ Method based on cognitive psychology findings, systematizing them as methods practicable in educational settings.`,
-        tools_title: "Proposed Educational Tools",
-        tools_sub: "Unique tools developed based on research findings to support creativity and learning.",
-        tool_1_name: "Gamified Brainstorming 'Brester'",
-        tool_1_desc: "A card game teaching material that incorporates the 4 principles of brainstorming (Defer Judgment, Wild Ideas, Quantity over Quality, Build on Ideas) as game rules. It enhances ideation fluency while reducing psychological stress.",
-        tool_2_name: "Digital CPS Support (Brester AIR)",
-        tool_2_desc: "Extending the effects of the card game to a digital environment. An application that supports collaborative learning in remote locations and the recording/classification of ideas (convergent process).",
-        tool_3_name: "Psychological Assessment Scales",
-        tool_3_desc: "Developing psychological scales to visualize learners' internal changes, such as the 'Hospitality Scale' and 'Learning View Scale'. We scientifically measure educational effects not just by grades, but by changes in motivation and attitude.",
-        cases_title: "Key Publications in Creativity",
-        work_1_title: "Learning Evaluation in Game-Based Education: Current Status and Future Issues",
-        work_2_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
-        work_3_title: "Development and Evaluation of Educational Tools for Nurturing Creativity",
-        work_4_title: "Class Practice by CPS: Attempt to Create a Smile Training Manual",
-        work_role_co: "Co-author",
+        page_desc: "Creativity is not a process that occurs solely within the brain. We aim to scientifically unravel and expand human creative behavior at the intersection of Technology (AI/Robots), Embodiment (Senses/Environment), and Cognitive Mechanisms.",
+        
+        concept_head: "Science of Ideation,<br>Design of Environment.",
+        concept_body: `Traditional creativity research often focused on individual abilities or personality traits. However, we believe that "interaction with the environment" is the key to creativity.<br><br>
+          For example, how does Attention Control change under stress? How does the "natural environment" seen in Nordic outdoor education affect the brain? And how does dialogue with humanoid robots or AI expand our storytelling abilities?<br><br>
+          We approach these questions from both the Lab and the Field, combining rigorous experimental methods of cognitive psychology with educational technology system development.`,
+        
+        themes_title: "Multidimensional Approaches",
+        
+        theme_1_title: "Human-Agent Interaction",
+        theme_1_desc: "Research on introducing humanoid robots (e.g., Pepper) and Generative AI as 'co-creation partners' in educational settings. We verify the effects of Digital Storytelling using robots on infants' emotional understanding and creative expression.",
+        
+        theme_2_title: "Cognitive & Neuroscience",
+        theme_2_desc: "Conducting EEG topography measurements during touch care and creative tasks, as well as investigating attention resource consumption using RSVP tasks. We elucidate via physiological indicators how stress or relaxation affects 'insight' and learning efficiency.",
+        
+        theme_3_title: "Ecological & Outdoor Edu.",
+        theme_3_desc: "Modeled after Swedish Outdoor Education, we research how 'living wisdom' and sensory experiences in natural environments nurture Creative Problem Solving (CPS) abilities. Designing learning spaces beyond the classroom.",
+        
+        papers_title: "Key Research Achievements",
+        paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
+        paper_2_title: "Preliminary Study on the Effect of Tactile Care Intervention on EEG Topography",
+        paper_3_title: "A Study on Attentional Resource-Consuming and Monitoring Processes under Rapid Serial Visual Presentation",
+        paper_4_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
+        
+        role_presen: "Co-author / Intl. Conf.",
+        role_single: "Single Author",
+        role_co: "Co-author",
         back_home: "Back to All Publications"
       },
       se: {
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Kvinnouniversitet",
         nav_concept: "Koncept",
-        nav_tools: "Verktyg",
-        nav_cases: "Fallstudier",
+        nav_themes: "Teman",
+        nav_papers: "Publikationer",
+        
         page_title: "Kreativitet &<br>Lärande",
-        page_desc: "Vi ser 'kreativitet' inte som en talang för några få genier, utan som en potential som alla besitter. Ur psykologins och utbildningsteknologins perspektiv klarlägger vi dess mekanismer och utformar verktyg och miljöer för att frigöra den.",
-        concept_head: "Vad är Creative Problem Solving (CPS)?",
-        concept_body: `Creative Problem Solving (CPS) är ett ramverk för att avsiktligt utöva kreativitet.<br>
-          Medan många lärmiljöer tenderar att betona 'konvergent tänkande' för att hitta ett enda rätt svar, kräver verklig problemlösning en balans mellan 'divergent tänkande' för att generera olika idéer och 'konvergent tänkande' för att integrera och utvärdera dem.<br><br>
-          Vårt laboratorium rekonstruerar tekniker som Brainstorming och KJ-metoden baserat på kognitiv psykologi och systematiserar dem som metoder som är praktiskt användbara i utbildningsmiljöer.`,
-        tools_title: "Föreslagna Utbildningsverktyg",
-        tools_sub: "Unika verktyg utvecklade baserat på forskningsresultat för att stödja kreativitet och lärande.",
-        tool_1_name: "Gamified Brainstorming 'Brester'",
-        tool_1_desc: "Ett kortspel som införlivar brainstormings fyra principer som spelregler. Det förbättrar idéflödet samtidigt som det minskar psykologisk stress.",
-        tool_2_name: "Digitalt CPS-stöd (Brester AIR)",
-        tool_2_desc: "En applikation som utökar kortspelets effekter till en digital miljö. Stödjer kollaborativt lärande på distans och dokumentering av idéer.",
-        tool_3_name: "Psykologiska Bedömningsskalor",
-        tool_3_desc: "Utveckling av psykologiska skalor för att visualisera inlärares inre förändringar, såsom 'Hospitality Scale'. Vi mäter utbildningseffekter vetenskapligt genom förändringar i motivation och attityd.",
-        cases_title: "Nyckelpublikationer inom Kreativitet",
-        work_1_title: "Utvärdering av lärande i spelbaserad utbildning",
-        work_2_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
-        work_3_title: "Utveckling och utvärdering av verktyg för att främja kreativitet",
-        work_4_title: "Klassrumspraktik med CPS",
-        work_role_co: "Medförfattare",
+        page_desc: "Kreativitet är inte en process som sker enbart i hjärnan. Vi strävar efter att vetenskapligt klargöra och utvidga mänskligt kreativt beteende i skärningspunkten mellan teknologi (AI/Robotar), kroppslighet (Sinnen/Miljö) och kognitiva mekanismer.",
+        
+        concept_head: "Vetenskap om idéer,<br>Design av miljö.",
+        concept_body: `Traditionell kreativitetsforskning fokuserade ofta på individuella förmågor. Men vi tror att "interaktion med miljön" är nyckeln till kreativitet.<br><br>
+          Till exempel, hur förändras uppmärksamhetskontroll under stress? Hur påverkar den "naturliga miljön" i nordisk utomhuspedagogik hjärnan? Och hur utvidgar dialog med humanoida robotar vår berättarförmåga?<br><br>
+          Vi närmar oss dessa frågor från både laboratoriet och fältet, genom att kombinera kognitiv psykologi med utbildningsteknologi.`,
+        
+        themes_title: "Multidimensionella tillvägagångssätt",
+        
+        theme_1_title: "Människa-Agent Interaktion",
+        theme_1_desc: "Forskning om att introducera humanoida robotar (t.ex. Pepper) och generativ AI som 'samkapande partners' i utbildningsmiljöer. Vi verifierar effekterna av digitalt berättande med robotar på barns emotionella förståelse.",
+        
+        theme_2_title: "Kognition & Neurovetenskap",
+        theme_2_desc: "Genomförande av EEG-mätningar under beröringsvård och kreativa uppgifter. Vi klargör via fysiologiska indikatorer hur stress eller avslappning påverkar 'insikt' och inlärningseffektivitet.",
+        
+        theme_3_title: "Ekologisk & Utomhuspedagogik",
+        theme_3_desc: "Med svensk utomhuspedagogik som modell forskar vi om hur 'levnadsvisdom' och sinnesupplevelser i naturmiljöer främjar kreativ problemlösning (CPS). Vi designar lärplatser bortom klassrummet.",
+        
+        papers_title: "Viktiga Forskningsresultat",
+        paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
+        paper_2_title: "Preliminär studie om effekten av taktil vårdintervention på EEG-topografi",
+        paper_3_title: "Studie om uppmärksamhetsresurser under snabb seriell visuell presentation",
+        paper_4_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
+        
+        role_presen: "Medförf / Intl. Konf.",
+        role_single: "Enskild författare",
+        role_co: "Medförfattare",
         back_home: "Tillbaka till alla publikationer"
       }
     };
 
-    // --- I18n Logic (Same as index.html) ---
+    // --- I18n Logic ---
     const setLanguage = (lang) => {
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.classList.remove('active');
