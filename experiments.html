@@ -138,8 +138,8 @@
                 page_desc: "e-learning、LMS、ICTを活用した学習環境の構築と、心理学実験による実証的アプローチ。テクノロジーが学習者の創造性や自律性をどう支援するかを探求し、基礎実験からフィールド応用までを一貫して行います。",
                 
                 concept_kicker: "Methodology",
-                concept_head: "実験室の知見を、社会実装へ。",
-                concept_body: "私たちの研究は、ブラウザ上で動作する基礎的な心理学実験（Lab）から始まります。しかし、そこで得られた「注意」「記憶」「動機づけ」に関する知見は、教育現場やケアの現場（Field）におけるシステム開発の礎となります。\n\n基礎研究と応用研究の循環こそが、実効性のある教育テクノロジーを生み出します。",
+                concept_head: "実験室のコードを、社会実装の礎へ。",
+                concept_body: "私たちは、ブラウザ上で即座に動作する「Web心理学実験プラットフォーム」を構築・提供しています。\n\nここにあるのは、単なる教材ではありません。\n認知の干渉を暴く「ストループ」、脳内の空間操作を試す「メンタルローテーション」、記憶容量の限界に挑む「N-back」、そして「AIカウンセリング」による対話の深層——。\nこれら10を超える実験群は、人間の「注意」「記憶」「意思決定」というブラックボックスを解き明かすための鍵です。\n\n基礎実験（Lab）で得られた鋭利な知見を、教育やケアの現場（Field）へ。\nこの循環こそが、真に人間に最適化されたテクノロジーを生み出します。",
 
                 featured_title: "Advanced Research",
                 feat_1_title: "Attention & RSVP",
@@ -188,6 +188,8 @@
                 prec_input_title: "反応時間を正確に測定するには",
                 prec_input_desc: "キーボード入力の遅延はデータに誤差を生じさせます。ご自身の環境の応答速度をチェックしましょう。",
                 prec_input_link: "キー入力応答計測ツール",
+                modal_notice: "お知らせ",
+                modal_close: "閉じる"
             },
             en: {
                 lab_name: "Nishiura Lab.",
@@ -203,8 +205,8 @@
                 page_desc: "Building learning environments using e-learning, LMS, and ICT, combined with an empirical approach via psychological experiments. We explore how technology supports learner creativity and autonomy, bridging basic experiments to field applications.",
 
                 concept_kicker: "Methodology",
-                concept_head: "From Lab Insights to Social Implementation.",
-                concept_body: "Our research begins with fundamental psychological experiments (Lab) running in browsers. However, the insights gained on 'Attention', 'Memory', and 'Motivation' serve as the foundation for system development in educational and care settings (Field).\n\nThe cycle of basic and applied research creates effective educational technology.",
+                concept_head: "From Lab Code to Social Implementation.",
+                concept_body: "We provide a 'Web-based Psychology Experiment Platform' that runs instantly in your browser.\n\nThese are keys to unlocking the black box of human cognition: exposing interference in 'Stroop', testing spatial manipulation in 'Mental Rotation', challenging memory limits in 'N-back', and exploring dialogue depth in 'AI Counseling'.\n\nThe sharp insights gained from these 10+ experiments (Lab) form the foundation for systems in education and care (Field).\nThis cycle creates technology truly optimized for humans.",
 
                 featured_title: "Advanced Research",
                 feat_1_title: "Attention & RSVP",
@@ -253,6 +255,8 @@
                 prec_input_title: "Measuring Reaction Time Accurately",
                 prec_input_desc: "Input lag introduces noise into data. Check your environment's response speed here.",
                 prec_input_link: "Key Response Benchmark",
+                modal_notice: "Notice",
+                modal_close: "Close"
             },
             se: {
                 lab_name: "Nishiura Lab.",
@@ -318,6 +322,8 @@
                 prec_input_title: "Mäta reaktionstid",
                 prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
                 prec_input_link: "Key Response Benchmark",
+                modal_notice: "Meddelande",
+                modal_close: "Stäng"
             }
         };
 
@@ -352,6 +358,27 @@
             </div>
         );
 
+        // --- Custom Modal Component (Replaces alert) ---
+        const Modal = ({ isOpen, onClose, message, title, btnText }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+                    <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-100 border border-slate-100" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="bg-indigo-50 text-indigo-600 p-2 rounded-full">
+                                <Icon path={icons.alert} size={20} />
+                            </div>
+                            <h3 className="text-lg font-serif font-bold text-slate-900">{title}</h3>
+                        </div>
+                        <p className="text-slate-600 mb-6 text-sm leading-relaxed">{message}</p>
+                        <button onClick={onClose} className="w-full py-2.5 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors text-xs tracking-widest uppercase">
+                            {btnText}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
         const FeaturedResearch = ({ t }) => (
             <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
                 <div className="flex flex-col md:flex-row justify-between items-end mb-8">
@@ -381,7 +408,7 @@
             </div>
         );
         
-        // --- 新規追加: Key Research Achievements Component ---
+        // --- Key Research Achievements Component ---
         const ResearchAchievements = ({ t }) => (
             <div className="max-w-7xl mx-auto px-6 mb-24 animate-fade-up" style={{animationDelay: '0.25s'}}>
                 <div className="mb-10">
@@ -443,8 +470,17 @@
             </button>
         );
 
-        const ExperimentCard = ({ data, index, lang, t }) => {
+        const ExperimentCard = ({ data, index, lang, t, onAlert }) => {
             const delayStyle = { animationDelay: `${index * 0.05}s` };
+            
+            const handleCardClick = () => {
+                if (data.link) {
+                    window.location.href = data.link;
+                } else {
+                    onAlert(t.alertMsg);
+                }
+            };
+
             const content = (
                 <>
                     <div className="flex justify-between items-start mb-6">
@@ -469,10 +505,17 @@
                     <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
                 </>
             );
-            if (data.link) {
-                return <a href={data.link} style={delayStyle} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</a>;
-            }
-            return <div style={delayStyle} onClick={() => alert(t.alertMsg)} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left">{content}</div>;
+            
+            // Use div for both cases to handle click manually and uniformly
+            return (
+                <div 
+                    style={delayStyle} 
+                    onClick={handleCardClick} 
+                    className={`group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left`}
+                >
+                    {content}
+                </div>
+            );
         };
 
         const TechCheck = ({ t }) => (
@@ -505,6 +548,10 @@
             const [activeCategory, setActiveCategory] = useState("All");
             const [searchQuery, setSearchQuery] = useState("");
             const [lang, setLang] = useState("en");
+            
+            // Modal State
+            const [modalOpen, setModalOpen] = useState(false);
+            const [modalMessage, setModalMessage] = useState("");
 
             useEffect(() => {
                 const browserLang = navigator.language || navigator.userLanguage;
@@ -516,6 +563,12 @@
             useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
 
             const t = translations[lang];
+            
+            const handleAlert = (msg) => {
+                setModalMessage(msg);
+                setModalOpen(true);
+            };
+
             const filteredExperiments = useMemo(() => {
                 return experimentsData.filter(exp => {
                     const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
@@ -527,6 +580,14 @@
 
             return (
                 <div className="min-h-screen pb-24 font-sans">
+                    <Modal 
+                        isOpen={modalOpen} 
+                        onClose={() => setModalOpen(false)} 
+                        message={modalMessage} 
+                        title={t.modal_notice || "Notice"} 
+                        btnText={t.modal_close || "Close"} 
+                    />
+
                     <header className="glass sticky top-0 z-50 transition-all duration-300">
                         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                             <a href="index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
@@ -592,7 +653,16 @@
                             <TechCheck t={t} />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {filteredExperiments.map((exp, index) => (<ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} />))}
+                                {filteredExperiments.map((exp, index) => (
+                                    <ExperimentCard 
+                                        key={exp.id} 
+                                        data={exp} 
+                                        index={index} 
+                                        lang={lang} 
+                                        t={t} 
+                                        onAlert={handleAlert}
+                                    />
+                                ))}
                             </div>
                             {filteredExperiments.length === 0 && (
                                 <div className="text-center py-32 animate-fade-in">
