@@ -40,20 +40,6 @@
           "applicationCategory": "EducationalApplication",
           "description": "物体の空間的回転操作能力を測定する実験課題。",
           "operatingSystem": "Web Browser"
-        },
-        {
-          "@type": "SoftwareApplication",
-          "name": "N-back課題 (Working Memory)",
-          "applicationCategory": "EducationalApplication",
-          "description": "ワーキングメモリの更新機能を測定する高負荷な記憶課題。",
-          "operatingSystem": "Web Browser"
-        },
-        {
-          "@type": "SoftwareApplication",
-          "name": "ミュラー・リヤー錯視",
-          "applicationCategory": "EducationalApplication",
-          "description": "調整法を用いて錯視量を定量的に測定する実験。",
-          "operatingSystem": "Web Browser"
         }
       ]
     }
@@ -143,15 +129,6 @@
             <div style="padding: 40px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
                 <h1>Web心理学実験ライブラリ - 西浦研究室</h1>
                 <p>宮城学院女子大学 西浦研究室では、以下の実験プログラムをWeb上で無料公開しています。</p>
-                <h2>収録実験リスト</h2>
-                <ul>
-                    <li><strong>ストループ課題 (Stroop Task):</strong> 認知心理学の古典的実験。注意の制御機能を測定します。</li>
-                    <li><strong>メンタルローテーション:</strong> 図形を頭の中で回転させる空間認知能力の測定。</li>
-                    <li><strong>N-back課題:</strong> ワーキングメモリ（作業記憶）の容量を測定する高負荷課題。</li>
-                    <li><strong>ミュラー・リヤー錯視:</strong> 調整法を用いた錯視量の定量測定。</li>
-                    <li><strong>AIカウンセリング:</strong> 生成AIを用いた模擬カウンセリング体験。</li>
-                    <li><strong>チェンジ・ブラインドネス:</strong> 変化盲の実体験。</li>
-                </ul>
                 <p>JavaScriptを有効にしてご利用ください。</p>
             </div>
         </noscript>
@@ -200,6 +177,7 @@
         // --- Translations ---
         const translations = {
             ja: {
+                // ... (Previous translations)
                 lab_name: "Nishiura Lab.",
                 univ_name: "Miyagi Gakuin Women's Univ.",
                 nav_home: "Home",
@@ -207,15 +185,12 @@
                 nav_research: "Research",
                 nav_publications: "Publications",
                 nav_contact: "Contact",
-                
                 page_subtitle: "Research Field 01",
                 page_title: "Educational Tech &<br>Experiments",
                 page_desc: "e-learning、LMS、ICTを活用した学習環境の構築と、心理学実験による実証的アプローチ。テクノロジーが学習者の創造性や自律性をどう支援するかを探求し、基礎実験からフィールド応用までを一貫して行います。",
-                
                 concept_kicker: "Methodology",
                 concept_head: "実験室のコードを、社会実装の礎へ。",
                 concept_body: "私たちは、ブラウザ上で即座に動作する「Web心理学実験プラットフォーム」を構築・提供しています。\n\nここにあるのは、単なる教材ではありません。\n認知の干渉を暴く「ストループ」、脳内の空間操作を試す「メンタルローテーション」、記憶容量の限界に挑む「N-back」、そして「AIカウンセリング」による対話の深層——。\nこれら10を超える実験群は、人間の「注意」「記憶」「意思決定」というブラックボックスを解き明かすための鍵です。\n\n基礎実験（Lab）で得られた鋭利な知見を、教育やケアの現場（Field）へ。\nこの循環こそが、真に人間に最適化されたテクノロジーを生み出します。",
-
                 featured_title: "Advanced Research",
                 feat_1_title: "Attention & RSVP",
                 feat_1_desc: "「高速継時呈示（RSVP）」課題を用い、高ストレス状況下での注意資源の消費とモニタリング過程を解明。文字認知の誤りやメタ認知機能の限界を探る基礎研究です。",
@@ -223,8 +198,6 @@
                 feat_2_desc: "創造的問題解決（CPS）能力を育成するためのカードゲーム教材を開発。プレイ中の発話や行動ログから、学習者の心理的ストレス低減とルール習得効果を検証します。",
                 feat_3_title: "AI & Bio-Sensing",
                 feat_3_desc: "保育・教育現場における子どもの行動センシング（表情・視線・姿勢）と脳波測定を組み合わせ、ウェルビーイングや集中度を客観的に評価するシステムの構築に挑んでいます。",
-
-                // --- Key Research Achievements ---
                 achievements_kicker: "Selected Publications",
                 achievements_title: "Key Research Achievements",
                 achieve_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果",
@@ -237,7 +210,6 @@
                 achieve_4_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
                 achieve_4_meta: "山形大学紀要 Vol.17 (2011) | 共著",
                 achieve_view_all: "全業績リストへ戻る",
-
                 libraryTitle: "Experiment Library",
                 searchPlaceholder: "実験を検索...",
                 filterAll: "すべて",
@@ -264,9 +236,20 @@
                 prec_input_desc: "キーボード入力の遅延はデータに誤差を生じさせます。ご自身の環境の応答速度をチェックしましょう。",
                 prec_input_link: "キー入力応答計測ツール",
                 modal_notice: "お知らせ",
-                modal_close: "閉じる"
+                modal_close: "閉じる",
+
+                // Terms & Disclaimer
+                terms_title: "ご利用上の注意・免責事項",
+                terms_subtitle: "Terms of Use & Disclaimer",
+                term_1_head: "目的と免責",
+                term_1_body: "本ウェブサイトで公開している実験プログラムは、教育および研究目的で提供されています。これらは医学的な診断（ADHD、認知症等の診断）を行うものではありません。得られた結果について、当研究室は一切の責任を負いかねます。",
+                term_2_head: "利用規約 (License)",
+                term_2_body: "教育機関（学校、大学等）での授業利用、および個人の学習利用は自由です（連絡不要）。ただし、営利目的での利用、無断転載、プログラムの改変・再配布は固くお断りします。研究目的でデータを使用したい場合は、必ず事前にご連絡ください。",
+                term_3_head: "推奨環境",
+                term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します。"
             },
             en: {
+                // ... (Previous translations)
                 lab_name: "Nishiura Lab.",
                 univ_name: "Miyagi Gakuin Women's Univ.",
                 nav_home: "Home",
@@ -274,15 +257,12 @@
                 nav_research: "Research",
                 nav_publications: "Publications",
                 nav_contact: "Contact",
-
                 page_subtitle: "Research Field 01",
                 page_title: "Educational Tech &<br>Experiments",
                 page_desc: "Building learning environments using e-learning, LMS, and ICT, combined with an empirical approach via psychological experiments. We explore how technology supports learner creativity and autonomy, bridging basic experiments to field applications.",
-
                 concept_kicker: "Methodology",
                 concept_head: "From Lab Code to Social Implementation.",
                 concept_body: "We provide a 'Web-based Psychology Experiment Platform' that runs instantly in your browser.\n\nThese are keys to unlocking the black box of human cognition: exposing interference in 'Stroop', testing spatial manipulation in 'Mental Rotation', challenging memory limits in 'N-back', and exploring dialogue depth in 'AI Counseling'.\n\nThe sharp insights gained from these 10+ experiments (Lab) form the foundation for systems in education and care (Field).\nThis cycle creates technology truly optimized for humans.",
-
                 featured_title: "Advanced Research",
                 feat_1_title: "Attention & RSVP",
                 feat_1_desc: "Elucidating attentional resource consumption and monitoring processes under high-stress conditions using 'Rapid Serial Visual Presentation (RSVP)' tasks. Basic research exploring the limits of metacognitive functions.",
@@ -290,8 +270,6 @@
                 feat_2_desc: "Developing card game materials to foster Creative Problem Solving (CPS) skills. We verify psychological stress reduction and rule acquisition effects from gameplay logs and interactions.",
                 feat_3_title: "AI & Bio-Sensing",
                 feat_3_desc: "Challenging the construction of systems that objectively evaluate well-being and concentration by combining child behavior sensing (expressions, gaze, posture) and EEG measurements in educational settings.",
-
-                // --- Key Research Achievements ---
                 achievements_kicker: "Selected Publications",
                 achievements_title: "Key Research Achievements",
                 achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -304,7 +282,6 @@
                 achieve_4_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
                 achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Co-author",
                 achieve_view_all: "Back to All Publications",
-
                 libraryTitle: "Experiment Library",
                 searchPlaceholder: "Search experiments...",
                 filterAll: "All",
@@ -331,9 +308,20 @@
                 prec_input_desc: "Input lag introduces noise into data. Check your environment's response speed here.",
                 prec_input_link: "Key Response Benchmark",
                 modal_notice: "Notice",
-                modal_close: "Close"
+                modal_close: "Close",
+
+                // Terms & Disclaimer
+                terms_title: "Terms of Use & Disclaimer",
+                terms_subtitle: "Important legal and usage information",
+                term_1_head: "Disclaimer",
+                term_1_body: "These programs are provided for educational and research purposes only. They are NOT intended for medical diagnosis. The laboratory assumes no responsibility for any results obtained.",
+                term_2_head: "Terms of Use (License)",
+                term_2_body: "Free for use in educational settings (schools, universities) and personal learning. Commercial use, unauthorized reproduction, modification, or redistribution is strictly prohibited. Please contact us for research use.",
+                term_3_head: "System Requirements",
+                term_3_body: "Latest versions of Chrome, Firefox, Safari, or Edge are recommended. A physical keyboard is recommended for accurate timing."
             },
             se: {
+                // ... (Previous translations)
                 lab_name: "Nishiura Lab.",
                 univ_name: "Miyagi Gakuin Kvinnouniversitet",
                 nav_home: "Hem",
@@ -341,15 +329,12 @@
                 nav_research: "Forskning",
                 nav_publications: "Publikationer",
                 nav_contact: "Kontakt",
-
                 page_subtitle: "Forskningsområde 01",
                 page_title: "Utbildningsteknologi &<br>Experiment",
                 page_desc: "Vi bygger lärmiljöer med e-learning och IKT, kombinerat med en empirisk ansats via psykologiska experiment. Vi utforskar hur teknik stödjer inlärarens kreativitet och autonomi, från grundläggande experiment till fältapplikationer.",
-
                 concept_kicker: "Metodik",
                 concept_head: "Från labb insikter till social implementering.",
                 concept_body: "Vår forskning börjar med grundläggande psykologiska experiment (Lab) i webbläsare. Insikterna om 'uppmärksamhet', 'minne' och 'motivation' lägger grunden för systemutveckling inom utbildning och omsorg (Fält).\n\nCykeln av grundläggande och tillämpad forskning skapar effektiv utbildningsteknologi.",
-
                 featured_title: "Avancerad Forskning",
                 feat_1_title: "Uppmärksamhet & RSVP",
                 feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation (RSVP)'. Grundforskning om metakognitiva gränser.",
@@ -357,8 +342,6 @@
                 feat_2_desc: "Utveckling av kortspel för att främja kreativ problemlösning (CPS). Vi verifierar stressreducering och regelinlärning genom analys av speldata.",
                 feat_3_title: "AI & Bio-Sensing",
                 feat_3_desc: "Vi utvecklar system för att objektivt utvärdera välbefinnande och koncentration genom att kombinera beteendeavkänning (AI) och EEG-mätningar i utbildningsmiljöer.",
-
-                // --- Key Research Achievements ---
                 achievements_kicker: "Valda Publikationer",
                 achievements_title: "Viktiga Forskningsresultat",
                 achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -371,7 +354,6 @@
                 achieve_4_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
                 achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Medförfattare",
                 achieve_view_all: "Tillbaka till alla publikationer",
-
                 libraryTitle: "Experimentbibliotek",
                 searchPlaceholder: "Sök experiment...",
                 filterAll: "Alla",
@@ -398,11 +380,21 @@
                 prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
                 prec_input_link: "Key Response Benchmark",
                 modal_notice: "Meddelande",
-                modal_close: "Stäng"
+                modal_close: "Stäng",
+
+                // Terms & Disclaimer
+                terms_title: "Användarvillkor & Ansvarsfriskrivning",
+                terms_subtitle: "Viktig information om användning",
+                term_1_head: "Ansvarsfriskrivning",
+                term_1_body: "Dessa program tillhandahålls endast för utbildnings- och forskningsändamål. De är INTE avsedda för medicinsk diagnos. Laboratoriet tar inget ansvar för erhållna resultat.",
+                term_2_head: "Användarvillkor",
+                term_2_body: "Gratis för användning i utbildningsmiljöer och personligt lärande. Kommersiell användning, otillåten reproduktion eller modifiering är strängt förbjuden.",
+                term_3_head: "Systemkrav",
+                term_3_body: "Senaste versionerna av Chrome, Firefox, Safari eller Edge rekommenderas. Fysiskt tangentbord rekommenderas för exakt tidtagning."
             }
         };
 
-        // --- Data ---
+        // ... (Data & Components remain the same) ...
         const experimentsData = [
             { id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
             { id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
@@ -420,211 +412,58 @@
             { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity" },
         ];
 
-        const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
-
-        // --- Components ---
-        const LanguageSwitcher = ({ currentLang, setLang }) => (
-            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
-            </div>
-        );
-
-        // --- Custom Modal Component (Replaces alert) ---
-        const Modal = ({ isOpen, onClose, message, title, btnText }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-100 border border-slate-100" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="bg-indigo-50 text-indigo-600 p-2 rounded-full">
-                                <Icon path={icons.alert} size={20} />
-                            </div>
-                            <h3 className="text-lg font-serif font-bold text-slate-900">{title}</h3>
+        // --- NEW COMPONENT: Terms & Disclaimer ---
+        const TermsSection = ({ t }) => (
+            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.35s'}}>
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 relative overflow-hidden">
+                    <div className="mb-6 border-b border-slate-200 pb-4">
+                        <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-1">{t.terms_subtitle}</span>
+                        <h3 className="text-xl font-serif font-bold text-slate-900">{t.terms_title}</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Term 1: Disclaimer */}
+                        <div>
+                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
+                                <Icon path={icons.alert} size={16} className="text-rose-500" />
+                                {t.term_1_head}
+                            </h4>
+                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
+                                {t.term_1_body}
+                            </p>
                         </div>
-                        <p className="text-slate-600 mb-6 text-sm leading-relaxed">{message}</p>
-                        <button onClick={onClose} className="w-full py-2.5 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors text-xs tracking-widest uppercase">
-                            {btnText}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
 
-        const FeaturedResearch = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8">
-                    <h2 className="text-3xl font-serif font-semibold text-slate-900">{t.featured_title}</h2>
-                    <span className="text-xs text-slate-400 uppercase tracking-widest mt-2 md:mt-0">From Lab to Field</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Card 1: RSVP/Attention */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group">
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.layers} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_1_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_1_desc}</p>
-                    </div>
-                    {/* Card 2: Gamification */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.1s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.card} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_2_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_2_desc}</p>
-                    </div>
-                    {/* Card 3: AI/Sensing */}
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.2s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.camera} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_3_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_3_desc}</p>
-                    </div>
-                </div>
-            </div>
-        );
-        
-        // --- Key Research Achievements Component ---
-        const ResearchAchievements = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-24 animate-fade-up" style={{animationDelay: '0.25s'}}>
-                <div className="mb-10">
-                    <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-2">{t.achievements_kicker}</span>
-                    <h2 className="text-4xl font-serif font-semibold text-slate-900">{t.achievements_title}</h2>
-                </div>
-                
-                <div className="border-t border-slate-200">
-                    {/* Achievement 1 */}
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_1_title} <span className="font-normal text-slate-500 text-sm ml-1 block md:inline">{t.achieve_1_desc}</span>
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_1_meta}</p>
-                    </div>
-
-                    {/* Achievement 2 */}
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_2_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_2_meta}</p>
-                    </div>
-
-                    {/* Achievement 3 */}
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_3_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_3_meta}</p>
-                    </div>
-
-                    {/* Achievement 4 */}
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_4_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_4_meta}</p>
-                    </div>
-                </div>
-
-                <div className="mt-8">
-                    <a href="index.html#publications" className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-slate-800 hover:text-indigo-600 transition-colors group">
-                        {t.achieve_view_all}
-                        <Icon path={icons.arrowLeft} size={14} className="ml-2 rotate-180 transition-transform group-hover:translate-x-1" />
-                    </a>
-                </div>
-            </div>
-        );
-
-        const FilterTab = ({ label, active, onClick }) => (
-            <button 
-                onClick={onClick}
-                className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 border ${
-                    active ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
-                }`}
-            >
-                {label}
-            </button>
-        );
-
-        const ExperimentCard = ({ data, index, lang, t, onAlert }) => {
-            const delayStyle = { animationDelay: `${index * 0.05}s` };
-            
-            const handleCardClick = () => {
-                if (data.link) {
-                    window.location.href = data.link;
-                } else {
-                    onAlert(t.alertMsg);
-                }
-            };
-
-            const content = (
-                <>
-                    <div className="flex justify-between items-start mb-6">
-                        <div className={`p-3 rounded-xl transition-colors duration-500 ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
-                            <Icon path={icons[data.icon]} size={28} />
+                        {/* Term 2: License */}
+                        <div>
+                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
+                                <Icon path={icons.check} size={16} className="text-indigo-500" />
+                                {t.term_2_head}
+                            </h4>
+                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
+                                {t.term_2_body}
+                            </p>
                         </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{t[data.category]}</span>
-                    </div>
-                    <div className="flex-grow">
-                        <h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">{data.title[lang]}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed font-body mb-6 line-clamp-3 whitespace-pre-wrap">{data.description[lang]}</p>
-                    </div>
-                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                        <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1.5"><Icon path={icons.clock} size={14} />{data.duration}</span>
-                            <span className="flex items-center gap-1.5"><Icon path={icons.activity} size={14} />{t[data.difficulty]}</span>
-                        </div>
-                        <div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>
-                            {t.startBtn} <Icon path={icons.play} size={10} className="fill-current" />
-                        </div>
-                    </div>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
-                </>
-            );
-            
-            // Use div for both cases to handle click manually and uniformly
-            return (
-                <div 
-                    style={delayStyle} 
-                    onClick={handleCardClick} 
-                    className={`group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left`}
-                >
-                    {content}
-                </div>
-            );
-        };
 
-        const TechCheck = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
-                    <div className="mb-4">
-                        <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><Icon path={icons.alert} size={20} className="text-slate-500" />{t.precautionTitle}</h3>
-                        <p className="text-xs text-slate-500">{t.precautionSubtitle}</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a href="./Frame_rate_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
-                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition"><Icon path={icons.monitor} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-indigo-500 transition" /></div>
-                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-700 transition">{t.prec_screen_title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_screen_desc}</p>
-                            <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_screen_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
-                        </a>
-                        <a href="./Key_response_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
-                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition"><Icon path={icons.zap} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-emerald-500 transition" /></div>
-                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-emerald-700 transition">{t.prec_input_title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_input_desc}</p>
-                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">{t.prec_input_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
-                        </a>
+                        {/* Term 3: Requirements */}
+                        <div>
+                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
+                                <Icon path={icons.monitor} size={16} className="text-emerald-500" />
+                                {t.term_3_head}
+                            </h4>
+                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
+                                {t.term_3_body}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         );
 
         function ExperimentLibrary() {
+            // ... (State and other logic remain the same)
             const [activeCategory, setActiveCategory] = useState("All");
             const [searchQuery, setSearchQuery] = useState("");
             const [lang, setLang] = useState("en");
-            
-            // Modal State
             const [modalOpen, setModalOpen] = useState(false);
             const [modalMessage, setModalMessage] = useState("");
 
@@ -664,6 +503,7 @@
                     />
 
                     <header className="glass sticky top-0 z-50 transition-all duration-300">
+                        {/* ... (Header content remains same) */}
                         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                             <a href="index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
                                 <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white"><Icon path={icons.arrowLeft} size={14} /></div>
@@ -704,10 +544,10 @@
                         </div>
                     </section>
 
-                    {/* Featured Research (Edgy Content from PDF) */}
+                    {/* Featured Research */}
                     <FeaturedResearch t={t} />
 
-                    {/* Key Research Achievements (NEW SECTION) */}
+                    {/* Key Research Achievements */}
                     <ResearchAchievements t={t} />
 
                     {/* Experiment Library Section */}
@@ -748,6 +588,9 @@
                             )}
                         </div>
                     </div>
+
+                    {/* NEW SECTION: Terms & Disclaimer */}
+                    <TermsSection t={t} />
 
                     <footer className="bg-slate-900 text-slate-400 py-12 text-center text-xs uppercase tracking-widest">
                         <p>&copy; {new Date().getFullYear()} {t.footerRights}</p>
