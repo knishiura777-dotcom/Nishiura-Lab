@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUDOKU - Unique Solution Logic</title>
+    <title>SUDOKU - Unique Solution</title>
     <style>
         :root {
             --bg-body: #f4f5f7;
@@ -13,11 +13,11 @@
             
             --text-main: #1e293b;
             --text-sub: #64748b;
-            --text-accent: #3b82f6; /* User input */
+            --text-accent: #3b82f6;
             
-            --color-primary: #0f172a; /* Buttons, Strong text */
-            --color-secondary: #3b82f6; /* Selection */
-            --color-highlight: #eff6ff; /* Same number highlight */
+            --color-primary: #0f172a;
+            --color-secondary: #3b82f6;
+            --color-highlight: #eff6ff;
             --color-error: #ef4444;
             --color-success: #10b981;
             
@@ -46,7 +46,7 @@
             justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 40px 20px 80px 20px;
+            padding: 40px 20px 40px 20px; /* 下部padding調整 */
             overflow-x: hidden;
         }
 
@@ -216,7 +216,6 @@
             overflow: hidden; 
         }
 
-        /* 3x3 Grid Separation */
         .cell:nth-child(3n) {
             border-right: 2px solid var(--bg-board);
         }
@@ -228,7 +227,6 @@
             border-bottom: 2px solid var(--bg-board);
         }
 
-        /* States */
         .cell.fixed {
             background-color: var(--bg-cell-fixed);
             color: var(--text-main);
@@ -274,6 +272,7 @@
             gap: 12px;
             width: 100%;
             max-width: 420px;
+            margin-bottom: 30px;
         }
 
         .num-btn {
@@ -342,8 +341,19 @@
             animation: pop-stats 0.3s ease;
         }
 
+        /* --- Footer (Version) --- */
+        footer {
+            margin-top: auto;
+            color: var(--text-sub);
+            font-size: 0.75rem;
+            text-align: center;
+            width: 100%;
+            padding-top: 20px;
+            opacity: 0.6;
+        }
+
         @media (max-width: 500px) {
-            body { padding: 20px 10px 60px 10px; }
+            body { padding: 20px 10px 40px 10px; }
             h1 { font-size: 2rem; }
             .sudoku-board { max-width: 100%; }
             .numpad { gap: 8px; }
@@ -403,7 +413,13 @@
         </button>
     </div>
 
+    <footer id="app-footer">
+        </footer>
+
     <script>
+        // Configuration
+        const APP_VERSION = '1.1.0';
+
         // State
         let solution = [];
         let puzzle = [];
@@ -422,6 +438,10 @@
         const scoreDisplay = document.getElementById('score-display');
         const statsContainer = document.getElementById('stats-container');
         const gameWrapper = document.getElementById('game-wrapper');
+        const footerElement = document.getElementById('app-footer');
+
+        // Display Version
+        footerElement.textContent = `v${APP_VERSION}`;
 
         // --- Core Logic ---
 
@@ -464,9 +484,8 @@
             let count = 0;
 
             function solve() {
-                if (count >= limit) return; // 制限を超えたら探索終了
+                if (count >= limit) return;
 
-                // 空いているセルを探す
                 let row = -1;
                 let col = -1;
                 let isEmpty = false;
@@ -483,7 +502,6 @@
                     if (isEmpty) break;
                 }
 
-                // 空きがなければ解が1つ見つかった
                 if (!isEmpty) {
                     count++;
                     return;
@@ -493,23 +511,20 @@
                     if (isValid(board, row, col, num)) {
                         board[row][col] = num;
                         solve();
-                        if (count >= limit) return; // 早期リターン
-                        board[row][col] = 0; // バックトラック
+                        if (count >= limit) return;
+                        board[row][col] = 0;
                     }
                 }
             }
             
-            // 入力盤面を破壊しないようにコピーを使う
             const boardCopy = board.map(r => [...r]);
             solve();
             return count;
         }
 
         function generateBoard() {
-            // 1. 完全な盤面を作成
             const board = Array.from({ length: 9 }, () => Array(9).fill(0));
             
-            // 左上のボックスをランダムに埋めてランダム性を高める
             let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
             let k = 0;
             for(let i=0; i<3; i++) {
@@ -522,27 +537,21 @@
             solution = board.map(row => [...row]);
             puzzle = board.map(row => [...row]);
 
-            // 2. 難易度設定
             const difficulty = difficultySelect.value;
             let attempts;
             
-            // 難易度に応じて消そうとする回数を変える
-            // Easy: 少し消す, Medium: まあまあ消す, Hard: たくさん消そうとする
-            // ただし「Unique Solution」制約があるため、Hardでも必ずしも多く消せるとは限らない
             if (difficulty === 'easy') attempts = 30;
             else if (difficulty === 'medium') attempts = 45;
-            else attempts = 64; // かなりアグレッシブに消そうとする
+            else attempts = 64;
 
-            // 3. ランダムな順序でセルを訪問するためのリストを作成
             let cells = [];
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     cells.push({r, c});
                 }
             }
-            cells.sort(() => Math.random() - 0.5); // シャッフル
+            cells.sort(() => Math.random() - 0.5);
 
-            // 4. 数字を消していく（Unique check付き）
             for (let cell of cells) {
                 if (attempts <= 0) break;
 
@@ -550,16 +559,12 @@
                 let col = cell.c;
                 let backup = puzzle[row][col];
 
-                // 仮に消す
                 puzzle[row][col] = 0;
 
-                // 解が1つだけかチェック
-                // この盤面で解が1つ(countSolutions == 1)なら、消したままでOK
-                // もし解が2つ以上(countSolutions > 1)なら、消すと一意性が失われるので元に戻す
                 if (countSolutions(puzzle) !== 1) {
-                    puzzle[row][col] = backup; // 戻す
+                    puzzle[row][col] = backup;
                 } else {
-                    attempts--; // 成功したらカウント減らす（難易度調整用）
+                    attempts--;
                 }
             }
         }
@@ -578,18 +583,10 @@
                 if (value !== 0) {
                     cell.innerHTML = `<span>${value}</span>`;
                     
-                    // 初期配置判定
                     if (initialPuzzle[row][col] !== 0) {
                         cell.classList.add('fixed');
                     } else {
-                        // ユーザー入力
                         cell.classList.add('user-input');
-                        // エラー判定（現在の盤面でルール違反がないか）
-                        if (!isValid(puzzle, row, col, value)) {
-                             // isValidは自分自身を除外してチェックする必要があるため、
-                             // 入力時にはinputNumber関数内で処理されるが、
-                             // ロード時の初期描画では簡易チェックにとどめる
-                        }
                     }
                 }
 
@@ -636,7 +633,6 @@
                 cell.classList.add('user-input');
                 puzzle[row][col] = num;
 
-                // 入力バリデーション（即時フィードバック）
                 if (!isValid(puzzle, row, col, num)) {
                     cell.classList.add('error');
                 } else {
@@ -653,16 +649,12 @@
         }
 
         function checkWin() {
-            // 空きマスがあるか確認
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
                     if (puzzle[r][c] === 0) return;
                 }
             }
 
-            // 正誤判定
-            // 修正版ロジックにより「解は一つ」に保証されているため
-            // solution配列との比較が正当な判定となる。
             let isCorrect = true;
             for (let r = 0; r < 9; r++) {
                 for (let c = 0; c < 9; c++) {
@@ -724,9 +716,6 @@
             document.body.classList.remove('win-state');
             messageElement.classList.remove('visible');
             
-            // UIをブロック（計算中...的な感覚で少し待たせるか、即実行するか）
-            // 複雑な生成ロジックが入ったため、非同期にしないとUIが一瞬固まる可能性があるが
-            // この程度の計算量なら同期処理でも現代のブラウザならほぼ一瞬。
             setTimeout(() => {
                 generateBoard();
                 initialPuzzle = puzzle.map(row => [...row]);
@@ -743,6 +732,7 @@
                 return;
             }
             const saveData = {
+                version: APP_VERSION, // Save version
                 puzzle: puzzle,
                 solution: solution,
                 initialPuzzle: initialPuzzle,
@@ -751,7 +741,6 @@
                 difficulty: difficultySelect.value
             };
             try {
-                // バージョン変更のためにキーを変更（古い形式と混ざらないように）
                 localStorage.setItem('sudoku_save_data_v2', JSON.stringify(saveData));
                 showMessage("Game Saved!", false);
             } catch (e) {
@@ -769,6 +758,11 @@
             try {
                 const data = JSON.parse(savedJSON);
                 
+                // バージョン互換性チェック（今回は表示のみだが、構造が変わった場合に便利）
+                if (data.version && data.version !== APP_VERSION) {
+                    console.warn(`Loading save from version ${data.version}`);
+                }
+
                 puzzle = data.puzzle;
                 solution = data.solution;
                 initialPuzzle = data.initialPuzzle;
@@ -782,7 +776,6 @@
                 updateStatsUI();
                 renderBoard();
                 
-                // エラーチェック再適用
                 for(let r=0; r<9; r++) {
                     for(let c=0; c<9; c++) {
                         const val = puzzle[r][c];
