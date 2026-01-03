@@ -3,7 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Well-being & Psychology | Nishiura Lab.</title>
+  
+  <title>Well-being & Psychology | 北欧・CWWH・AIセンシング | 西浦研究室</title>
+  <meta name="description" content="宮城学院女子大学 西浦研究室のウェルビーイング研究。スウェーデンCWWHとの連携による「北欧モデル」の応用や、脳波・AIセンシングを用いた「心の可視化」など、教育とケアを科学する最先端の取り組みを紹介。">
+  <meta name="keywords" content="ウェルビーイング,Well-being,CWWH,北欧,教育心理学,AIセンシング,西浦研究室,宮城学院女子大学">
+
+  <meta property="og:title" content="Well-being & Psychology | 西浦研究室" />
+  <meta property="og:type" content="article" />
+  <meta property="og:description" content="北欧の知見と最新テクノロジーを融合。教育とケアの現場に「ウェルビーイング」を実装する研究プロジェクト。" />
+  <meta property="og:url" content="https://www.mgu.ac.jp/.../wb.html" />
+  <meta property="og:image" content="./profile.jpg" />
+  <meta property="og:site_name" content="Nishiura Lab." />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ResearchProject",
+    "name": "Well-being & Psychology Research",
+    "description": "心理学とテクノロジーの融合を通じたウェルビーイングの科学的探求。",
+    "parentOrganization": {
+      "@type": "EducationalOrganization",
+      "name": "宮城学院女子大学 西浦研究室"
+    },
+    "member": {
+      "@type": "Person",
+      "name": "Kazuki Nishiura"
+    }
+  }
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -206,6 +234,12 @@
       color: var(--dark);
       line-height: 1.4;
     }
+    .tool-card a {
+      transition: color 0.2s ease;
+    }
+    .tool-card a:hover {
+      color: var(--indigo);
+    }
     .tool-card p {
       font-size: 14px;
       color: var(--muted);
@@ -324,7 +358,12 @@
       <div class="grid-3">
         <article class="tool-card fade-up">
           <div class="tool-icon">🇸🇪</div>
-          <h4 data-i18n="proj_1_name">Collaboration with CWWH (Stockholm School of Economics)</h4>
+          <h4>
+            <a href="https://www.hhs.se/en/research/centers/cwwh/" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:inherit; display:inline-flex; align-items:center; gap:6px;">
+              <span data-i18n="proj_1_name">Collaboration with CWWH (Stockholm School of Economics)</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </a>
+          </h4>
           <p data-i18n="proj_1_desc">
             ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。
           </p>
