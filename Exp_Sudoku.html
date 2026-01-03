@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SUDOKU - Balanced Logic</title>
+    <title>SUDOKU - Final Fix</title>
     <style>
         :root {
             --bg-body: #f4f5f7;
@@ -170,6 +170,13 @@
 
         .btn-new-game:active {
             transform: translateY(0);
+        }
+
+        .btn-new-game:disabled {
+            background-color: var(--text-sub);
+            cursor: wait;
+            transform: none;
+            box-shadow: none;
         }
 
         /* --- Game Board --- */
@@ -386,7 +393,7 @@
                 <button class="btn-action" onclick="loadGame()">Load</button>
             </div>
 
-            <button class="btn-new-game" onclick="newGame()">New</button>
+            <button class="btn-new-game" id="btn-new" onclick="newGame()">New</button>
         </div>
     </header>
 
@@ -416,7 +423,7 @@
 
     <script>
         // Configuration
-        const APP_VERSION = '1.2.0';
+        const APP_VERSION = '1.3.0'; // Updated version
 
         // State
         let solution = [];
@@ -437,36 +444,41 @@
         const statsContainer = document.getElementById('stats-container');
         const gameWrapper = document.getElementById('game-wrapper');
         const footerElement = document.getElementById('app-footer');
+        const btnNew = document.getElementById('btn-new');
 
         // Display Version
         footerElement.textContent = `v${APP_VERSION}`;
 
         // --- Core Logic ---
 
-        function isValid(board, row, col, num) {
+        // Check if placing num at board[row][col] is valid
+        function isValid(boardToCheck, row, col, num) {
             for (let i = 0; i < 9; i++) {
-                if (board[row][i] === num && i !== col) return false;
-                if (board[i][col] === num && i !== row) return false;
+                // Check Row & Column (Skipping self is handled by loop logic usually, but here we strictly check value)
+                // When validating a candidate for an empty cell:
+                if (boardToCheck[row][i] === num && i !== col) return false;
+                if (boardToCheck[i][col] === num && i !== row) return false;
                 
+                // Check Box
                 const boxRow = 3 * Math.floor(row / 3) + Math.floor(i / 3);
                 const boxCol = 3 * Math.floor(col / 3) + i % 3;
-                if (board[boxRow][boxCol] === num && (boxRow !== row || boxCol !== col)) return false;
+                if (boardToCheck[boxRow][boxCol] === num && (boxRow !== row || boxCol !== col)) return false;
             }
             return true;
         }
 
-        function fillBoard(board) {
+        function fillBoard(boardToFill) {
             for (let row = 0; row < 9; row++) {
                 for (let col = 0; col < 9; col++) {
-                    if (board[row][col] === 0) {
+                    if (boardToFill[row][col] === 0) {
                         const nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
                         nums.sort(() => Math.random() - 0.5);
 
                         for (let num of nums) {
-                            if (isValid(board, row, col, num)) {
-                                board[row][col] = num;
-                                if (fillBoard(board)) return true;
-                                board[row][col] = 0;
+                            if (isValid(boardToFill, row, col, num)) {
+                                boardToFill[row][col] = num;
+                                if (fillBoard(boardToFill)) return true;
+                                boardToFill[row][col] = 0;
                             }
                         }
                         return false;
@@ -476,97 +488,141 @@
             return true;
         }
 
-        // Count solutions (Unique check)
-        function countSolutions(board, limit = 2) {
+        // Validate entire board for any duplicates
+        function isBoardValid(boardToCheck) {
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const val = boardToCheck[r][c];
+                    if (val !== 0) {
+                        // Temporarily remove to check validity
+                        boardToCheck[r][c] = 0;
+                        const valid = isValid(boardToCheck, r, c, val);
+                        boardToCheck[r][c] = val; // Restore
+                        if (!valid) return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        // Count solutions using a Deep Copy to prevent mutation bugs
+        function countSolutions(inputBoard, limit = 2) {
+            // Create a local copy for calculation
+            const boardCopy = inputBoard.map(r => [...r]);
+            
             let count = 0;
-            // 最適化: 空きマスを事前にリスト化して再帰処理を高速化
             let emptyCells = [];
             for(let r=0; r<9; r++){
                 for(let c=0; c<9; c++){
-                    if(board[r][c] === 0) emptyCells.push({r, c});
+                    if(boardCopy[r][c] === 0) emptyCells.push({r, c});
                 }
             }
 
-            function solve(index) {
+            // Recursive solver using the COPY
+            function solve(idx) {
                 if (count >= limit) return;
-                if (index >= emptyCells.length) {
+                if (idx >= emptyCells.length) {
                     count++;
                     return;
                 }
 
-                const {r, c} = emptyCells[index];
+                const {r, c} = emptyCells[idx];
 
                 for (let num = 1; num <= 9; num++) {
-                    if (isValid(board, r, c, num)) {
-                        board[r][c] = num;
-                        solve(index + 1);
+                    // Check validity against the COPY
+                    if (isValid(boardCopy, r, c, num)) {
+                        boardCopy[r][c] = num;
+                        solve(idx + 1);
                         if (count >= limit) return;
-                        board[r][c] = 0;
+                        boardCopy[r][c] = 0; // Backtrack on COPY
                     }
                 }
             }
             
-            // ディープコピーで計算
-            const boardCopy = board.map(r => [...r]);
             solve(0);
             return count;
         }
 
         function generateBoard() {
-            // 1. Create Solution Board
-            const board = Array.from({ length: 9 }, () => Array(9).fill(0));
-            
-            // Seed diagonal boxes for randomness
-            let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
-            let k = 0;
-            for(let i=0; i<3; i++) {
-                for(let j=0; j<3; j++) {
-                    board[i][j] = nums[k++];
+            return new Promise((resolve, reject) => {
+                // Retry logic to ensure quality
+                let attempts = 0;
+                const maxAttempts = 20;
+                const difficulty = difficultySelect.value;
+                
+                let targetClues;
+                if (difficulty === 'easy') targetClues = 40; // ~40 clues left
+                else if (difficulty === 'medium') targetClues = 32; // ~32 clues left
+                else targetClues = 26; // ~26 clues left (Hard)
+
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    
+                    // 1. Init
+                    const board = Array.from({ length: 9 }, () => Array(9).fill(0));
+                    
+                    // 2. Seed Diagonal
+                    let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                    let k = 0;
+                    for(let i=0; i<3; i++) {
+                        for(let j=0; j<3; j++) {
+                            board[i][j] = nums[k++];
+                        }
+                    }
+                    
+                    // 3. Fill
+                    fillBoard(board);
+                    
+                    // 4. Sanity Check (prevents invalid generation)
+                    if (!isBoardValid(board)) {
+                        continue; // Invalid board, retry
+                    }
+
+                    // Prepare for removal
+                    let tempPuzzle = board.map(r => [...r]);
+                    let cells = [];
+                    for (let r = 0; r < 9; r++) {
+                        for (let c = 0; c < 9; c++) {
+                            cells.push({r, c});
+                        }
+                    }
+                    cells.sort(() => Math.random() - 0.5);
+
+                    let currentClues = 81;
+                    
+                    // 5. Remove cells
+                    for (let cell of cells) {
+                        if (currentClues <= targetClues) break;
+
+                        let r = cell.r;
+                        let c = cell.c;
+                        let backup = tempPuzzle[r][c];
+
+                        tempPuzzle[r][c] = 0;
+
+                        // Check uniqueness
+                        // Pass tempPuzzle (copy of solution), countSolutions makes its own copy
+                        if (countSolutions(tempPuzzle) !== 1) {
+                            tempPuzzle[r][c] = backup; // Cannot remove
+                        } else {
+                            currentClues--; // Removed successfully
+                        }
+                    }
+
+                    // 6. Check if target met (with tolerance)
+                    // If we wanted 32 but got 35, that's okay. If we got 70, that's bad.
+                    if (currentClues <= targetClues + 4) {
+                        // Success!
+                        solution = board.map(r => [...r]);
+                        puzzle = tempPuzzle.map(r => [...r]);
+                        resolve();
+                        return;
+                    }
                 }
-            }
-            fillBoard(board);
-            solution = board.map(row => [...row]);
-            puzzle = board.map(row => [...row]);
-
-            // 2. Set Target Clues (Difficulty Logic Fixed)
-            const difficulty = difficultySelect.value;
-            let targetClues;
-            
-            // 目標ヒント数（残る数字の数）
-            // Easy: 45 (Easy to play)
-            // Medium: 35 (Standard)
-            // Hard: 28 (Challenging)
-            if (difficulty === 'easy') targetClues = 45;
-            else if (difficulty === 'medium') targetClues = 35;
-            else targetClues = 28;
-
-            let cells = [];
-            for (let r = 0; r < 9; r++) {
-                for (let c = 0; c < 9; c++) {
-                    cells.push({r, c});
-                }
-            }
-            cells.sort(() => Math.random() - 0.5); // Shuffle
-
-            let currentClues = 81;
-
-            // 3. Remove numbers while maintaining uniqueness
-            for (let cell of cells) {
-                if (currentClues <= targetClues) break; // 目標達成したら終了
-
-                let row = cell.r;
-                let col = cell.c;
-                let backup = puzzle[row][col];
-
-                puzzle[row][col] = 0; // Try removing
-
-                // Check if solution is still unique
-                if (countSolutions(puzzle) !== 1) {
-                    puzzle[row][col] = backup; // 一意性が失われたら戻す
-                } else {
-                    currentClues--; // 成功
-                }
-            }
+                
+                // If loop finishes without success
+                reject("Could not generate a balanced board. Please try again.");
+            });
         }
 
         function renderBoard() {
@@ -694,7 +750,7 @@
             void statsContainer.offsetWidth;
             statsContainer.classList.add('animate-pop');
             
-            localStorage.removeItem('sudoku_save_data_v3');
+            localStorage.removeItem('sudoku_save_data_v4');
         }
 
         function updateStatsUI() {
@@ -711,18 +767,28 @@
             }, 3000);
         }
 
-        function newGame() {
+        async function newGame() {
             isGameActive = true;
             document.body.classList.remove('win-state');
             messageElement.classList.remove('visible');
-            
-            // Allow UI to update before heavy calculation
-            setTimeout(() => {
-                generateBoard();
-                initialPuzzle = puzzle.map(row => [...row]);
-                renderBoard();
-                selectedCellIndex = null;
-            }, 10);
+            btnNew.disabled = true;
+            btnNew.textContent = "...";
+
+            // Use setTimeout to allow UI render before async work
+            setTimeout(async () => {
+                try {
+                    await generateBoard();
+                    initialPuzzle = puzzle.map(row => [...row]);
+                    renderBoard();
+                    selectedCellIndex = null;
+                } catch (e) {
+                    showMessage("Generation failed. Try again.", true);
+                    console.error(e);
+                } finally {
+                    btnNew.disabled = false;
+                    btnNew.textContent = "New";
+                }
+            }, 50);
         }
 
         // --- Save / Load Logic ---
@@ -742,8 +808,7 @@
                 difficulty: difficultySelect.value
             };
             try {
-                // Versioning key to prevent conflict
-                localStorage.setItem('sudoku_save_data_v3', JSON.stringify(saveData));
+                localStorage.setItem('sudoku_save_data_v4', JSON.stringify(saveData));
                 showMessage("Game Saved!", false);
             } catch (e) {
                 showMessage("Save failed...", true);
@@ -751,7 +816,7 @@
         }
 
         function loadGame() {
-            const savedJSON = localStorage.getItem('sudoku_save_data_v3');
+            const savedJSON = localStorage.getItem('sudoku_save_data_v4');
             if (!savedJSON) {
                 showMessage("No saved game found", true);
                 return;
@@ -777,6 +842,7 @@
                 updateStatsUI();
                 renderBoard();
                 
+                // Re-validate visual errors
                 for(let r=0; r<9; r++) {
                     for(let c=0; c<9; c++) {
                         const val = puzzle[r][c];
