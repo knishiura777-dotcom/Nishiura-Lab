@@ -99,6 +99,8 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .select-wrapper {
@@ -122,6 +124,30 @@
         select:hover {
             color: var(--color-primary);
             border-bottom-color: var(--color-primary);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            background-color: white;
+            color: var(--text-main);
+            border: 1px solid #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            background-color: #f1f5f9;
+            border-color: var(--text-sub);
+        }
+        .btn-action:active {
+            transform: translateY(1px);
         }
 
         .btn-new-game {
@@ -349,7 +375,13 @@
                     <option value="hard">Hard</option>
                 </select>
             </div>
-            <button class="btn-new-game" onclick="newGame()">New Game</button>
+            
+            <div class="btn-group">
+                <button class="btn-action" onclick="saveGame()">Save</button>
+                <button class="btn-action" onclick="loadGame()">Load</button>
+            </div>
+
+            <button class="btn-new-game" onclick="newGame()">New</button>
         </div>
     </header>
 
@@ -490,15 +522,55 @@
                 cell.classList.add('cell');
                 cell.dataset.index = i;
                 
+                // 元のボード（初期配置）の判定は、solutionと一致し、かつ生成時のロジックを知っている必要がある
+                // 簡易化のため、puzzleの非0の値のうち、ユーザーが入力したものでないものを区別する必要があるが
+                // ロード機能を追加したため、puzzle配列だけでは初期配置かユーザー入力か判別できない
+                // そのため、描画時に判定は行わず、クラス付与はDOM操作時に行うか、
+                // saveデータに「初期配置マスク」を含めるのがベストだが、
+                // ここでは「fixed」クラスを維持するロジックを工夫する。
+                // 解決策: ロード時、既にDOMがある場合は良いが、再描画時は情報が足りない。
+                // したがって、generateBoard時に「initialMask」を作るのが正しいが、
+                // 今回は既存コードへの影響を最小限にするため、
+                // 0以外のセルはすべて描画し、後からfixedかどうかを判定する...のは難しい。
+                // よって、今回は「0以外」かつ「ロードデータがない場合は初期配置とみなす」が基本だが
+                // save/loadのために、puzzle配列だけでなく、initialPuzzle配列も持つように拡張するほうが安全。
+                // しかし、もっと単純に: 「saveGame」でDOMのクラス情報（fixedかuser-inputか）は保存されないため、
+                // ロード時に困る。
+                // 修正方針: saveデータに puzzle配列 と "initialBoard" 配列を含める。
+
+                // 初期描画（New Game時）
+                // puzzleにある数値はすべてfixed扱い。
+                
                 if (value !== 0) {
                     cell.innerHTML = `<span>${value}</span>`;
-                    cell.classList.add('fixed');
+                    // ロード機能対応: 
+                    // 通常のNewGame直後はすべてFixedだが、ロード時はUser-inputが混ざっている可能性がある。
+                    // 簡易的なハックとして、initialBoardと比較する。
+                    if (typeof initialPuzzle !== 'undefined' && initialPuzzle[row][col] !== 0) {
+                         cell.classList.add('fixed');
+                    } else if (typeof initialPuzzle !== 'undefined' && initialPuzzle[row][col] === 0) {
+                        cell.classList.add('user-input');
+                        // エラーチェック
+                         if (!isValid(puzzle, row, col, value)) {
+                            // isValidは自分自身を除くチェックが必要だが、現在のisValidは単純チェック
+                            // ここでは簡易的に色だけつける、あるいはinputNumberと同じロジックを通す
+                            // ただしロード時はエラー表示しないほうが美しいかもしれないが、
+                            // inputNumberのロジックに合わせるならエラークラスも復元すべき
+                            // 複雑になるため、ロード時はクラス付与のみ行う
+                        }
+                    } else {
+                        // initialPuzzle未定義（初回生成時）はすべてFixed
+                        cell.classList.add('fixed');
+                    }
                 }
 
                 cell.addEventListener('click', () => selectCell(i));
                 boardElement.appendChild(cell);
             }
         }
+
+        // 初期配置を記録するための変数
+        let initialPuzzle = [];
 
         function selectCell(index) {
             if (!isGameActive) return;
@@ -598,6 +670,9 @@
             statsContainer.classList.remove('animate-pop');
             void statsContainer.offsetWidth;
             statsContainer.classList.add('animate-pop');
+            
+            // 勝ったときはセーブデータを消す（次のゲームのため）
+            localStorage.removeItem('sudoku_save_data');
         }
 
         function updateStatsUI() {
@@ -610,7 +685,8 @@
             messageElement.style.color = isError ? 'var(--color-error)' : 'var(--color-success)';
             messageElement.classList.add('visible');
             setTimeout(() => {
-                if(isGameActive) messageElement.classList.remove('visible');
+                // ゲームがまだアクティブまたはメッセージが表示されてから時間が経ったら消す
+                messageElement.classList.remove('visible');
             }, 3000);
         }
 
@@ -619,8 +695,83 @@
             document.body.classList.remove('win-state');
             messageElement.classList.remove('visible');
             generateBoard();
+            
+            // initialPuzzleをディープコピーして保存（fixed判定用）
+            initialPuzzle = puzzle.map(row => [...row]);
+            
             renderBoard();
             selectedCellIndex = null;
+        }
+
+        // --- Save / Load Logic ---
+
+        function saveGame() {
+            if (!isGameActive) {
+                showMessage("Cannot save finished game", true);
+                return;
+            }
+            const saveData = {
+                puzzle: puzzle,
+                solution: solution,
+                initialPuzzle: initialPuzzle,
+                playerLevel: playerLevel,
+                playerScore: playerScore,
+                difficulty: difficultySelect.value
+            };
+            try {
+                localStorage.setItem('sudoku_save_data', JSON.stringify(saveData));
+                showMessage("Game Saved!", false);
+            } catch (e) {
+                showMessage("Save failed...", true);
+            }
+        }
+
+        function loadGame() {
+            const savedJSON = localStorage.getItem('sudoku_save_data');
+            if (!savedJSON) {
+                showMessage("No saved game found", true);
+                return;
+            }
+
+            try {
+                const data = JSON.parse(savedJSON);
+                
+                // Restore state
+                puzzle = data.puzzle;
+                solution = data.solution;
+                initialPuzzle = data.initialPuzzle;
+                playerLevel = data.playerLevel;
+                playerScore = data.playerScore;
+                difficultySelect.value = data.difficulty;
+                
+                isGameActive = true;
+                document.body.classList.remove('win-state');
+                
+                updateStatsUI();
+                renderBoard();
+                
+                // エラー表示の再計算（ユーザー入力がある場合）
+                // 簡易的に全セルチェックして間違っていれば赤くする
+                for(let r=0; r<9; r++) {
+                    for(let c=0; c<9; c++) {
+                        const val = puzzle[r][c];
+                        // initialPuzzleが0（空）で、現在値が入っている場合＝ユーザー入力
+                        if (initialPuzzle[r][c] === 0 && val !== 0) {
+                            if (!isValid(puzzle, r, c, val)) {
+                                const index = r * 9 + c;
+                                boardElement.children[index].classList.add('error');
+                            }
+                        }
+                    }
+                }
+
+                showMessage("Game Loaded!", false);
+                selectedCellIndex = null;
+
+            } catch (e) {
+                console.error(e);
+                showMessage("Load failed (Data corrupted)", true);
+            }
         }
 
         document.addEventListener('keydown', (e) => {
@@ -645,7 +796,11 @@
             }
         });
 
-        // Start
+        // Initialize
+        // ページ読み込み時にセーブデータがあればロードするか？
+        // 今回はユーザーが明示的に操作できるようにボタンのみとするが、
+        // もしセーブデータがあれば「Load」ボタンを強調するなどのUIも考えられる。
+        // ここではデフォルトでNew Gameを開始する。
         newGame();
 
     </script>
