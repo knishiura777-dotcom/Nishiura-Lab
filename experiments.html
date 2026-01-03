@@ -3,8 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Educational Technology & Experiments | Nishiura Lab.</title>
-    <meta name="description" content="西浦和樹研究室が提供するWebベースの心理学基礎実験ライブラリと、教育工学研究のショーケース。">
+    
+    <title>Web心理学実験・教育工学｜ストループ・メンタルローテーション他｜西浦研究室</title>
+    <meta name="description" content="宮城学院女子大学 西浦研究室が提供する、ブラウザですぐに動く「Web心理学実験ライブラリ」。ストループ課題、メンタルローテーション、N-back課題、ミュラー・リヤー錯視など10種類以上の実験プログラムを無料公開。教育工学とウェルビーイングの実証研究も紹介。">
+    <meta name="keywords" content="心理学実験,Web実験,ストループ課題,メンタルローテーション,教育工学,西浦研究室,宮城学院女子大学">
+
+    <meta property="og:title" content="Web心理学実験ライブラリ｜西浦研究室" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="ストループ課題、メンタルローテーション、AIカウンセリングなど、ブラウザですぐに試せる10種類以上の心理学実験を公開中。" />
+    <meta property="og:url" content="https://www.mgu.ac.jp/.../experiments.html" />
+    <meta property="og:image" content="./experiments-ogp.jpg" />
+    <meta property="og:site_name" content="Nishiura Lab." />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": "Web心理学実験ライブラリ",
+      "description": "ブラウザ上で動作する心理学基礎実験および教育工学教材のコレクション。",
+      "provider": {
+        "@type": "EducationalOrganization",
+        "name": "宮城学院女子大学 西浦研究室"
+      },
+      "hasPart": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "ストループ課題 (Stroop Task)",
+          "applicationCategory": "EducationalApplication",
+          "description": "色と文字の意味が矛盾する場合に反応時間が遅れるストループ効果を測定。",
+          "operatingSystem": "Web Browser"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "メンタルローテーション (Mental Rotation)",
+          "applicationCategory": "EducationalApplication",
+          "description": "物体の空間的回転操作能力を測定する実験課題。",
+          "operatingSystem": "Web Browser"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "N-back課題 (Working Memory)",
+          "applicationCategory": "EducationalApplication",
+          "description": "ワーキングメモリの更新機能を測定する高負荷な記憶課題。",
+          "operatingSystem": "Web Browser"
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "ミュラー・リヤー錯視",
+          "applicationCategory": "EducationalApplication",
+          "description": "調整法を用いて錯視量を定量的に測定する実験。",
+          "operatingSystem": "Web Browser"
+        }
+      ]
+    }
+    </script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,7 +129,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
         
-        /* Grid Background Pattern */
         .dot-grid {
             position: absolute; inset: 0;
             opacity: 0.40; pointer-events: none;
@@ -86,7 +138,30 @@
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <noscript>
+            <div style="padding: 40px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
+                <h1>Web心理学実験ライブラリ - 西浦研究室</h1>
+                <p>宮城学院女子大学 西浦研究室では、以下の実験プログラムをWeb上で無料公開しています。</p>
+                <h2>収録実験リスト</h2>
+                <ul>
+                    <li><strong>ストループ課題 (Stroop Task):</strong> 認知心理学の古典的実験。注意の制御機能を測定します。</li>
+                    <li><strong>メンタルローテーション:</strong> 図形を頭の中で回転させる空間認知能力の測定。</li>
+                    <li><strong>N-back課題:</strong> ワーキングメモリ（作業記憶）の容量を測定する高負荷課題。</li>
+                    <li><strong>ミュラー・リヤー錯視:</strong> 調整法を用いた錯視量の定量測定。</li>
+                    <li><strong>AIカウンセリング:</strong> 生成AIを用いた模擬カウンセリング体験。</li>
+                    <li><strong>チェンジ・ブラインドネス:</strong> 変化盲の実体験。</li>
+                </ul>
+                <p>JavaScriptを有効にしてご利用ください。</p>
+            </div>
+        </noscript>
+        <div style="height: 100vh; display: flex; justify-content: center; align-items: center; background: #fcfcfc;">
+            <div style="text-align: center; color: #64748b;">
+                <p style="font-family: serif; font-size: 1.2rem; margin-bottom: 1rem;">Nishiura Lab. Experiments</p>
+                <p style="font-size: 0.9rem;">Loading Application...</p>
+            </div>
+        </div>
+    </div>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
@@ -149,7 +224,7 @@
                 feat_3_title: "AI & Bio-Sensing",
                 feat_3_desc: "保育・教育現場における子どもの行動センシング（表情・視線・姿勢）と脳波測定を組み合わせ、ウェルビーイングや集中度を客観的に評価するシステムの構築に挑んでいます。",
 
-                // --- 追加: Key Research Achievements ---
+                // --- Key Research Achievements ---
                 achievements_kicker: "Selected Publications",
                 achievements_title: "Key Research Achievements",
                 achieve_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果",
