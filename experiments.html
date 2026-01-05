@@ -128,16 +128,6 @@
         <noscript>
             <div style="padding: 40px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
                 <h1>Web心理学実験ライブラリ - 西浦研究室</h1>
-                <p>宮城学院女子大学 西浦研究室では、以下の実験プログラムをWeb上で無料公開しています。</p>
-                <h2>収録実験リスト</h2>
-                <ul>
-                    <li><strong>ストループ課題 (Stroop Task):</strong> 認知心理学の古典的実験。注意の制御機能を測定します。</li>
-                    <li><strong>メンタルローテーション:</strong> 図形を頭の中で回転させる空間認知能力の測定。</li>
-                    <li><strong>N-back課題:</strong> ワーキングメモリ（作業記憶）の容量を測定する高負荷課題。</li>
-                    <li><strong>ミュラー・リヤー錯視:</strong> 調整法を用いた錯視量の定量測定。</li>
-                    <li><strong>AIカウンセリング:</strong> 生成AIを用いた模擬カウンセリング体験。</li>
-                    <li><strong>チェンジ・ブラインドネス:</strong> 変化盲の実体験。</li>
-                </ul>
                 <p>JavaScriptを有効にしてご利用ください。</p>
             </div>
         </noscript>
@@ -431,6 +421,7 @@
             { id: 6, title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" }, category: "cat_Memory", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", en: "Respond if stimulus matches N steps back. Measures working memory updating.", se: "Svara om stimulit matchar N steg tillbaka. Mäter arbetsminne." }, icon: "brain", link: "./Exp_Working_memory.html" },
             { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
             { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity" },
+            { id: 16, title: { ja: "オンライン・リバーシ", en: "Online Reversi", se: "Online Reversi" }, category: "cat_Social", duration: "10-20 min", difficulty: "diff_Medium", description: { ja: "Firebaseを用いたリアルタイム対戦実験。対人相互作用や戦略的思考のプロセスを検討します。（要Firebase設定）", en: "Real-time strategy task using Firebase. Examines interpersonal interaction and strategic thinking processes.", se: "Realtidsstrategiuppgift med Firebase. Undersöker mellanmänsklig interaktion." }, icon: "users", link: "./Exp_Reversi.html" }
         ];
 
         const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
