@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Black and White 8×8｜Web心理学実験ライブラリ｜西浦研究室</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Inter"', '"Noto Sans JP"', 'sans-serif'],
+                        serif: ['"Cinzel"', '"Noto Serif JP"', 'serif'],
+                    },
+                    colors: {
+                        brand: { 50: '#f0f4f8', 500: '#4f46e5', 900: '#102a43' }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #fcfcfc; color: #334155; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .cell-black { background: radial-gradient(circle at 30% 30%, #444, #000); box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+        .cell-white { background: radial-gradient(circle at 30% 30%, #fff, #ccc); box-shadow: 2px 2px 5px rgba(0,0,0,0.2); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .status-ok { background-color: #4f46e5; box-shadow: 0 0 8px #4f46e5; } /* Indigo for OK */
+        .status-err { background-color: #ef4444; }
+        .status-wait { background-color: #eab308; }
+        .animate-fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(15px); }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="glass sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="experiments.html" class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
+                <div class="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </div>
+                <span class="text-xs font-bold tracking-widest uppercase font-serif">Nishiura Lab.</span>
+            </a>
+            <span class="text-xs font-bold tracking-widest uppercase text-slate-400">Exp.16 Online BW88</span>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-6 relative">
+        <div class="dot-grid absolute inset-0 pointer-events-none opacity-40" style="background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 32px 32px;"></div>
+        
+        <div id="app" class="w-full max-w-lg relative z-10 animate-fade-up">
+            <div id="initial-loader" class="bg-white/90 backdrop-blur border border-slate-200 p-8 rounded-2xl shadow-soft text-center">
+                <div class="animate-spin rounded-full h-10 w-10 border-4 border-indigo-500 border-t-transparent mx-auto mb-6"></div>
+                <h2 class="text-2xl font-serif font-bold text-slate-900 mb-2">System Diagnostic</h2>
+                <p class="text-xs text-slate-500 uppercase tracking-widest mb-8">Checking Firebase Connectivity...</p>
+                
+                <div class="grid grid-cols-2 gap-3 text-xs text-left mb-6">
+                    <div class="bg-slate-50 p-3 rounded border border-slate-100 flex items-center gap-3">
+                        <span id="health-network" class="status-dot status-wait"></span> <span class="font-medium text-slate-600">Network</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded border border-slate-100 flex items-center gap-3">
+                        <span id="health-config" class="status-dot status-wait"></span> <span class="font-medium text-slate-600">Config</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded border border-slate-100 flex items-center gap-3">
+                        <span id="health-auth" class="status-dot status-wait"></span> <span class="font-medium text-slate-600">Auth</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded border border-slate-100 flex items-center gap-3">
+                        <span id="health-db" class="status-dot status-wait"></span> <span class="font-medium text-slate-600">Database</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="window.forceStartOffline()" class="flex-1 bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider hover:bg-slate-900 transition-colors shadow-lg shadow-slate-200">
+                        Offline Practice
+                    </button>
+                    <button onclick="window.appActions.toggleSettings()" class="bg-white text-slate-600 border border-slate-200 font-bold py-3 px-4 rounded-xl text-xs uppercase tracking-wider hover:border-indigo-300 hover:text-indigo-600 transition-colors">
+                        Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-100 py-6 text-center text-[10px] uppercase tracking-widest text-slate-400">
+        <p>&copy; 2026 Nishiura Laboratory. All rights reserved.</p>
+    </footer>
+
+    <div id="toast-container" class="fixed top-24 left-1/2 transform -translate-x-1/2 z-[150] pointer-events-none w-full max-w-sm px-4"></div>
+    
+    <div id="error-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl border border-slate-100 text-center">
+            <div class="bg-rose-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-rose-500">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <h3 class="text-lg font-serif font-bold text-slate-900 mb-2">Permission Denied</h3>
+            <p class="text-slate-500 text-xs leading-relaxed mb-6">Firebase Security Rules rejected the operation. Please update your Firestore Rules in the console.</p>
+            <button onclick="document.getElementById('error-modal').style.display='none'" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl text-xs uppercase tracking-widest hover:bg-indigo-600 transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script>
+        window.APP_VERSION = "v1.3.0-BW88-Lab";
+        
+        // --- UI Helpers ---
+        window.updateHealth = (key, status) => {
+            const el = document.getElementById(`health-${key}`);
+            if (el) el.className = `status-dot status-${status}`;
+        };
+
+        window.showToast = (msg, isError = false) => {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `px-6 py-3 rounded-xl shadow-lg shadow-slate-200 text-xs font-bold mb-2 animate-fade-up pointer-events-auto border flex items-center justify-center gap-2 ${isError ? 'bg-white text-rose-500 border-rose-100' : 'bg-slate-900 text-white border-slate-900'}`;
+            toast.innerHTML = msg;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        };
+
+        window.copyTextToClipboard = (text) => {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
+            } else {
+                // Fallback
+                let textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed"; textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus(); textArea.select();
+                let res = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return res;
+            }
+        };
+
+        window.forceStartOffline = () => {
+            if (window.appActions && window.appActions.startOfflineGame) window.appActions.startOfflineGame();
+            else location.reload();
+        };
+
+        window.addEventListener('beforeunload', () => {
+            if (window.appActions && window.appActions.handleUnload) window.appActions.handleUnload();
+        });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+
+        // Modified Variable Names for BW88
+        const CONFIG_KEY = 'bw88_firebase_config';
+        const appId = 'bw88-lab-v1';
+        let auth, db;
+        let heartbeatInterval = null;
+
+        // --- Core Logic (Renamed from ReversiLogic to BW88Logic) ---
+        class BW88Logic {
+            constructor() {
+                this.BLACK = 1; this.WHITE = -1; this.EMPTY = 0;
+                this.initBoard();
+            }
+            initBoard() {
+                this.board = Array(8).fill(0).map(() => Array(8).fill(0));
+                this.board[3][3] = this.WHITE; this.board[4][4] = this.WHITE;
+                this.board[3][4] = this.BLACK; this.board[4][3] = this.BLACK;
+            }
+            setBoard(data) { if (data) this.board = typeof data === 'string' ? JSON.parse(data) : data; }
+            getFlippables(x, y, color) {
+                if (this.board[y][x] !== this.EMPTY) return [];
+                let flips = [];
+                const dirs = [[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
+                for (let [dx, dy] of dirs) {
+                    let nx = x + dx, ny = y + dy, path = [];
+                    while (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+                        const cell = this.board[ny][nx];
+                        if (cell === this.EMPTY) break;
+                        if (cell === color) { flips.push(...path); break; }
+                        path.push({x: nx, y: ny}); nx += dx; ny += dy;
+                    }
+                }
+                return flips;
+            }
+            placeDisc(x, y, color) {
+                const flips = this.getFlippables(x, y, color);
+                if (flips.length === 0) return false;
+                this.board[y][x] = color;
+                flips.forEach(p => this.board[p.y][p.x] = color);
+                return true;
+            }
+            canPlay(color) {
+                for(let y=0; y<8; y++) for(let x=0; x<8; x++) if(this.getFlippables(x,y,color).length > 0) return true;
+                return false;
+            }
+            getScore() {
+                let b = 0, w = 0;
+                this.board.flat().forEach(v => { if(v===1) b++; if(v===-1) w++; });
+                return { black: b, white: w };
+            }
+        }
+
+        const state = {
+            user: null, gameId: '', gameState: null, presenceState: null, myColor: null,
+            isOffline: false, showSettings: false, inputGameId: '',
+            authStatus: 'connecting', errorMessage: ''
+        };
+
+        // --- Renderers ---
+        const render = () => {
+            const container = document.getElementById('app');
+            let content = '';
+            if (!state.gameId) content = renderLobby();
+            else content = renderGame();
+            content += renderSettingsOverlay();
+            container.innerHTML = content;
+            
+            // Re-bind presence UI if game is active
+            if(state.gameId) updateOpponentIndicatorUI();
+        };
+
+        const renderLobby = () => {
+            const configExists = !!localStorage.getItem(CONFIG_KEY);
+            const isConnecting = state.authStatus === 'connecting';
+            
+            return `
+                <div class="bg-white border border-slate-200 p-8 rounded-2xl shadow-soft text-center animate-fade-up">
+                    <div class="mb-6">
+                        <span class="text-indigo-600 text-[10px] font-bold tracking-widest uppercase mb-2 block">Social Psychology Experiment</span>
+                        <h1 class="text-3xl font-serif font-bold text-slate-900 mb-2">Black and White 8×8</h1>
+                        <p class="text-slate-400 text-xs font-light">Interactive Strategy Task</p>
+                    </div>
+
+                    <div class="mb-8 flex justify-center gap-4 text-[10px] text-slate-500 font-bold tracking-wider uppercase">
+                        <div class="flex items-center gap-1.5"><span class="status-dot ${configExists ? 'status-ok' : 'status-err'}"></span> Config</div>
+                        <div class="flex items-center gap-1.5"><span class="status-dot ${state.user ? 'status-ok' : (state.authStatus==='failed' ? 'status-err' : 'status-wait')}"></span> Auth</div>
+                    </div>
+
+                    ${state.authStatus === 'failed' ? `
+                        <div class="mb-6 bg-rose-50 border border-rose-100 p-4 rounded-xl text-left">
+                            <h3 class="text-rose-600 font-bold text-xs mb-1">Connection Failed</h3>
+                            <p class="text-rose-800 text-[10px] font-mono break-all">${state.errorMessage || 'Check API Key configuration.'}</p>
+                        </div>
+                    ` : ''}
+
+                    <div class="space-y-3">
+                        <button onclick="window.appActions.createGame()" 
+                            class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl text-sm hover:bg-indigo-600 transition-colors shadow-lg active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none uppercase tracking-widest"
+                            ${!state.user ? 'disabled' : ''}>
+                            ${isConnecting ? 'Connecting...' : 'Create Room'}
+                        </button>
+                        
+                        <div class="flex gap-2">
+                            <input type="text" value="${state.inputGameId}" placeholder="ENTER GAME ID" 
+                                class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 text-center text-sm font-mono uppercase focus:border-indigo-500 outline-none transition-colors" 
+                                oninput="window.appActions.setInputId(this.value)">
+                            <button onclick="window.appActions.joinGame()" 
+                                class="bg-white border border-slate-200 text-slate-700 font-bold px-6 rounded-xl text-xs hover:border-indigo-500 hover:text-indigo-600 transition-colors uppercase tracking-widest disabled:opacity-50"
+                                ${!state.user ? 'disabled' : ''}>
+                                Join
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100">
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="window.appActions.startOfflineGame()" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">
+                                Practice Mode (Offline)
+                            </button>
+                            <span class="text-slate-300">|</span>
+                            <button onclick="window.appActions.toggleSettings()" class="text-[10px] font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-colors">
+                                Configuration
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderGame = () => {
+            if (!state.gameState) return '<div class="p-12 text-center"><div class="animate-spin rounded-full h-8 w-8 border-2 border-indigo-600 border-t-transparent mx-auto"></div></div>';
+            
+            const logic = new BW88Logic(); logic.setBoard(state.gameState.board);
+            const score = logic.getScore();
+            const isMyTurn = state.isOffline || (state.gameState.turn === state.myColor);
+            
+            return `
+                <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-soft animate-fade-up relative">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="window.appActions.leaveGame()" class="text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                            <span class="text-[10px] font-bold uppercase tracking-widest">Exit</span>
+                        </button>
+                        <div class="flex items-center gap-2">
+                             <div class="flex items-center gap-2 font-mono text-[10px] bg-slate-50 border border-slate-100 px-3 py-1 rounded-full text-slate-600 cursor-pointer hover:border-indigo-200 transition-colors" onclick="window.appActions.copyGameId()">
+                                <span class="font-bold">ID:</span>
+                                <span>${state.gameId}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                             </div>
+                             ${!state.isOffline ? `<div class="w-2 h-2 rounded-full bg-slate-200" id="opp-online-dot"></div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center items-center gap-8 mb-6">
+                        <div class="flex flex-col items-center transition-opacity duration-300 ${state.gameState.turn === 1 ? 'opacity-100 scale-110' : 'opacity-40'}">
+                            <div class="w-10 h-10 rounded-full cell-black mb-2 relative ring-offset-2 ${state.gameState.turn === 1 ? 'ring-2 ring-indigo-500' : ''}">
+                                ${state.myColor === 1 ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>' : ''}
+                            </div>
+                            <span class="font-serif font-bold text-2xl text-slate-800">${score.black}</span>
+                        </div>
+                        <div class="h-8 w-px bg-slate-200"></div>
+                        <div class="flex flex-col items-center transition-opacity duration-300 ${state.gameState.turn === -1 ? 'opacity-100 scale-110' : 'opacity-40'}">
+                            <div class="w-10 h-10 rounded-full cell-white mb-2 relative ring-offset-2 ${state.gameState.turn === -1 ? 'ring-2 ring-indigo-500' : ''}">
+                                ${state.myColor === -1 ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border-2 border-white"></div>' : ''}
+                            </div>
+                            <span class="font-serif font-bold text-2xl text-slate-800">${score.white}</span>
+                        </div>
+                    </div>
+
+                    <div class="relative bg-slate-200 p-1 rounded shadow-inner mx-auto w-fit mb-6 select-none">
+                        <div class="grid grid-cols-8 gap-px bg-slate-300 border border-slate-300">
+                            ${state.gameState.board.map((row, y) => row.map((cell, x) => `
+                                <div onclick="window.appActions.handleCellClick(${x},${y})" class="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-700 flex items-center justify-center cursor-pointer hover:bg-emerald-600 transition-colors relative">
+                                    ${cell === 1 ? '<div class="w-[80%] h-[80%] rounded-full cell-black animate-fade-in shadow-lg"></div>' : ''}
+                                    ${cell === -1 ? '<div class="w-[80%] h-[80%] rounded-full cell-white animate-fade-in shadow-lg"></div>' : ''}
+                                </div>
+                            `).join('')).join('')}
+                        </div>
+                        
+                        ${!state.isOffline && state.gameState.status === 'waiting' ? `
+                            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm flex flex-col items-center justify-center text-center z-10 text-white rounded">
+                                <div class="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mb-3"></div>
+                                <h3 class="font-serif font-bold tracking-wider mb-2">Waiting for Player</h3>
+                                <button onclick="window.appActions.copyGameId()" class="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-[10px] font-bold transition-colors">Copy ID: ${state.gameId}</button>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="text-center mb-2">
+                        <p class="text-xs font-bold uppercase tracking-widest ${isMyTurn ? 'text-indigo-600' : 'text-slate-400'}">
+                            ${state.gameState.status === 'finished' ? 'Game Finished' : (isMyTurn ? 'Your Turn' : "Opponent's Turn")}
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderSettingsOverlay = () => {
+            if (!state.showSettings) return '';
+            return `
+                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[200] p-6">
+                    <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-fade-up flex flex-col max-h-[90vh]">
+                        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-serif font-bold text-slate-900">System Configuration</h3>
+                            <button onclick="window.appActions.toggleSettings()" class="text-slate-400 hover:text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+                        </div>
+                        
+                        <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <h4 class="text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Firestore Rules</h4>
+                                <p class="text-[10px] text-slate-500 mb-3">Please configure your Firebase Console with these rules to allow anonymous play.</p>
+                                <div class="bg-slate-800 text-slate-300 p-3 rounded-lg font-mono text-[10px] relative group cursor-pointer hover:bg-slate-900 transition-colors" onclick="window.appActions.copyRules()">
+                                    <div class="absolute right-2 top-2 text-[9px] uppercase tracking-wider text-slate-500 group-hover:text-white">Copy</div>
+                                    match /artifacts/${appId}/public/data/bw88_games/{document=**} { allow read, write: if true; }<br>
+                                    match /artifacts/${appId}/public/data/bw88_presence/{document=**} { allow read, write: if true; }
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-700 uppercase tracking-widest block mb-2">Firebase SDK Config</label>
+                                <textarea id="config-input" class="w-full h-32 border border-slate-200 p-3 text-[10px] font-mono rounded-xl focus:border-indigo-500 focus:ring-0 outline-none transition-all resize-none bg-slate-50" placeholder='const firebaseConfig = { "apiKey": "...", ... };'></textarea>
+                            </div>
+                        </div>
+
+                        <div class="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 rounded-b-2xl">
+                            <button onclick="window.appActions.toggleSettings()" class="px-5 py-2.5 text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-slate-800 transition-colors">Cancel</button>
+                            <button onclick="window.appActions.saveSettings()" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all">Save & Reload</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const updateOpponentIndicatorUI = () => {
+            const dot = document.getElementById('opp-online-dot');
+            if (!dot) return;
+            let online = false;
+            if (!state.isOffline && state.presenceState) {
+                const oppLastSeen = state.myColor === 1 ? state.presenceState.whiteLastSeen : state.presenceState.blackLastSeen;
+                if (oppLastSeen) {
+                    const diff = Date.now() - (oppLastSeen.toMillis ? oppLastSeen.toMillis() : oppLastSeen);
+                    if (diff < 15000) online = true;
+                }
+            }
+            dot.className = `w-2 h-2 rounded-full transition-colors ${online ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`;
+        };
+
+        // --- Actions Exposed to Global ---
+        window.appActions = {
+            setInputId: (val) => { state.inputGameId = val.trim().toUpperCase(); },
+            toggleSettings: () => { state.showSettings = !state.showSettings; render(); },
+            saveSettings: () => {
+                const ta = document.getElementById('config-input');
+                if (!ta) return;
+                let val = ta.value.trim();
+                try {
+                    val = val.replace(/\u00A0/g, ' ').replace(/\/\/.*$/gm, '').replace(/import[\s\S]*?from[\s\S]*?;/g, '');
+                    const match = val.match(/\{[\s\S]*?apiKey[\s\S]*?\}/);
+                    if (match) {
+                        let extracted = match[0].replace(/;+$/, '').trim();
+                        localStorage.setItem(CONFIG_KEY, extracted);
+                        window.showToast("Settings Saved. Reloading...");
+                        setTimeout(() => location.reload(), 1000);
+                    } else window.showToast("Invalid Config Format", true);
+                } catch (e) { window.showToast("Parse Error: " + e.message, true); }
+            },
+            copyRules: () => {
+                // Updated rules to reflect BW88 collections
+                const rules = `match /artifacts/${appId}/public/data/bw88_games/{document=**} {\n  allow read, write: if true;\n}\nmatch /artifacts/${appId}/public/data/bw88_presence/{document=**} {\n  allow read, write: if true;\n}`;
+                if (window.copyTextToClipboard(rules)) window.showToast("Rules Copied to Clipboard");
+            },
+            copyGameId: () => { if (state.gameId && window.copyTextToClipboard(state.gameId)) window.showToast("Game ID Copied"); },
+            startOfflineGame: () => {
+                state.isOffline = true; state.gameId = 'OFFLINE';
+                const logic = new BW88Logic(); state.gameState = { board: logic.board, turn: 1, status: 'playing' };
+                render();
+            },
+            createGame: async () => {
+                if (!db || !state.user) return window.showToast("Connection not ready", true);
+                const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const logic = new BW88Logic();
+                try {
+                    // Path updated to bw88_games
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'bw88_games', id);
+                    await setDoc(roomRef, {
+                        board: JSON.stringify(logic.board), turn: 1, status: 'waiting', 
+                        blackPlayer: state.user.uid, whitePlayer: null, createdAt: serverTimestamp()
+                    });
+                    state.gameId = id; state.myColor = 1; render(); subscribe(id);
+                } catch (e) {
+                    state.errorMessage = e.message; document.getElementById('error-modal').style.display = 'flex';
+                }
+            },
+            joinGame: async () => {
+                const val = state.inputGameId;
+                if (!val) return window.showToast("Please enter Game ID", true);
+                if (!db || !state.user) return window.showToast("Connection not ready", true);
+                try {
+                    // Path updated to bw88_games
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'bw88_games', val);
+                    const snap = await getDoc(roomRef);
+                    if (!snap.exists()) return window.showToast("Room not found", true);
+                    const data = snap.data();
+                    if (data.blackPlayer === state.user.uid) { state.gameId = val; state.myColor = 1; render(); subscribe(val); return; }
+                    if (data.whitePlayer === state.user.uid) { state.gameId = val; state.myColor = -1; render(); subscribe(val); return; }
+                    if (data.status !== 'waiting') return window.showToast("Room is full", true);
+                    await updateDoc(roomRef, { whitePlayer: state.user.uid, status: 'playing' });
+                    state.gameId = val; state.myColor = -1; render(); subscribe(val);
+                } catch (e) { window.showToast("Join Error: " + e.message, true); }
+            },
+            handleCellClick: async (x, y) => {
+                if (!state.gameState || state.gameState.status === 'finished') return;
+                if (!state.isOffline && state.gameState.turn !== state.myColor) return window.showToast("Not your turn");
+                const logic = new BW88Logic(); logic.setBoard(state.gameState.board);
+                const turnColor = state.isOffline ? state.gameState.turn : state.myColor;
+                if (logic.placeDisc(x, y, turnColor)) {
+                    let nextTurn = -turnColor;
+                    let nextStatus = 'playing';
+                    if (!logic.canPlay(nextTurn)) { 
+                        nextTurn = -nextTurn; 
+                        if (!logic.canPlay(nextTurn)) nextStatus = 'finished'; 
+                    }
+                    const updateData = { board: JSON.stringify(logic.board), turn: nextTurn, status: nextStatus };
+                    if (state.isOffline) { state.gameState = {...state.gameState, ...updateData, board: logic.board}; render(); } 
+                    else {
+                        try { 
+                            // Path updated to bw88_games
+                            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'bw88_games', state.gameId), updateData); 
+                        }
+                        catch (e) { document.getElementById('error-modal').style.display = 'flex'; }
+                    }
+                } else { window.showToast("Invalid Move"); }
+            },
+            handleUnload: async () => {
+                if (!state.isOffline && state.gameId && state.user && db) {
+                    try {
+                        const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'bw88_games', state.gameId);
+                        const snap = await getDoc(roomRef);
+                        if (snap.exists()) {
+                            const data = snap.data();
+                            let updates = {};
+                            if (data.blackPlayer === state.user.uid) updates.blackPlayer = null;
+                            if (data.whitePlayer === state.user.uid) updates.whitePlayer = null;
+                            await updateDoc(roomRef, updates);
+                        }
+                    } catch (e) {}
+                }
+            },
+            leaveGame: async () => { 
+                if (heartbeatInterval) clearInterval(heartbeatInterval);
+                await window.appActions.handleUnload();
+                location.reload(); 
+            }
+        };
+
+        const subscribe = (id) => {
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(async () => {
+                if (state.isOffline || !state.gameId || !state.myColor || !db) return;
+                try {
+                    // Path updated to bw88_presence
+                    const presenceRef = doc(db, 'artifacts', appId, 'public', 'data', 'bw88_presence', id);
+                    const updateField = state.myColor === 1 ? 'blackLastSeen' : 'whiteLastSeen';
+                    await setDoc(presenceRef, { [updateField]: Date.now() }, { merge: true });
+                } catch (e) {}
+            }, 5000); 
+
+            // Path updated to bw88_games
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'bw88_games', id), (s) => {
+                if (s.exists()) { 
+                    const data = s.data(); 
+                    if(typeof data.board === 'string') data.board = JSON.parse(data.board);
+                    state.gameState = data; render();
+                }
+            });
+            // Path updated to bw88_presence
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'bw88_presence', id), (s) => {
+                if (s.exists()) { state.presenceState = s.data(); updateOpponentIndicatorUI(); }
+            });
+        };
+
+        const init = async () => {
+            const DEFAULT_CONFIG = { apiKey: "", authDomain: "", projectId: "", storageBucket: "", messagingSenderId: "", appId: "" };
+            let configStr = localStorage.getItem(CONFIG_KEY);
+            let config = null;
+            try {
+                if (configStr) {
+                    configStr = configStr.replace(/\u00A0/g, ' ');
+                    const match = configStr.match(/\{[\s\S]*?apiKey[\s\S]*?\}/);
+                    if (match) { configStr = match[0]; try { config = JSON.parse(configStr); } catch(e) { config = (new Function(`return ${configStr}`))(); } }
+                } else config = DEFAULT_CONFIG;
+            } catch(e) { console.error(e); }
+
+            if (config && config.apiKey) {
+                try {
+                    const appInst = initializeApp(config);
+                    auth = getAuth(appInst); db = getFirestore(appInst);
+                    onAuthStateChanged(auth, async (u) => {
+                        state.user = u;
+                        if (u) {
+                            state.authStatus = 'connected'; window.updateHealth('auth', 'ok');
+                            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'test', 'ping'), { t: serverTimestamp() }); window.updateHealth('db', 'ok'); } 
+                            catch(e) { window.updateHealth('db', 'err'); }
+                        }
+                        render();
+                    });
+                    try { await signInAnonymously(auth); } catch(err) { console.error(err); }
+                } catch(e) { state.authStatus = 'failed'; state.errorMessage = e.message; render(); }
+            } else { state.authStatus = 'failed'; render(); }
+            if (navigator.onLine) window.updateHealth('network', 'ok');
+        };
+        
+        init();
+    </script>
+</body>
+</html>
