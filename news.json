@@ -1,9 +1,15 @@
 [
   {
-    "date": "2026.01.01",
-    "title": "研究室のWebサイトをリニューアルしました",
-    "url": "#",
+    "date": "2026.01.06",
+    "title": "実験をする前の注意事項に「データの保存とセキュリティ（GAS、CSV/JSON、Firebase）」を追加・公開しました",
+    "url": "experiments.html",
     "category": "Info"
+  },
+  {
+    "date": "2026.01.05",
+    "title": "オンライン対戦型Web心理学実験プログラム「Black and White 8×8」を追加・公開しました",
+    "url": "experiments.html",
+    "category": "Publication"
   },
   {
     "date": "2026.01.02",
@@ -12,9 +18,9 @@
     "category": "Update"
   },
   {
-    "date": "2026.01.05",
-    "title": "オンライン対戦型Web心理学実験プログラム「Black & White 8×8」を追加・公開しました",
-    "url": "experiments.html",
-    "category": "Publication"
+    "date": "2026.01.01",
+    "title": "研究室のWebサイトをリニューアルしました",
+    "url": "#",
+    "category": "Info"
   }
 ]
