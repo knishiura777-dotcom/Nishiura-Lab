@@ -393,6 +393,83 @@
       margin-bottom: 12px;
     }
 
+    /* News (New!) */
+    .news-section {
+      background: var(--bg);
+      padding-top: 80px;
+      padding-bottom: 80px;
+    }
+    .news-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-top: 1px solid var(--line);
+    }
+    .news-item {
+      display: flex;
+      flex-direction: column;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+      transition: background .2s ease;
+      gap: 8px;
+    }
+    .news-item:hover {
+      background: rgba(255,255,255,0.6);
+    }
+    @media (min-width: 768px) {
+      .news-item {
+        flex-direction: row;
+        align-items: center;
+        gap: 32px;
+      }
+    }
+    .news-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+      font-family: "Inter", sans-serif;
+    }
+    .news-date {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 400;
+    }
+    .news-cat {
+      font-size: 10px;
+      padding: 4px 8px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      color: var(--indigo2);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      border-radius: 4px;
+    }
+    .news-link {
+      color: var(--text);
+      font-weight: 500;
+      font-size: 15px;
+      text-decoration: none;
+      transition: color .2s ease;
+      display: block;
+      flex-grow: 1;
+    }
+    .news-link:hover {
+      color: var(--indigo);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .news-arrow {
+      display: none;
+      color: var(--indigo);
+      font-size: 18px;
+    }
+    @media (min-width: 768px) {
+      .news-arrow { display: block; opacity: 0; transform: translateX(-10px); transition: all .3s ease; }
+      .news-item:hover .news-arrow { opacity: 1; transform: translateX(0); }
+    }
+
     /* About */
     .about{
       background: #f1f5f9;
@@ -827,7 +904,7 @@
       <div class="nav-actions">
         <nav class="nav-links" aria-label="Primary navigation">
           <a href="#home" data-link="home" data-i18n="nav_home">home</a>
-          <a href="#about" data-link="about" data-i18n="nav_about">about</a>
+          <a href="#news" data-link="news" data-i18n="nav_news">news</a> <a href="#about" data-link="about" data-i18n="nav_about">about</a>
           <a href="#research" data-link="research" data-i18n="nav_research">research</a>
           <a href="#publications" data-link="publications" data-i18n="nav_publications">publications</a>
           <a href="#contact" data-link="contact" data-i18n="nav_contact">contact</a>
@@ -876,7 +953,7 @@
             <p class="jp" data-i18n="hero_desc_sub">宮城学院女子大学 教育学部 / 教育心理学・健康心理学</p>
           </div>
 
-          <a class="scroll-cta fade-up" href="#about" aria-label="Scroll to About section">
+          <a class="scroll-cta fade-up" href="#news" aria-label="Scroll to News section">
             <span data-i18n="scroll_down">SCROLL DOWN</span>
             <div class="circle-btn"><div class="arrow"></div></div>
           </a>
@@ -884,6 +961,21 @@
       </div>
     </section>
 
+    <section id="news" class="section news-section">
+      <div class="container">
+        <div class="section-head">
+          <div class="fade-up">
+            <h2 data-i18n="news_title">News</h2>
+          </div>
+          <div class="caption fade-up" data-i18n="news_caption">Latest Updates</div>
+        </div>
+
+        <div class="news-container fade-up">
+          <ul id="news-list" class="news-list">
+            </ul>
+        </div>
+      </div>
+    </section>
     <section id="about" class="section about">
       <div class="container">
         <div class="about-grid">
@@ -1085,6 +1177,7 @@
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Women's Univ.",
         nav_home: "home",
+        nav_news: "news", // Added
         nav_about: "about",
         nav_research: "research",
         nav_publications: "publications",
@@ -1097,6 +1190,8 @@
         hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
         hero_desc_sub: "宮城学院女子大学 教育学部 / 教育心理学・健康心理学",
         scroll_down: "SCROLL DOWN",
+        news_title: "News & Topics", // Added
+        news_caption: "最新情報", // Added
         about_kicker: "About Professor",
         about_head: "ウェルビーイングと教育心理学の架け橋",
         about_body: `宮城学院女子大学 教育学部 教育学科 教授。<br>
@@ -1115,7 +1210,6 @@
         research_title: "Research Areas",
         research_caption: "Core Focus & Methodology",
         res_1_title: "Educational Technology",
-        // Modified for stronger appeal
         res_1_text: "独自開発の『Web心理学実験プラットフォーム』にて、ストループ効果など10の実験プログラムを無料公開中。ICTがいかに学習者の理解と関心を深めるかを実証的に研究しています。",
         
         view_experiments: "View Experiments",
@@ -1125,7 +1219,6 @@
         res_2_title: "Creativity & Learning",
         res_2_text: "創造性は脳内だけのプロセスではありません。テクノロジー、身体性、認知メカニズムの交差点から、人間の創造的振る舞いを科学的に解明し、拡張することを目指しています。",
         res_3_title: "Well-being & Psychology",
-        // Modified to include CWWH/Outdoor
         res_3_text: "CWWHやアウトドア教育の観点から、人間の「ウェルビーイング」を科学的に探求。北欧の知見と最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。",
         
         pub_kicker: "Archive",
@@ -1156,6 +1249,7 @@
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Women's Univ.",
         nav_home: "home",
+        nav_news: "news", // Added
         nav_about: "about",
         nav_research: "research",
         nav_publications: "publications",
@@ -1168,6 +1262,8 @@
         hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
         hero_desc_sub: "Faculty of Education, Miyagi Gakuin Women's Univ.",
         scroll_down: "SCROLL DOWN",
+        news_title: "News & Topics", // Added
+        news_caption: "Latest Updates", // Added
         about_kicker: "About Professor",
         about_head: "Bridging Education and Psychology",
         about_body: `Professor, Faculty of Education, Miyagi Gakuin Women's University.<br>
@@ -1186,7 +1282,6 @@
         research_title: "Research Areas",
         research_caption: "Core Focus & Methodology",
         res_1_title: "Educational Technology",
-        // Consistent with JA update
         res_1_text: "We provide a unique 'Web-based Psychology Experiment Platform' with 10 programs, including the Stroop effect, available for free. We empirically study how ICT deepens learner understanding and interest.",
         
         view_experiments: "View Experiments",
@@ -1196,7 +1291,6 @@
         res_2_title: "Creativity & Learning",
         res_2_text: "Creativity is not solely a brain process. We aim to scientifically unravel and expand creative behavior at the intersection of Technology, Embodiment, and Cognitive Mechanisms.",
         res_3_title: "Well-being & Psychology",
-        // Consistent with JA update
         res_3_text: "Scientifically exploring human 'well-being' from the perspectives of CWWH and Outdoor Education. We create new value in education and care by combining Nordic insights with sensing technology.",
         
         pub_kicker: "Archive",
@@ -1226,6 +1320,7 @@
         lab_name_short: "Nishiura Lab.",
         univ_name_short: "Miyagi Gakuin Kvinnouniversitet",
         nav_home: "hem",
+        nav_news: "nyheter", // Added
         nav_about: "om oss",
         nav_research: "forskning",
         nav_publications: "publikationer",
@@ -1238,6 +1333,8 @@
         hero_desc_text: "utforskar skärningspunkten mellan teknik, sinne och kreativitet.",
         hero_desc_sub: "Pedagogiska fakulteten, Miyagi Gakuin Kvinnouniversitet",
         scroll_down: "SCROLLA NER",
+        news_title: "Nyheter & Ämnen", // Added
+        news_caption: "Senaste Nytt", // Added
         about_kicker: "Om Professorn",
         about_head: "En bro mellan utbildning och psykologi",
         about_body: `Professor vid Pedagogiska fakulteten, Miyagi Gakuin Kvinnouniversitet.<br>
@@ -1256,7 +1353,6 @@
         research_title: "Forskningsområden",
         research_caption: "Fokus & Metodik",
         res_1_title: "Utbildningsteknologi",
-        // Consistent with JA update
         res_1_text: "Vi erbjuder en unik 'Webbaserad psykologisk experimentplattform' med 10 program, inklusive Stroop-effekten, tillgängliga gratis. Vi studerar hur IKT fördjupar inlärarens förståelse och intresse.",
         
         view_experiments: "Se experiment",
@@ -1266,7 +1362,6 @@
         res_2_title: "Kreativitet & Lärande",
         res_2_text: "Kreativitet sker inte enbart i hjärnan. Vi strävar efter att vetenskapligt klargöra och utvidga kreativt beteende i skärningspunkten mellan teknologi, kroppslighet och kognitiva mekanismer.",
         res_3_title: "Välbefinnande & Psykologi",
-        // Consistent with JA update
         res_3_text: "Vi utforskar vetenskapligt mänskligt 'välbefinnande' genom CWWH och utomhuspedagogik. Genom att kombinera nordiska insikter med den senaste sensortekniken skapar vi nya värden.",
         
         pub_kicker: "Arkiv",
@@ -1362,7 +1457,7 @@
     onScroll();
 
     // Active nav highlight
-    const sections = ['home','about','research','publications','contact']
+    const sections = ['home','news','about','research','publications','contact'] // Added 'news'
       .map(id => document.getElementById(id))
       .filter(Boolean);
     const links = Array.from(document.querySelectorAll('.nav-links a[data-link]'));
@@ -1388,6 +1483,31 @@
       });
     }, { threshold: 0.12 });
     fades.forEach(el => fadeObs.observe(el));
+
+    // --- Load News from JSON (Added) ---
+    const newsList = document.getElementById('news-list');
+    if (newsList) {
+      fetch('./news.json')
+        .then(response => response.json())
+        .then(data => {
+          // data.slice(0, 3) to limit items if needed
+          const html = data.map(item => `
+            <li class="news-item">
+              <div class="news-meta">
+                <span class="news-date">${item.date}</span>
+                <span class="news-cat">${item.category}</span>
+              </div>
+              <a href="${item.url}" class="news-link" ${item.url.startsWith('http') ? 'target="_blank" rel="noopener noreferrer"' : ''}>
+                ${item.title}
+              </a>
+              <span class="news-arrow" aria-hidden="true">&rarr;</span>
+            </li>
+          `).join('');
+          
+          newsList.innerHTML = html;
+        })
+        .catch(err => console.error('News load failed:', err));
+    }
   </script>
 </body>
 </html>

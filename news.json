@@ -1,0 +1,20 @@
+[
+  {
+    "date": "2026.01.01",
+    "title": "研究室のWebサイトをリニューアルしました",
+    "url": "#",
+    "category": "Info"
+  },
+  {
+    "date": "2026.01.02",
+    "title": "新しい実験プログラム「Stroop Effect」など、Web心理学実験プログラムを追加・公開しました",
+    "url": "experiments.html",
+    "category": "Update"
+  },
+  {
+    "date": "2026.01.05",
+    "title": "オンライン対戦型Web心理学実験プログラム「Black & White 8×8」を追加・公開しました。",
+    "url": "experiments.html",
+    "category": "Publication"
+  }
+]
