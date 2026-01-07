@@ -15,7 +15,8 @@ const translations = {
     hero_sub: "& Psychology",
     hero_desc_strong: "Kazuki Nishiura Laboratory",
     hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
-    hero_desc_sub: "宮城学院女子大学 教育学部 / 教育心理学・健康心理学",
+    // 修正: 最新の定義文に更新
+    hero_desc_sub: "西浦研究室は、教育心理学とICTを融合し、<br>学習・創造性・ウェルビーイングを科学的に探究する研究室です。",
     scroll_down: "SCROLL DOWN",
     news_title: "News & Topics",
     news_caption: "最新情報",
@@ -82,7 +83,8 @@ const translations = {
     hero_sub: "& Psychology",
     hero_desc_strong: "Kazuki Nishiura Laboratory",
     hero_desc_text: "explores the intersection of Technology, Mind, and Creativity.",
-    hero_desc_sub: "Faculty of Education, Miyagi Gakuin Women's Univ.",
+    // 修正: 日本語に合わせて英訳を更新（所属名だけでなく定義文へ）
+    hero_desc_sub: "Fusing Educational Psychology and ICT to scientifically explore<br>Learning, Creativity, and Well-being.",
     scroll_down: "SCROLL DOWN",
     news_title: "News & Topics",
     news_caption: "Latest Updates",
@@ -149,7 +151,8 @@ const translations = {
     hero_sub: "& Psykologi",
     hero_desc_strong: "Kazuki Nishiura Laboratory",
     hero_desc_text: "utforskar skärningspunkten mellan teknik, sinne och kreativitet.",
-    hero_desc_sub: "Pedagogiska fakulteten, Miyagi Gakuin Kvinnouniversitet",
+    // 修正: スウェーデン語も定義文に合わせて更新
+    hero_desc_sub: "Nishiura Lab utforskar vetenskapligt lärande, kreativitet och välbefinnande<br>genom att förena pedagogisk psykologi och IKT.",
     scroll_down: "SCROLLA NER",
     news_title: "Nyheter & Ämnen",
     news_caption: "Senaste Nytt",
@@ -219,7 +222,8 @@ const setLanguage = (lang) => {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (data[key]) {
-      if (key.includes('body') || key.includes('list')) {
+      // 修正: 'sub' (hero_desc_sub) もHTMLタグ(<br>)を有効にするため条件に追加
+      if (key.includes('body') || key.includes('list') || key.includes('sub')) {
         el.innerHTML = data[key];
       } else {
         el.textContent = data[key];
