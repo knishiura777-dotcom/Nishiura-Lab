@@ -152,14 +152,14 @@
     .concept-section { padding: 100px 0; background: #fff; }
     .kicker { color: var(--indigo); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom: 12px; }
     
-    /* Research Themes Grid - UPDATED to Flexbox for 3x2 Layout */
+    /* Research Themes Grid - Flexbox for 3x2 Layout */
     .themes-section { background: #f1f5f9; padding: 100px 0; }
     
     .grid-balanced {
       display: flex;
       flex-wrap: wrap;
       gap: 32px;
-      justify-content: center; /* Centers items, creating a nice balance for the last row */
+      justify-content: center;
     }
     
     .theme-card {
@@ -167,7 +167,7 @@
       border: 1px solid rgba(226,232,240,0.8);
       transition: all 0.3s ease; position: relative;
       display:flex; flex-direction:column; justify-content:space-between;
-      width: 100%; /* Mobile: full width */
+      width: 100%;
     }
 
     /* Tablet: 2 columns */
@@ -343,9 +343,9 @@
         <article class="theme-card fade-up" style="transition-delay: 0.4s;">
           <div>
             <div class="theme-icon">🧸</div>
-            <h4 data-i18n="theme_5_title">Children's Everyday Life × Development</h4>
+            <h4 data-i18n="theme_5_title">Children's Everyday Life × Developmental Support</h4>
             <p data-i18n="theme_5_desc">
-              保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出します。
+              保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出し、発達を支援します。
             </p>
           </div>
           <div class="theme-meta">Target: Early Childhood / Ethnography</div>
@@ -473,8 +473,9 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
 
-        theme_5_title: "Children's Everyday Life × Development",
-        theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出します。",
+        // UPDATED: Title and Desc
+        theme_5_title: "Children's Everyday Life × Developmental Support",
+        theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出し、発達を支援します。",
 
         papers_title: "Key Research Achievements",
         paper_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果 (The Effect of Digital Storytelling...)",
@@ -486,7 +487,6 @@
         paper_6_title: "北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育",
         paper_6_source: "北大路書房 (2016)",
         
-        // REPLACED: Updated Paper Title
         paper_new_title: "女子大学生における食行動異常の因果モデルの作成",
         paper_new_source: "宮城学院女子大学発達科学研究 14巻 (2014)",
         
@@ -527,8 +527,9 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "Eat, Sleep, Play. We explore how these daily routines influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
 
-        theme_5_title: "Children's Everyday Life × Development",
-        theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone.",
+        // UPDATED: Title and Desc
+        theme_5_title: "Children's Everyday Life × Developmental Support",
+        theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone, and support their development.",
 
         papers_title: "Key Research Achievements",
         paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -540,7 +541,6 @@
         paper_6_title: "Forest Classrooms from Sweden: Outdoor Education that Creates Living Wisdom and Joy",
         paper_6_source: "Kitaohji Shobo (2016)",
 
-        // REPLACED: Updated Paper Title
         paper_new_title: "Construction of a Causal Model of Abnormal Eating Behavior in Female University Students",
         paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
@@ -581,8 +581,9 @@
         theme_4_title: "Vardagsbeteende × Anpassning",
         theme_4_desc: "Äta, Sova, Leka. Vi utforskar hur dessa dagliga rutiner påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
 
-        theme_5_title: "Barns vardagsliv × Utveckling",
-        theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data.",
+        // UPDATED: Title and Desc
+        theme_5_title: "Barns vardagsliv × Utvecklingsstöd",
+        theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data, och stödjer deras utveckling.",
 
         papers_title: "Viktiga Forskningsresultat",
         paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -594,7 +595,6 @@
         paper_6_title: "Skogsklassrum från Sverige: Utomhuspedagogik som skapar livsvisdom och glädje",
         paper_6_source: "Kitaohji Shobo (2016)",
         
-        // REPLACED: Updated Paper Title
         paper_new_title: "Konstruktion av en orsaksmodell för onormalt ätbeteende hos kvinnliga universitetsstudenter",
         paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
