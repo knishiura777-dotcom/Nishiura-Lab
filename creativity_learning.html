@@ -155,7 +155,7 @@
     /* Research Themes Grid */
     .themes-section { background: #f1f5f9; padding: 100px 0; }
     
-    /* UPDATED: Balanced Grid for 5 items */
+    /* Balanced Grid for 5 items */
     .grid-balanced { 
       display: grid; 
       grid-template-columns: 1fr; 
@@ -165,12 +165,10 @@
       .grid-balanced { 
         grid-template-columns: repeat(2, 1fr); 
       }
-      /* If last item is single (odd), center it or make it span (optional choice). 
-         Here we just let it sit, but we can make it span to look balanced. */
       .grid-balanced > article:last-child:nth-child(odd) {
         grid-column: 1 / -1;
-        max-width: 600px; /* Optional: limit width if spanning full */
-        margin-inline: auto; /* center */
+        max-width: 600px;
+        margin-inline: auto;
         width: 100%;
       }
     }
@@ -393,10 +391,10 @@
 
         <div class="res-item fade-up">
           <span class="res-title" data-i18n="paper_new_title">
-            若年成人における食習慣の規則性が創造的思考課題のパフォーマンスに及ぼす影響
+            女子大学生における食行動異常尺度の作成
           </span>
           <div class="res-meta">
-            <span data-i18n="paper_new_source">日本健康心理学会 第35回大会 (2022)</span> | <span data-i18n="role_co">共著</span>
+            <span data-i18n="paper_new_source">宮城学院女子大学発達科学研究 14巻 (2014)</span> | <span data-i18n="role_co">共著</span>
           </div>
         </div>
 
@@ -474,7 +472,6 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
 
-        // ADDED
         theme_5_title: "Children's Everyday Life × Development",
         theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出します。",
 
@@ -488,8 +485,9 @@
         paper_6_title: "北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育",
         paper_6_source: "北大路書房 (2016)",
         
-        paper_new_title: "若年成人における食習慣の規則性が創造的思考課題のパフォーマンスに及ぼす影響",
-        paper_new_source: "日本健康心理学会 第35回大会 (2022)",
+        // REPLACED: Valid paper
+        paper_new_title: "女子大学生における食行動異常尺度の作成",
+        paper_new_source: "宮城学院女子大学発達科学研究 14巻 (2014)",
         
         role_presen: "共著・国際会議発表",
         role_single: "単著",
@@ -528,7 +526,6 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "Eat, Sleep, Play. We explore how these daily routines influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
 
-        // ADDED
         theme_5_title: "Children's Everyday Life × Development",
         theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone.",
 
@@ -542,8 +539,9 @@
         paper_6_title: "Forest Classrooms from Sweden: Outdoor Education that Creates Living Wisdom and Joy",
         paper_6_source: "Kitaohji Shobo (2016)",
 
-        paper_new_title: "Influence of Regularity in Eating Habits on Creative Thinking Performance in Young Adults",
-        paper_new_source: "Japan Health Psychology Conf. (2022)",
+        // REPLACED: Valid paper
+        paper_new_title: "Development of an Eating Behavior Abnormality Scale for Female University Students",
+        paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
         role_presen: "Co-author / Intl. Conf.",
         role_single: "Single Author",
@@ -582,7 +580,6 @@
         theme_4_title: "Vardagsbeteende × Anpassning",
         theme_4_desc: "Äta, Sova, Leka. Vi utforskar hur dessa dagliga rutiner påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
 
-        // ADDED
         theme_5_title: "Barns vardagsliv × Utveckling",
         theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data.",
 
@@ -596,8 +593,9 @@
         paper_6_title: "Skogsklassrum från Sverige: Utomhuspedagogik som skapar livsvisdom och glädje",
         paper_6_source: "Kitaohji Shobo (2016)",
         
-        paper_new_title: "Inverkan av regelbundna matvanor på kreativt tänkande hos unga vuxna",
-        paper_new_source: "Japan Health Psychology Conf. (2022)",
+        // REPLACED: Valid paper
+        paper_new_title: "Utveckling av en skala för onormalt ätbeteende hos kvinnliga universitetsstudenter",
+        paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
         role_presen: "Medförf / Intl. Konf.",
         role_single: "Enskild författare",
