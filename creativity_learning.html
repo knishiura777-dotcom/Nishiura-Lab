@@ -6,7 +6,7 @@
   
   <title>Creativity & Learning | 創造性教育・認知科学・AI | 西浦研究室</title>
   <meta name="description" content="宮城学院女子大学 西浦研究室の「創造性と学習」研究。AI・ロボットとの共創（HAI）、脳波測定による認知メカニズムの解明、北欧アウトドア教育による創造性育成など、環境と人間の相互作用から創造性を科学します。">
-  <meta name="keywords" content="創造性,Creativity,学習科学,Human-Agent Interaction,HAI,アウトドア教育,認知神経科学,西浦研究室,宮城学院女子大学,森のこども園,食行動">
+  <meta name="keywords" content="創造性,Creativity,学習科学,Human-Agent Interaction,HAI,アウトドア教育,認知神経科学,西浦研究室,宮城学院女子大学,森のこども園,食行動,発達心理学">
 
   <meta property="og:title" content="Creativity & Learning | 西浦研究室" />
   <meta property="og:type" content="article" />
@@ -155,17 +155,24 @@
     /* Research Themes Grid */
     .themes-section { background: #f1f5f9; padding: 100px 0; }
     
-    /* UPDATED: Balanced Grid for 4 items */
+    /* UPDATED: Balanced Grid for 5 items */
     .grid-balanced { 
       display: grid; 
       grid-template-columns: 1fr; 
       gap: 32px; 
     }
-    /* 2 columns on tablet/desktop for 4 items looks better than 3 columns + 1 orphan */
     @media (min-width: 768px){ 
       .grid-balanced { 
         grid-template-columns: repeat(2, 1fr); 
-      } 
+      }
+      /* If last item is single (odd), center it or make it span (optional choice). 
+         Here we just let it sit, but we can make it span to look balanced. */
+      .grid-balanced > article:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+        max-width: 600px; /* Optional: limit width if spanning full */
+        margin-inline: auto; /* center */
+        width: 100%;
+      }
     }
     
     .theme-card {
@@ -328,10 +335,21 @@
             <div class="theme-icon">🍽️</div>
             <h4 data-i18n="theme_4_title">Everyday Behavior × Adaptation</h4>
             <p data-i18n="theme_4_desc">
-              食行動や睡眠などの「日常的ルーチン」が、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。
+              「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。
             </p>
           </div>
           <div class="theme-meta">Target: Eating Habits / Adaptation</div>
+        </article>
+        
+        <article class="theme-card fade-up" style="transition-delay: 0.4s;">
+          <div>
+            <div class="theme-icon">🧸</div>
+            <h4 data-i18n="theme_5_title">Children's Everyday Life × Development</h4>
+            <p data-i18n="theme_5_desc">
+              保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出します。
+            </p>
+          </div>
+          <div class="theme-meta">Target: Early Childhood / Ethnography</div>
         </article>
 
       </div>
@@ -453,9 +471,12 @@
         theme_3_desc: "スウェーデンのアウトドア教育（Outdoor Education）をモデルに、自然環境下での「生きる知恵」と感覚経験が、創造的な問題解決能力（CPS）をどう育むかを研究。教室という枠を超えた学びの場をデザインします。",
         link_kinder: "Visit: 森のこども園 (Forest Kindergarten)",
 
-        // ADDED
         theme_4_title: "Everyday Behavior × Adaptation",
-        theme_4_desc: "食行動や睡眠などの「日常的ルーチン」が、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
+        theme_4_desc: "「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
+
+        // ADDED
+        theme_5_title: "Children's Everyday Life × Development",
+        theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出します。",
 
         papers_title: "Key Research Achievements",
         paper_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果 (The Effect of Digital Storytelling...)",
@@ -467,7 +488,6 @@
         paper_6_title: "北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育",
         paper_6_source: "北大路書房 (2016)",
         
-        // ADDED
         paper_new_title: "若年成人における食習慣の規則性が創造的思考課題のパフォーマンスに及ぼす影響",
         paper_new_source: "日本健康心理学会 第35回大会 (2022)",
         
@@ -505,9 +525,12 @@
         theme_3_desc: "Modeled after Swedish Outdoor Education, we research how 'living wisdom' and sensory experiences in natural environments nurture Creative Problem Solving (CPS) abilities. Designing learning spaces beyond the classroom.",
         link_kinder: "Visit: Affiliated Forest Kindergarten",
 
-        // ADDED
         theme_4_title: "Everyday Behavior × Adaptation",
-        theme_4_desc: "We explore how 'daily routines' such as eating and sleeping influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
+        theme_4_desc: "Eat, Sleep, Play. We explore how these daily routines influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
+
+        // ADDED
+        theme_5_title: "Children's Everyday Life × Development",
+        theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone.",
 
         papers_title: "Key Research Achievements",
         paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -519,7 +542,6 @@
         paper_6_title: "Forest Classrooms from Sweden: Outdoor Education that Creates Living Wisdom and Joy",
         paper_6_source: "Kitaohji Shobo (2016)",
 
-        // ADDED
         paper_new_title: "Influence of Regularity in Eating Habits on Creative Thinking Performance in Young Adults",
         paper_new_source: "Japan Health Psychology Conf. (2022)",
         
@@ -557,9 +579,12 @@
         theme_3_desc: "Med svensk utomhuspedagogik som modell forskar vi om hur 'levnadsvisdom' och sinnesupplevelser i naturmiljöer främjar kreativ problemlösning (CPS). Vi designar lärplatser bortom klassrummet.",
         link_kinder: "Besök: Skogsförskolan (Miyagi Gakuin)",
 
-        // ADDED
         theme_4_title: "Vardagsbeteende × Anpassning",
-        theme_4_desc: "Vi utforskar hur dagliga rutiner som matvanor påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
+        theme_4_desc: "Äta, Sova, Leka. Vi utforskar hur dessa dagliga rutiner påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
+
+        // ADDED
+        theme_5_title: "Barns vardagsliv × Utveckling",
+        theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data.",
 
         papers_title: "Viktiga Forskningsresultat",
         paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
@@ -571,7 +596,6 @@
         paper_6_title: "Skogsklassrum från Sverige: Utomhuspedagogik som skapar livsvisdom och glädje",
         paper_6_source: "Kitaohji Shobo (2016)",
         
-        // ADDED
         paper_new_title: "Inverkan av regelbundna matvanor på kreativt tänkande hos unga vuxna",
         paper_new_source: "Japan Health Psychology Conf. (2022)",
         
