@@ -152,25 +152,14 @@
     .concept-section { padding: 100px 0; background: #fff; }
     .kicker { color: var(--indigo); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom: 12px; }
     
-    /* Research Themes Grid */
+    /* Research Themes Grid - UPDATED to Flexbox for 3x2 Layout */
     .themes-section { background: #f1f5f9; padding: 100px 0; }
     
-    /* Balanced Grid for 5 items */
-    .grid-balanced { 
-      display: grid; 
-      grid-template-columns: 1fr; 
-      gap: 32px; 
-    }
-    @media (min-width: 768px){ 
-      .grid-balanced { 
-        grid-template-columns: repeat(2, 1fr); 
-      }
-      .grid-balanced > article:last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-        max-width: 600px;
-        margin-inline: auto;
-        width: 100%;
-      }
+    .grid-balanced {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center; /* Centers items, creating a nice balance for the last row */
     }
     
     .theme-card {
@@ -178,7 +167,19 @@
       border: 1px solid rgba(226,232,240,0.8);
       transition: all 0.3s ease; position: relative;
       display:flex; flex-direction:column; justify-content:space-between;
+      width: 100%; /* Mobile: full width */
     }
+
+    /* Tablet: 2 columns */
+    @media (min-width: 768px){ 
+      .theme-card { width: calc(50% - 16px); }
+    }
+    
+    /* Desktop: 3 columns */
+    @media (min-width: 1024px){ 
+      .theme-card { width: calc(33.333% - 22px); }
+    }
+
     .theme-card:hover {
       transform: translateY(-8px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.05);
@@ -485,7 +486,7 @@
         paper_6_title: "北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育",
         paper_6_source: "北大路書房 (2016)",
         
-        // REPLACED: Valid paper
+        // REPLACED: Updated Paper Title
         paper_new_title: "女子大学生における食行動異常の因果モデルの作成",
         paper_new_source: "宮城学院女子大学発達科学研究 14巻 (2014)",
         
@@ -539,7 +540,7 @@
         paper_6_title: "Forest Classrooms from Sweden: Outdoor Education that Creates Living Wisdom and Joy",
         paper_6_source: "Kitaohji Shobo (2016)",
 
-        // REPLACED: Valid paper
+        // REPLACED: Updated Paper Title
         paper_new_title: "Construction of a Causal Model of Abnormal Eating Behavior in Female University Students",
         paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
@@ -593,7 +594,7 @@
         paper_6_title: "Skogsklassrum från Sverige: Utomhuspedagogik som skapar livsvisdom och glädje",
         paper_6_source: "Kitaohji Shobo (2016)",
         
-        // REPLACED: Valid paper
+        // REPLACED: Updated Paper Title
         paper_new_title: "Konstruktion av en orsaksmodell för onormalt ätbeteende hos kvinnliga universitetsstudenter",
         paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
         
