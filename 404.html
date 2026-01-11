@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, follow">
+  
+  <title>404 Not Found | 西浦研究室</title>
+  <link rel="stylesheet" href="./style.css">
+  
+  <style>
+    /* 404ページ専用スタイル */
+    .error-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 100vh; /* 画面いっぱいに表示 */
+      min-height: 600px;
+      padding: 0 20px;
+    }
+    
+    .error-code {
+      font-family: "Inter", sans-serif;
+      font-size: clamp(100px, 20vw, 200px);
+      font-weight: 700;
+      color: var(--indigo);
+      line-height: 1;
+      opacity: 0.1; /* 背景に薄く溶け込ませる演出 */
+      margin-bottom: -40px; /* 文字を重ねる */
+      user-select: none;
+    }
+
+    .error-message h1 {
+      font-size: clamp(24px, 5vw, 42px);
+      margin: 0 0 16px;
+      color: var(--dark);
+    }
+
+    .error-desc {
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    /* ホームに戻るボタン */
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 32px;
+      background: var(--dark);
+      color: #fff;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 99px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+    .btn-home:hover {
+      background: var(--indigo);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="nav" id="siteNav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <div class="brand-mark">N</div>
+        <div class="brand-title">
+          <strong data-i18n="lab_name_short">Nishiura Lab.</strong>
+          <span data-i18n="univ_name_short">Miyagi Gakuin Women's Univ.</span>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <nav class="nav-links">
+          <a href="index.html#home" data-i18n="nav_home">home</a>
+          <a href="index.html#about" data-i18n="nav_about">about</a>
+          <a href="index.html#research" data-i18n="nav_research">research</a>
+          <a href="index.html#contact" data-i18n="nav_contact">contact</a>
+        </nav>
+
+        <div class="lang-switch">
+          <span class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span class="lang-btn active" onclick="setLanguage('ja')">JP</span>
+          <span class="lang-btn" onclick="setLanguage('se')">SE</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="height:auto; min-height:auto; padding:0;">
+      <div class="dot-grid"></div>
+      <div class="ring" style="width: min(40vh, 400px); height: min(40vh, 400px);"></div>
+
+      <div class="error-container fade-up">
+        <div class="error-code">404</div>
+        <div class="error-message">
+          <h1>Page Not Found</h1>
+          <div class="error-desc">
+            お探しのページは見つかりませんでした。<br>
+            削除されたか、URLが間違っている可能性があります。<br>
+            <span style="display:block; margin-top:8px; font-size:12px; opacity:0.7;">
+              The page you are looking for might have been removed or is temporarily unavailable.
+            </span>
+          </div>
+          
+          <a href="index.html" class="btn-home">
+            <span>Back to Home</span>
+            <span style="font-size:16px;">&rarr;</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    &copy; <span id="year"></span> Nishiura Laboratory. All Rights Reserved.
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
