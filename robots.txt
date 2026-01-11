@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://knishiura777-dotcom.github.io/Nishiura-Lab/sitemap.xml
