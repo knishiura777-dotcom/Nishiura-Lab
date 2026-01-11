@@ -205,7 +205,10 @@
     .grid-3 {
       display: grid; grid-template-columns: 1fr; gap: 32px;
     }
-    @media (min-width: 900px){ .grid-3{ grid-template-columns: repeat(3, 1fr); } }
+    /* Adjusted to 2 columns for a 2x2 layout on desktop */
+    @media (min-width: 900px){ 
+      .grid-3{ grid-template-columns: repeat(2, 1fr); } 
+    }
     
     .tool-card {
       background: #fff;
@@ -406,6 +409,20 @@
             <span class="tag">3.11 Legacy</span>
           </div>
         </article>
+        
+        <article class="tool-card fade-up" style="transition-delay: 0.3s;">
+          <div class="tool-icon">🏛️</div>
+          <h4 data-i18n="proj_4_name">Social Implementation & Governance</h4>
+          <p data-i18n="proj_4_desc">
+            研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認証NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。
+          </p>
+          
+          <div class="tag-list">
+            <span class="tag">NPO Management</span>
+            <span class="tag">Policy Governance</span>
+            <span class="tag">Univ. Co-op</span>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -503,6 +520,8 @@
         proj_3_name: "Disaster Resilience & \"Inochi\" Education",
         proj_3_desc: "東日本大震災の教訓を基盤に、北欧の「子どもの権利」の視点を統合した防災教育カリキュラムを開発。災害時の即時判断力と、困難を乗り越える心理的レジリエンス（回復力）を育みます。",
         link_child_center: "Visit: 地域子ども学研究センター",
+        proj_4_name: "Social Implementation & Governance",
+        proj_4_desc: "研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認証NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。",
         cases_title: "Key Publications in Well-being",
         work_1_title: "ウェルビーイングへの多面的アプローチ：「いま・ここ」の気づきが心身の健康にもたらす効果",
         work_2_title: "保育者養成における防災教育プログラム開発と教育評価に関する研究",
@@ -536,6 +555,8 @@
         proj_3_name: "Disaster Resilience & \"Inochi\" Education",
         proj_3_desc: "Developing a disaster education curriculum that integrates the lessons of the Great East Japan Earthquake with the Nordic perspective of 'children's rights.' It fosters immediate judgment during disasters and psychological resilience.",
         link_child_center: "Visit: Institute for Child and Future",
+        proj_4_name: "Social Implementation & Governance",
+        proj_4_desc: "Participating in governance to implement research findings into social systems. Leading policy making as Vice-Chair of the Miyagi Children & Child-rearing Council and NPO Director, while also managing campus well-being as Chairman of the University Co-op Board.",
         cases_title: "Key Publications in Well-being",
         work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
         work_2_title: "Development and Educational Evaluation of Disaster Prevention Education Programs in Childcare Worker Training",
@@ -569,6 +590,8 @@
         proj_3_name: "Katastrofberedskap & \"Inochi\"-utbildning",
         proj_3_desc: "Utveckling av en läroplan för katastrofutbildning som integrerar lärdomarna från den stora jordbävningen i östra Japan med det nordiska perspektivet på 'barns rättigheter'.",
         link_child_center: "Besök: Institutet för barn och framtid",
+        proj_4_name: "Social implementering och styrning",
+        proj_4_desc: "Deltagande i styrning för att implementera forskningsresultat i sociala system. Leder policyarbete som vice ordförande i Miyagis barn- och föräldraråd och styrelseledamot i en NPO, samtidigt som han hanterar campus välbefinnande som ordförande för universitetskooperativet.",
         cases_title: "Nyckelpublikationer inom Välbefinnande",
         work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
         work_2_title: "Utveckling och utvärdering av utbildningsprogram för katastrofberedskap",
