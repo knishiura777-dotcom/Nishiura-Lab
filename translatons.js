@@ -1,23 +1,23 @@
 // --- Translation Data (文章データ) ---
 // index.html, wb.html, experiments.html 共通のデータファイル
 
-// 【重要】 const ではなく var を使うことで、experiments.html (React) からも参照可能にします
-var translations = {
+// 【修正ポイント】 window.translations に直接代入して、Reactから確実に参照できるようにする
+window.translations = {
   ja: {
     // --- Common Navigation & Meta ---
     lab_name_short: "Nishiura Lab.",
-    lab_name: "Nishiura Lab.", // React用
+    lab_name: "Nishiura Lab.", 
     univ_name_short: "Miyagi Gakuin Women's Univ.",
-    univ_name: "Miyagi Gakuin Women's Univ.", // React用
+    univ_name: "Miyagi Gakuin Women's Univ.", 
     nav_home: "Home",
     nav_news: "News",
     nav_about: "About",
-    nav_dev: "DEVELOPMENT STORY", // Exp用
+    nav_dev: "DEVELOPMENT STORY", 
     nav_research: "Research",
     nav_publications: "Publications",
     nav_contact: "Contact",
     location: "Sendai, Japan",
-    footerRights: "Nishiura Laboratory. All rights reserved.", // React用
+    footerRights: "Nishiura Laboratory. All rights reserved.", 
 
     // --- Index & WB Pages ---
     hero_h1_1: "Learning",
@@ -113,7 +113,6 @@ var translations = {
     startBtn: "Start",
     alertMsg: "現在準備中です。公開をお待ちください。",
     
-    // カテゴリ・難易度
     cat_Cognition: "認知",
     cat_Memory: "記憶",
     cat_Attention: "注意",
@@ -126,7 +125,6 @@ var translations = {
     diff_Medium: "中級",
     diff_Hard: "上級",
 
-    // 技術チェック・モーダル
     precautionTitle: "実験をする前の注意事項",
     precautionSubtitle: "データの信頼性を高めるための技術的チェック",
     prec_screen_title: "高精細の画面提示を実現するには",
@@ -141,7 +139,6 @@ var translations = {
     modal_notice: "お知らせ",
     modal_close: "閉じる",
 
-    // 規約
     terms_title: "ご利用上の注意・免責事項",
     terms_subtitle: "Terms of Use & Disclaimer",
     term_1_head: "目的と免責",
@@ -149,10 +146,9 @@ var translations = {
     term_2_head: "利用規約 (License)",
     term_2_body: "教育機関（学校、大学等）での授業利用、および個人の学習利用は自由です（連絡不要）。ただし、営利目的での利用、無断転載、プログラムの改変・再配布は固くお断りします。研究目的でデータを使用したい場合は、必ず事前にご連絡ください。",
     term_3_head: "推奨環境",
-    term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します。"
+    term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します."
   },
   en: {
-    // --- Common Navigation & Meta ---
     lab_name_short: "Nishiura Lab.",
     lab_name: "Nishiura Lab.",
     univ_name_short: "Miyagi Gakuin Women's Univ.",
@@ -294,7 +290,6 @@ var translations = {
     term_3_body: "Latest versions of Chrome, Firefox, Safari, or Edge are recommended. A physical keyboard is recommended for accurate timing."
   },
   se: {
-    // --- Common Navigation & Meta ---
     lab_name_short: "Nishiura Lab.",
     lab_name: "Nishiura Lab.",
     univ_name_short: "Miyagi Gakuin Kvinnouniversitet",

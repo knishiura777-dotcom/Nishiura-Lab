@@ -7,7 +7,6 @@
     <title>Web心理学実験プラットフォーム（インストール不要・無料ブラウザ版）｜西浦研究室</title>
     
     <meta name="description" content="宮城学院女子大学 西浦研究室が無料公開する「Web心理学実験ライブラリ」。ストループ課題、メンタルローテーション、N-back課題など10種類以上の実験が、インストール不要・ブラウザだけですぐに実施可能です。オンライン授業やレポート課題のデータ収集に最適です。">
-    
     <meta name="keywords" content="心理学実験,Web実験,オンライン実験,ストループ課題,メンタルローテーション,教育工学,西浦研究室,宮城学院女子大学,ブラウザ実験">
 
     <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html">
@@ -117,43 +116,23 @@
             background-size: 32px 32px;
         }
 
-        /* 印刷設定 */
         @media print {
-            body * {
-                visibility: hidden;
-            }
-            #manual-modal-content, #manual-modal-content * {
-                visibility: visible;
-            }
+            body * { visibility: hidden; }
+            #manual-modal-content, #manual-modal-content * { visibility: visible; }
             #manual-modal-content {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                margin: 0;
-                padding: 0;
-                box-shadow: none;
-                border: none;
+                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none;
             }
-            .no-print {
-                display: none !important;
-            }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
     <div id="root">
-        <noscript>
-            <div style="padding: 40px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
-                <h1>Web心理学実験プラットフォーム（無料・ブラウザ版）</h1>
-                <p>宮城学院女子大学 西浦研究室が提供する、インストール不要の心理学実験ツールです。以下の実験プログラムがブラウザ上ですぐに動作します。</p>
-                <p>ご利用にはJavaScriptを有効にして再読み込みしてください。</p>
-            </div>
-        </noscript>
+        <noscript>JavaScriptを有効にしてください。</noscript>
         <div style="height: 100vh; display: flex; justify-content: center; align-items: center; background: #fcfcfc;">
             <div style="text-align: center; color: #64748b;">
                 <p style="font-family: serif; font-size: 1.2rem; margin-bottom: 1rem;">Nishiura Lab. Web Experiments</p>
-                <p style="font-size: 0.9rem;">Loading Application...</p>
+                <p style="font-size: 0.9rem;">Initializing...</p>
             </div>
         </div>
     </div>
@@ -163,7 +142,7 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        // --- Icons ---
+        // --- Icons (Same as before) ---
         const Icon = ({ path, size = 20, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
                 {path}
@@ -219,420 +198,6 @@
 
         const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
 
-        // --- Components ---
-        const LanguageSwitcher = ({ currentLang, setLang }) => (
-            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
-            </div>
-        );
-
-        // --- Custom Modal Component (Basic) ---
-        const Modal = ({ isOpen, onClose, message, title, btnText }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-100 border border-slate-100" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="bg-indigo-50 text-indigo-600 p-2 rounded-full">
-                                <Icon path={icons.alert} size={20} />
-                            </div>
-                            <h3 className="text-lg font-serif font-bold text-slate-900">{title}</h3>
-                        </div>
-                        <p className="text-slate-600 mb-6 text-sm leading-relaxed">{message}</p>
-                        <button onClick={onClose} className="w-full py-2.5 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors text-xs tracking-widest uppercase">
-                            {btnText}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Data Manual Modal Component (Large) ---
-        const DataManualModal = ({ isOpen, onClose }) => {
-            if (!isOpen) return null;
-
-            const copyToClipboard = (elementId) => {
-                const codeText = document.getElementById(elementId).innerText;
-                navigator.clipboard.writeText(codeText).then(() => {
-                    alert('コードをクリップボードにコピーしました');
-                }).catch(err => {
-                    console.error('コピーに失敗しました', err);
-                });
-            };
-
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div id="manual-modal-content" className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl transform transition-all scale-100 border border-slate-100 flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                        
-                        {/* Header */}
-                        <div className="bg-slate-900 text-white p-6 flex justify-between items-start flex-shrink-0">
-                            <div>
-                                <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Web Psychology Experiment Guide</div>
-                                <h1 className="text-2xl font-bold font-serif">データ保存・管理マニュアル</h1>
-                                <p className="text-slate-400 text-sm mt-1">CSV, GAS, Firebaseの使い分けとセキュリティ対策について</p>
-                            </div>
-                            <div className="flex gap-2 no-print">
-                                <button onClick={() => window.print()} className="bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-2 transition-colors">
-                                    <Icon path={icons.print} size={16} /> 印刷
-                                </button>
-                                <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors">
-                                    <Icon path={icons.arrowLeft} size={20} className="rotate-180"/>
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Content Scrollable Area */}
-                        <div className="p-6 md:p-8 space-y-8 overflow-y-auto flex-1 font-sans text-slate-700 bg-white">
-                            
-                            {/* Section 1 */}
-                            <section>
-                                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-3">
-                                    <span className="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">1</span>
-                                    はじめに
-                                </h2>
-                                <p className="text-sm leading-relaxed">
-                                    Web心理学実験では、データの保存方法によって「実験の実施しやすさ」と「セキュリティリスク」が変わります。
-                                    本マニュアルでは、本システムで採用されている3つの主要な保存形式について解説します。
-                                </p>
-                            </section>
-
-                            {/* Section 2 */}
-                            <section>
-                                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                                    <span className="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">2</span>
-                                    保存方法の比較
-                                </h2>
-                                <div className="overflow-x-auto rounded-lg border border-slate-200">
-                                    <table className="w-full text-sm text-left">
-                                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs">
-                                            <tr>
-                                                <th className="p-4 min-w-[120px]">方法</th>
-                                                <th className="p-4">メリット</th>
-                                                <th className="p-4">デメリット</th>
-                                                <th className="p-4">推奨ケース</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 text-xs md:text-sm">
-                                            <tr>
-                                                <td className="p-4 font-bold text-slate-800 bg-slate-50/50">
-                                                    ローカル保存<br/><span className="text-xs font-normal text-slate-500">(CSV/JSON)</span>
-                                                </td>
-                                                <td className="p-4 text-emerald-700">コストゼロ<br/>セキュリティリスク低</td>
-                                                <td className="p-4 text-rose-700">提出忘れのリスク<br/>スマホで扱いづらい</td>
-                                                <td className="p-4">個人練習、小規模アンケート</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="p-4 font-bold text-slate-800 bg-slate-50/50">
-                                                    GAS連携<br/><span className="text-xs font-normal text-slate-500">(スプレッドシート)</span>
-                                                </td>
-                                                <td className="p-4 text-emerald-700">集計が自動化される<br/>Excel等へ移行しやすい</td>
-                                                <td className="p-4 text-rose-700">大量アクセスに弱い<br/>通信エラー処理が必要</td>
-                                                <td className="p-4">授業での一斉実験、質問紙調査</td>
-                                            </tr>
-                                            <tr>
-                                                <td className="p-4 font-bold text-slate-800 bg-slate-50/50">
-                                                    Firebase<br/><span className="text-xs font-normal text-slate-500">(Cloud Firestore)</span>
-                                                </td>
-                                                <td className="p-4 text-emerald-700">リアルタイム同期可能<br/>データ構造が堅牢</td>
-                                                <td className="p-4 text-rose-700">設定が少し複雑<br/>従量課金の可能性</td>
-                                                <td className="p-4">対戦ゲーム、複雑な条件分岐</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
-
-                            {/* Section 3 */}
-                            <section>
-                                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                                    <span className="bg-indigo-100 text-indigo-700 w-6 h-6 flex items-center justify-center rounded-full text-xs">3</span>
-                                    実装用コード・設定
-                                </h2>
-
-                                {/* GAS Snippet */}
-                                <div className="mb-6 border border-slate-200 rounded-lg overflow-hidden">
-                                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center">
-                                        <span className="text-xs font-bold text-slate-600 uppercase">GAS (Google Apps Script) - doPost関数</span>
-                                        <button onClick={() => copyToClipboard('code-gas')} className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold transition-colors no-print">
-                                            <Icon path={icons.copy} size={12} /> コピー
-                                        </button>
-                                    </div>
-                                    <pre className="bg-slate-800 text-slate-50 p-4 text-xs font-mono overflow-x-auto"><code id="code-gas">{`function doPost(e) {
-  var jsonString = e.postData.contents;
-  var data = JSON.parse(jsonString).data; // 送信データ形式に合わせて調整
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
-  // データを配列に変換して追記
-  // ... (ここにデータ整形処理) ...
-  
-  return ContentService.createTextOutput("Success");
-}`}</code></pre>
-                                </div>
-
-                                {/* Firestore Rules Snippet */}
-                                <div className="border border-slate-200 rounded-lg overflow-hidden">
-                                    <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center">
-                                        <span className="text-xs font-bold text-slate-600 uppercase">Firebase Security Rules (Firestore)</span>
-                                        <button onClick={() => copyToClipboard('code-firebase')} className="text-xs flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-bold transition-colors no-print">
-                                            <Icon path={icons.copy} size={12} /> コピー
-                                        </button>
-                                    </div>
-                                    <pre className="bg-slate-800 text-slate-50 p-4 text-xs font-mono overflow-x-auto"><code id="code-firebase">{`rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // 実験データ：作成のみ許可（上書き・削除禁止）
-    match /artifacts/{appId}/public/data/experiment_results/{docId} {
-      allow create: if true;
-      allow read, update, delete: if false;
-    }
-    // 匿名認証ユーザーごとのデータ
-    match /artifacts/{appId}/users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}`}</code></pre>
-                                </div>
-                            </section>
-
-                            {/* Section 4 */}
-                            <section className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                                <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                    <Icon path={icons.shield} size={18} className="text-indigo-600" />
-                                    管理者用セキュリティチェックリスト
-                                </h2>
-                                <ul className="space-y-3 text-xs md:text-sm text-slate-600">
-                                    <li className="flex items-start gap-3">
-                                        <input type="checkbox" className="mt-0.5 w-4 h-4 accent-indigo-600" />
-                                        <span>収集データに「氏名」「学籍番号」等の個人情報を含めていないか確認したか？</span>
-                                    </li>
-                                    <li className="flex items-start gap-3">
-                                        <input type="checkbox" className="mt-0.5 w-4 h-4 accent-indigo-600" />
-                                        <span>FirebaseのAPIキーは公開しても問題ないが、<strong>Security Rules</strong>は設定したか？</span>
-                                    </li>
-                                    <li className="flex items-start gap-3">
-                                        <input type="checkbox" className="mt-0.5 w-4 h-4 accent-indigo-600" />
-                                        <span>被験者に対して「データの用途」「匿名性」についての説明を表示しているか？</span>
-                                    </li>
-                                </ul>
-                            </section>
-                        </div>
-
-                        <div className="bg-slate-50 p-4 text-center text-[10px] text-slate-400 border-t border-slate-200">
-                            &copy; 2026 Nishiura Laboratory. All rights reserved.
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- Terms Section Component ---
-        const TermsSection = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.35s'}}>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 relative overflow-hidden">
-                    <div className="mb-6 border-b border-slate-200 pb-4">
-                        <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-1">{t.terms_subtitle}</span>
-                        <h3 className="text-xl font-serif font-bold text-slate-900">{t.terms_title}</h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div>
-                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
-                                <Icon path={icons.alert} size={16} className="text-rose-500" />
-                                {t.term_1_head}
-                            </h4>
-                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                {t.term_1_body}
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
-                                <Icon path={icons.check} size={16} className="text-indigo-500" />
-                                {t.term_2_head}
-                            </h4>
-                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                {t.term_2_body}
-                            </p>
-                        </div>
-                        <div>
-                            <h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm">
-                                <Icon path={icons.monitor} size={16} className="text-emerald-500" />
-                                {t.term_3_head}
-                            </h4>
-                            <p className="text-xs text-slate-500 leading-relaxed text-justify">
-                                {t.term_3_body}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
-        const FeaturedResearch = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8">
-                    <h2 className="text-3xl font-serif font-semibold text-slate-900">{t.featured_title}</h2>
-                    <span className="text-xs text-slate-400 uppercase tracking-widest mt-2 md:mt-0">From Lab to Field</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group">
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.layers} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_1_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_1_desc}</p>
-                    </div>
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.1s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.card} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_2_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_2_desc}</p>
-                    </div>
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-lg transition-all group" style={{transitionDelay: '0.2s'}}>
-                        <div className="text-indigo-500 mb-4 opacity-80 group-hover:opacity-100 transition-opacity"><Icon path={icons.camera} size={32} /></div>
-                        <h3 className="font-serif text-lg font-bold text-slate-800 mb-3 group-hover:text-indigo-700 transition-colors">{t.feat_3_title}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed">{t.feat_3_desc}</p>
-                    </div>
-                </div>
-            </div>
-        );
-        
-        const ResearchAchievements = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-24 animate-fade-up" style={{animationDelay: '0.25s'}}>
-                <div className="mb-10">
-                    <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-2">{t.achievements_kicker}</span>
-                    <h2 className="text-4xl font-serif font-semibold text-slate-900">{t.achievements_title}</h2>
-                </div>
-                <div className="border-t border-slate-200">
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_1_title} <span className="font-normal text-slate-500 text-sm ml-1 block md:inline">{t.achieve_1_desc}</span>
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_1_meta}</p>
-                    </div>
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_2_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_2_meta}</p>
-                    </div>
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_3_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_3_meta}</p>
-                    </div>
-                    <div className="py-8 border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-                        <h3 className="font-bold text-lg text-slate-800 mb-1 group-hover:text-indigo-800 transition-colors">
-                            {t.achieve_4_title}
-                        </h3>
-                        <p className="text-xs text-slate-400 mt-2 font-medium">{t.achieve_4_meta}</p>
-                    </div>
-                </div>
-                <div className="mt-8">
-                    <a href="index.html#publications" className="inline-flex items-center text-xs font-bold uppercase tracking-widest text-slate-800 hover:text-indigo-600 transition-colors group">
-                        {t.achieve_view_all}
-                        <Icon path={icons.arrowLeft} size={14} className="ml-2 rotate-180 transition-transform group-hover:translate-x-1" />
-                    </a>
-                </div>
-            </div>
-        );
-
-        const FilterTab = ({ label, active, onClick }) => (
-            <button 
-                onClick={onClick}
-                className={`px-5 py-2 rounded-full text-xs font-medium tracking-wide transition-all duration-300 border ${
-                    active ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100 hover:text-slate-800'
-                }`}
-            >
-                {label}
-            </button>
-        );
-
-        // ExperimentCard
-        const ExperimentCard = ({ data, index, lang, t, onAlert }) => {
-            const delayStyle = { animationDelay: `${index * 0.05}s` };
-            
-            const content = (
-                <>
-                    <div className="flex justify-between items-start mb-6">
-                        <div className={`p-3 rounded-xl transition-colors duration-500 ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}>
-                            <Icon path={icons[data.icon]} size={28} />
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{t[data.category]}</span>
-                    </div>
-                    <div className="flex-grow">
-                        <h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">{data.title[lang]}</h3>
-                        <p className="text-sm text-slate-500 leading-relaxed font-body mb-6 whitespace-pre-wrap">{data.description[lang]}</p>
-                    </div>
-                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                        <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1.5"><Icon path={icons.clock} size={14} />{data.duration}</span>
-                            <span className="flex items-center gap-1.5"><Icon path={icons.activity} size={14} />{t[data.difficulty]}</span>
-                        </div>
-                        <div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>
-                            {t.startBtn} <Icon path={icons.play} size={10} className="fill-current" />
-                        </div>
-                    </div>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
-                </>
-            );
-
-            if (data.link) {
-                return (
-                    <a 
-                        href={data.link}
-                        style={delayStyle} 
-                        className={`group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left no-underline`}
-                    >
-                        {content}
-                    </a>
-                );
-            } else {
-                return (
-                    <div 
-                        style={delayStyle} 
-                        onClick={() => onAlert(t.alertMsg)}
-                        className={`group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft transition-all duration-500 cursor-not-allowed animate-fade-up flex flex-col h-full overflow-hidden block text-left`}
-                    >
-                        {content}
-                    </div>
-                );
-            }
-        };
-
-        const TechCheck = ({ t, onOpenManual }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
-                    <div className="mb-4">
-                        <h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><Icon path={icons.alert} size={20} className="text-slate-500" />{t.precautionTitle}</h3>
-                        <p className="text-xs text-slate-500">{t.precautionSubtitle}</p>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <a href="./Frame_rate_measurement.html" target="_blank" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
-                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition"><Icon path={icons.monitor} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-indigo-500 transition" /></div>
-                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-700 transition">{t.prec_screen_title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_screen_desc}</p>
-                            <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_screen_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
-                        </a>
-                        <a href="./Key_response_measurement.html"  className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left">
-                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition"><Icon path={icons.zap} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-emerald-500 transition" /></div>
-                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-emerald-700 transition">{t.prec_input_title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_input_desc}</p>
-                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">{t.prec_input_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
-                        </a>
-                        <div onClick={onOpenManual} className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left cursor-pointer">
-                            <div className="flex justify-between items-start mb-2"><span className="p-2 bg-slate-50 text-slate-600 rounded-lg group-hover:bg-slate-100 transition"><Icon path={icons.database} size={20} /></span><Icon path={icons.play} size={16} className="text-slate-300 group-hover:text-indigo-500 transition" /></div>
-                            <h4 className="font-bold text-slate-800 text-sm mb-1 group-hover:text-indigo-700 transition">{t.prec_data_title}</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed mb-3 flex-grow">{t.prec_data_desc}</p>
-                            <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_data_link} <Icon path={icons.arrowLeft} size={12} className="rotate-180" /></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-
         function ExperimentLibrary() {
             const [activeCategory, setActiveCategory] = useState("All");
             const [searchQuery, setSearchQuery] = useState("");
@@ -640,21 +205,48 @@ service cloud.firestore {
             const [modalOpen, setModalOpen] = useState(false);
             const [modalMessage, setModalMessage] = useState("");
             const [manualOpen, setManualOpen] = useState(false);
+            const [isLoaded, setIsLoaded] = useState(false);
 
             useEffect(() => {
                 const browserLang = navigator.language || navigator.userLanguage;
                 if (browserLang.startsWith('ja')) setLang('ja');
                 else if (browserLang.startsWith('sv')) setLang('se');
                 else setLang('en');
+
+                // データの読み込み待ちチェック
+                const checkData = setInterval(() => {
+                    if (window.translations) {
+                        setIsLoaded(true);
+                        clearInterval(checkData);
+                    }
+                }, 100);
+                
+                // 3秒でタイムアウト（万が一データが来なくても強制表示）
+                setTimeout(() => {
+                    clearInterval(checkData);
+                    setIsLoaded(true);
+                }, 3000);
+
+                return () => clearInterval(checkData);
             }, []);
 
             useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
 
-            // --- Step 3 Fix: Read from external translations.js ---
-            // グローバル変数 window.translations からデータを取得
-            // 読み込み遅延等でデータがない場合のフォールバックを設定
+            // 安全なデータ取得
             const t = (window.translations && window.translations[lang]) ? window.translations[lang] : {};
             
+            // ローディング中のフォールバック表示
+            if (!isLoaded || !t.lab_name) {
+                return (
+                    <div style={{height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#fcfcfc"}}>
+                        <div style={{textAlign: "center", color: "#64748b"}}>
+                            <p style={{fontFamily: "serif", fontSize: "1.2rem", marginBottom: "1rem"}}>Nishiura Lab. Web Experiments</p>
+                            <p style={{fontSize: "0.9rem"}}>Loading...</p>
+                        </div>
+                    </div>
+                );
+            }
+
             const handleAlert = (msg) => {
                 setModalMessage(msg);
                 setModalOpen(true);
@@ -663,25 +255,28 @@ service cloud.firestore {
             const filteredExperiments = useMemo(() => {
                 return experimentsData.filter(exp => {
                     const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
-                    const titleMatch = exp.title[lang].toLowerCase().includes(searchQuery.toLowerCase());
-                    const descriptionMatch = exp.description[lang].toLowerCase().includes(searchQuery.toLowerCase());
+                    // 安全策: titleやdescriptionが存在するか確認
+                    const titleText = (exp.title[lang] || "").toLowerCase();
+                    const descText = (exp.description[lang] || "").toLowerCase();
+                    const titleMatch = titleText.includes(searchQuery.toLowerCase());
+                    const descriptionMatch = descText.includes(searchQuery.toLowerCase());
                     return matchesCategory && (titleMatch || descriptionMatch);
                 });
             }, [activeCategory, searchQuery, lang]);
 
-            // データ読み込み待ちのロード画面
-            if (!t.lab_name) {
-                return (
-                    <div style={{height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#fcfcfc"}}>
-                        <div style={{textAlign: "center", color: "#64748b"}}>
-                            <p>Loading Resources...</p>
-                        </div>
-                    </div>
-                );
-            }
+            // Components (defined inside to use t)
+            const LanguageSwitcher = () => (
+                <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
+                    <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${lang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
+                    <span className="text-slate-300">|</span>
+                    <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${lang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
+                    <span className="text-slate-300">|</span>
+                    <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${lang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
+                </div>
+            );
 
             return (
-                <div className="min-h-screen pb-24 font-sans">
+                <div className="min-h-screen pb-24 font-sans animate-fade-in">
                     <Modal 
                         isOpen={modalOpen} 
                         onClose={() => setModalOpen(false)} 
@@ -709,7 +304,7 @@ service cloud.firestore {
                                     <a href="#library" className="hover:text-indigo-600 transition-colors">Library</a>
                                     <a href="index.html#contact" className="hover:text-indigo-600 transition-colors">{t.nav_contact}</a>
                                 </nav>
-                                <LanguageSwitcher currentLang={lang} setLang={setLang} />
+                                <LanguageSwitcher />
                             </div>
                         </div>
                     </header>

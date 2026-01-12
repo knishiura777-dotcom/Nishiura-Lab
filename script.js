@@ -1,24 +1,29 @@
 // --- script.js (Logic Only) ---
-// データは translations.js から読み込みます
+// データは translations.js (window.translations) から読み込みます
 
 // --- I18n Logic ---
-const setLanguage = (lang) => {
-  // 1. Update active button state
+// HTMLのonclickから呼び出せるよう window オブジェクトに紐付けます
+window.setLanguage = (lang) => {
+  // 1. Update active button state (ボタンの見た目を更新)
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.remove('active');
-    const btnText = btn.textContent.toLowerCase();
+    const btnText = btn.textContent.trim().toLowerCase();
     if (lang === 'ja' && btnText === 'jp') btn.classList.add('active');
     else if (lang === 'en' && btnText === 'en') btn.classList.add('active');
     else if (lang === 'se' && btnText === 'se') btn.classList.add('active');
   });
 
-  // 2. Update text content
-  // translations変数は translations.js で定義されている前提
-  if (typeof translations !== 'undefined') {
-    const data = translations[lang];
+  // 2. Update text content (テキストの書き換え)
+  // translations.js で定義した window.translations を参照
+  const allTranslations = window.translations;
+  
+  if (allTranslations && allTranslations[lang]) {
+    const data = allTranslations[lang];
+    
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (data[key]) {
+        // HTMLタグを含むデータ(body, list, sub)は innerHTML、それ以外は textContent
         if (key.includes('body') || key.includes('list') || key.includes('sub')) {
           el.innerHTML = data[key];
         } else {
@@ -26,32 +31,46 @@ const setLanguage = (lang) => {
         }
       }
     });
+  } else {
+    console.warn('Translation data not found for language:', lang);
   }
 
-  // 3. Update html lang attribute
+  // 3. Update html lang attribute (HTMLタグの言語設定更新)
   document.documentElement.lang = lang;
 };
 
 // --- Initialize Language based on Browser Settings ---
 const initLanguage = () => {
+  // translations.js の読み込みを待ってから実行
+  if (!window.translations) {
+    // データがまだ無ければ少し待って再試行
+    setTimeout(initLanguage, 50);
+    return;
+  }
+
   const browserLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
   if (browserLang === 'ja') {
-    setLanguage('ja');
+    window.setLanguage('ja');
   } else if (browserLang === 'sv') {
-    setLanguage('se');
+    window.setLanguage('se');
   } else {
-    setLanguage('en');
+    window.setLanguage('en');
   }
 };
 
 // Execute initialization
-initLanguage();
+// DOM読み込み完了後に初期化
+document.addEventListener('DOMContentLoaded', () => {
+    initLanguage();
+    
+    // Footer year (フッターの年号更新)
+    const yearSpan = document.getElementById('year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
+    }
+});
 
-// Footer year
-const yearSpan = document.getElementById('year');
-if (yearSpan) {
-    yearSpan.textContent = new Date().getFullYear();
-}
+// --- UI Logic (Navigation & Scroll) ---
 
 // Nav style on scroll
 const nav = document.getElementById('siteNav');
@@ -69,7 +88,7 @@ if (nav) {
     onScroll();
 }
 
-// Active nav highlight
+// Active nav highlight (スクロール連動ハイライト)
 const sections = ['home','news','about','research','publications','contact']
   .map(id => document.getElementById(id))
   .filter(Boolean);
@@ -90,7 +109,7 @@ if (sections.length > 0) {
     sections.forEach(s => observer.observe(s));
 }
 
-// Fade-up on view
+// Fade-up on view (フェードインアニメーション)
 const fades = document.querySelectorAll('.fade-up');
 const fadeObs = new IntersectionObserver((entries) => {
   entries.forEach(e => {
@@ -99,7 +118,7 @@ const fadeObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 fades.forEach(el => fadeObs.observe(el));
 
-// --- Load News from JSON ---
+// --- Load News from JSON (ニュース読み込み) ---
 const newsList = document.getElementById('news-list');
 if (newsList) {
   fetch('./news.json')
