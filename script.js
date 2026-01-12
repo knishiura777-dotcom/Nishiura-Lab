@@ -22,7 +22,7 @@ window.setLanguage = (lang) => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
       if (data[key]) {
-        // 【修正】 'title' も含めることで、タイトル内の <br> タグを有効にする
+        // 'title' も含めることで、タイトル内の <br> タグを有効にする
         if (key.includes('body') || key.includes('list') || key.includes('sub') || key.includes('title')) {
           el.innerHTML = data[key];
         } else {
@@ -39,23 +39,18 @@ window.setLanguage = (lang) => {
   document.documentElement.lang = lang;
 };
 
-// --- 初期化処理 ---
+// --- 初期化処理（自動判定を削除し、初期状態を日本語アクティブにするだけ） ---
 const initLanguage = () => {
-  // translations.js の読み込みを待つ
-  if (!window.translations) {
-    // まだ読み込まれていなければ、50ms後に再トライ
-    setTimeout(initLanguage, 50);
-    return;
-  }
-
-  const browserLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
-  if (browserLang === 'ja') {
-    window.setLanguage('ja');
-  } else if (browserLang === 'sv') {
-    window.setLanguage('se');
-  } else {
-    window.setLanguage('en');
-  }
+  // HTMLは既に日本語で書かれているため、翻訳機能（setLanguage）は呼ばない。
+  // ボタンの「JP」だけをアクティブ表示にする。
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    const btnText = btn.textContent.trim().toLowerCase();
+    if (btnText === 'jp') {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
 };
 
 // DOM読み込み完了後に初期化を実行
