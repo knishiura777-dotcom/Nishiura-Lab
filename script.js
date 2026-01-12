@@ -13,6 +13,7 @@ window.setLanguage = (lang) => {
   });
 
   // 2. テキストの書き換え
+  // translations.js で定義した window.translations を参照
   const allTranslations = window.translations;
   
   if (allTranslations && allTranslations[lang]) {
@@ -30,6 +31,7 @@ window.setLanguage = (lang) => {
       }
     });
   } else {
+    // データが読み込めていない場合のエラー表示
     console.warn('Translation data not found. Check if translations.js is loaded correctly.');
   }
 
@@ -39,7 +41,9 @@ window.setLanguage = (lang) => {
 
 // --- 初期化処理 ---
 const initLanguage = () => {
+  // translations.js の読み込みを待つ
   if (!window.translations) {
+    // まだ読み込まれていなければ、50ms後に再トライ
     setTimeout(initLanguage, 50);
     return;
   }
