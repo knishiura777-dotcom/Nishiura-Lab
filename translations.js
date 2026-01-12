@@ -1,5 +1,5 @@
 // --- Translation Data (文章データ) ---
-// index.html, wb.html, experiments.html, creativity_learning.html 共通のデータファイル
+// index.html, experiments.html, creativity_learning.html, wb.html 共通
 
 window.translations = {
   ja: {
@@ -17,8 +17,6 @@ window.translations = {
     nav_contact: "Contact",
     location: "Sendai, Japan",
     footerRights: "Nishiura Laboratory. All rights reserved.", 
-    
-    // 共通の戻るボタン
     back_home: "全業績リストへ戻る",
 
     // === Index Page ===
@@ -79,38 +77,81 @@ window.translations = {
     univ_site: "University Site",
     privacy: "Privacy Policy",
 
-    // === Creativity & Learning Page (New) ===
-    // キー名の重複を避けるため cl_ を接頭辞につけています
-    nav_concept: "Concept",
-    nav_themes: "Themes",
-    nav_papers: "Papers",
-    
+    // === Experiments Page ===
+    page_subtitle: "Research Field 01",
+    page_title: "Web心理学実験<br>プラットフォーム",
+    page_desc: "e-learning、LMS、ICTを活用した学習環境の構築と、心理学実験による実証的アプローチ。テクノロジーが学習者の創造性や自律性をどう支援するかを探求し、基礎実験からフィールド応用までを一貫して行います。",
+    concept_kicker: "Methodology",
+    concept_head: "実験室のコードを、社会実装の礎へ。",
+    concept_body: "私たちは、ブラウザ上で即座に動作する「Web心理学実験プラットフォーム」を構築・提供しています。\n\nここにあるのは、単なる教材ではありません。\n認知の干渉を暴く「ストループ」、脳内の空間操作を試す「メンタルローテーション」、記憶容量の限界に挑む「N-back」、そして「AIカウンセリング」による対話の深層——。\nこれら10を超える実験群は、人間の「注意」「記憶」「意思決定」というブラックボックスを解き明かすための鍵です。\n\n基礎実験（Lab）で得られた鋭利な知見を、教育やケアの現場（Field）へ。\nこの循環こそが、真に人間に最適化されたテクノロジーを生み出します。",
+    featured_title: "Advanced Research",
+    feat_1_title: "Attention & RSVP",
+    feat_1_desc: "「高速継時呈示（RSVP）」課題を用い、高ストレス状況下での注意資源の消費とモニタリング過程を解明。文字認知の誤りやメタ認知機能の限界を探る基礎研究です。",
+    feat_2_title: "Gamification for CPS",
+    feat_2_desc: "創造的問題解決（CPS）能力を育成するためのカードゲーム教材を開発。プレイ中の発話や行動ログから、学習者の心理的ストレス低減とルール習得効果を検証します。",
+    feat_3_title: "AI & Bio-Sensing",
+    feat_3_desc: "保育・教育現場における子どもの行動センシング（表情・視線・姿勢）と脳波測定を組み合わせ、ウェルビーイングや集中度を客観的に評価するシステムの構築に挑んでいます。",
+    achievements_kicker: "Selected Publications",
+    achievements_title: "Key Research Achievements",
+    achieve_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及す効果",
+    achieve_1_desc: "(The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot)",
+    achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | 共著・国際会議発表",
+    achieve_2_title: "タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究",
+    achieve_2_meta: "日本創造学会 第43回研究大会 (2021) | 単著",
+    achieve_3_title: "高速度継時呈示事態における注意資源の消費とモニタリングに関する研究",
+    achieve_3_meta: "心理学研究 第69巻 (1998) | 単著",
+    achieve_4_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
+    achieve_4_meta: "山形大学紀要 Vol.17 (2011) | 共著",
+    achieve_view_all: "全業績リストへ戻る",
+    libraryTitle: "Experiment Library",
+    searchPlaceholder: "実験を検索...",
+    filterAll: "すべて",
+    startBtn: "Start",
+    alertMsg: "現在準備中です。公開をお待ちください。",
+    cat_Cognition: "認知", cat_Memory: "記憶", cat_Attention: "注意", cat_Perception: "知覚",
+    cat_Spatial: "空間", cat_Inhibition: "抑制", cat_Social: "社会", cat_ProblemSolving: "問題解決",
+    diff_Easy: "初級", diff_Medium: "中級", diff_Hard: "上級",
+    precautionTitle: "実験をする前の注意事項",
+    precautionSubtitle: "データの信頼性を高めるための技術的チェック",
+    prec_screen_title: "高精細の画面提示を実現するには",
+    prec_screen_desc: "正確な実験のためには、画面の書き換え速度（リフレッシュレート）が安定していることが重要です。",
+    prec_screen_link: "フレームレート計測ツール",
+    prec_input_title: "反応時間を正確に測定するには",
+    prec_input_desc: "キーボード入力の遅延はデータに誤差を生じさせます。ご自身の環境の応答速度をチェックしましょう。",
+    prec_input_link: "キー入力応答計測ツール",
+    prec_data_title: "データの保存とセキュリティ",
+    prec_data_desc: "Web実験ではデータの保存方法（CSV/GAS/Firebase）によってセキュリティリスクが異なります。安全な管理方法について確認してください。",
+    prec_data_link: "保存・管理マニュアルを開く",
+    modal_notice: "お知らせ",
+    modal_close: "閉じる",
+    terms_title: "ご利用上の注意・免責事項",
+    terms_subtitle: "Terms of Use & Disclaimer",
+    term_1_head: "目的と免責",
+    term_1_body: "本ウェブサイトで公開している実験プログラムは、教育および研究目的で提供されています。これらは医学的な診断（ADHD、認知症等の診断）を行うものではありません。得られた結果について、当研究室は一切の責任を負いかねます。",
+    term_2_head: "利用規約 (License)",
+    term_2_body: "教育機関（学校、大学等）での授業利用、および個人の学習利用は自由です（連絡不要）。ただし、営利目的での利用、無断転載、プログラムの改変・再配布は固くお断りします。研究目的でデータを使用したい場合は、必ず事前にご連絡ください。",
+    term_3_head: "推奨環境",
+    term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します。",
+
+    // === Creativity & Learning Page ===
     cl_page_title: "Creativity &<br>Learning",
     cl_page_desc: "創造性は、脳内だけで完結するプロセスではありません。私たちは、テクノロジー（AI・ロボット）、身体性（五感・環境）、そして認知メカニズムの交差点から、人間の創造的振る舞いを科学的に解明し、拡張することを目指しています。",
-    
     cl_concept_head: "「発想」を科学し、「環境」をデザインする。",
     cl_concept_body: `従来の創造性研究は、個人の能力や性格特性に焦点を当てがちでした。しかし、私たちは「環境との相互作用」こそが創造性の鍵であると考えます。<br><br>
       例えば、ストレス下での注意制御（Attention Control）はどう変化するのか？ 北欧のアウトドア教育に見られる「自然環境」は脳にどのような影響を与えるのか？ そして、ヒト型ロボットやAIとの対話は、私たちの物語生成能力をどう拡張するのか？<br><br>
       認知心理学の厳密な実験手法と、教育工学的なシステム開発を組み合わせ、研究室（Lab）とフィールド（Field）の両面からアプローチします。`,
-    
     cl_themes_title: "Multidimensional Approaches",
-    
     cl_theme_1_title: "Human-Agent Interaction",
     cl_theme_1_desc: "ヒト型ロボット（Pepper等）や生成AIを「共創パートナー」として教育現場に導入する研究です。ロボットを用いたデジタル紙芝居（Digital Storytelling）が、幼児の感情理解や創造的表現に与える影響を検証しています。",
-    
     cl_theme_2_title: "Cognitive & Neuroscience",
     cl_theme_2_desc: "高速継時呈示（RSVP）課題を用いた注意資源の消費メカニズムや、タッチケア・創造的作業中の脳波トポグラフィ測定を実施。ストレスやリラックス状態がいかに「ひらめき」や学習効率に影響するかを生理指標から解明します。",
-    
     cl_theme_3_title: "Ecological & Outdoor Edu.",
     cl_theme_3_desc: "スウェーデンのアウトドア教育（Outdoor Education）をモデルに、自然環境下での「生きる知恵」と感覚経験が、創造的な問題解決能力（CPS）をどう育むかを研究。教室という枠を超えた学びの場をデザインします。",
     cl_link_kinder: "Visit: 森のこども園 (Forest Kindergarten)",
-
     cl_theme_4_title: "Everyday Behavior × Adaptation",
     cl_theme_4_desc: "「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
-
     cl_theme_5_title: "Children's Everyday Life × Developmental Support",
     cl_theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出し、発達を支援します。",
-
     cl_papers_title: "Key Research Achievements",
     cl_paper_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及ぼす効果 (The Effect of Digital Storytelling...)",
     cl_paper_2_title: "タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究",
@@ -122,12 +163,44 @@ window.translations = {
     cl_paper_6_source: "北大路書房 (2016)",
     cl_paper_new_title: "女子大学生における食行動異常の因果モデルの作成",
     cl_paper_new_source: "宮城学院女子大学発達科学研究 14巻 (2014)",
-    
     cl_role_presen: "共著・国際会議発表",
     cl_role_single: "単著",
     cl_role_co: "共著",
     cl_role_cotrans: "共訳",
-    cl_role_invited: "招待論文"
+    cl_role_invited: "招待論文",
+
+    // === WB Page (New) ===
+    wb_nav_concept: "Concept",
+    wb_nav_collab: "Collaboration",
+    wb_nav_cases: "Cases",
+    wb_page_title: "Well-being &<br>Psychology",
+    wb_page_desc: "私たちは、心理学とテクノロジーの融合を通じて、人間の「ウェルビーイング（身体的・精神的・社会的に満たされた状態）」を科学的に探求しています。北欧の先進的な知見と、最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。",
+    wb_concept_head: "多面的アプローチによる心の健康",
+    wb_concept_body: `現代社会におけるウェルビーイングは、単なる「幸福感」という主観的な指標だけでは測りきれません。<br>
+      当研究室では、脳波や自律神経系といった生理学的指標（Biometrics）と、自己効力感やレジリエンスといった心理学的指標（Psychometrics）を組み合わせた多面的なアプローチを採用しています。<br><br>
+      特に、スウェーデン・ストックホルム商科大学 CWWH (Center for Wellbeing, Welfare and Happiness) との連携を通じて、「いま・ここ」の気づき（Awareness of the Here and Now）がもたらす心身への影響を解明し、政策提言や教育プログラムへの応用を進めています。`,
+    wb_collab_title: "Strategic Initiatives",
+    wb_collab_sub: "国際的な学術連携と、最先端技術を用いた実装研究のハイブリッドアプローチ。",
+    wb_proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
+    wb_proj_1_desc: "ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。",
+    wb_link_cwwh: "Visit: CWWH 公式サイト",
+    wb_proj_2_name: "AI-Based Well-being Evaluation",
+    wb_proj_2_desc: "保育現場における子どもの行動センシング（表情・視線・姿勢）から、主観的ウェルビーイングを推定するAI評価法を開発中（科研費基盤B）。「見えない心」を客観的データとして可視化します。",
+    wb_proj_3_name: "Disaster Resilience & \"Inochi\" Education",
+    wb_proj_3_desc: "東日本大震災の教訓を基盤に、北欧の「子どもの権利」の視点を統合した防災教育カリキュラムを開発。児童館でのアウトリーチ活動なども展開し、災害時の即時判断力と、困難を乗り越える心理的レジリエンス（回復力）を育みます。",
+    wb_link_child_center: "Visit: 地域子ども学研究センター",
+    wb_proj_4_name: "Social Implementation & Governance",
+    wb_proj_4_desc: "研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認定NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。",
+    wb_link_machispo: "Visit: まちづくりスポット仙台",
+    wb_cases_title: "Key Publications in Well-being",
+    wb_work_1_title: "ウェルビーイングへの多面的アプローチ：「いま・ここ」の気づきが心身の健康にもたらす効果",
+    wb_work_2_title: "保育者養成における防災教育プログラム開発と教育評価に関する研究",
+    wb_work_3_title: "1週間の歩数計介入後の身体活動と心理的ストレスにおけるベースライン自己効力感の影響",
+    wb_work_4_title: "カードゲーム型ブレインストーミングによるストレス反応低減効果",
+    wb_work_5_title: "『脳と学習一未来の学校に必要な知識』(Neuroscience basis for well-being)",
+    wb_work_role_single: "単著",
+    wb_work_role_co: "共著",
+    wb_work_role_edit: "編訳"
   },
   en: {
     // === Common Navigation & Meta ===
@@ -203,37 +276,81 @@ window.translations = {
     univ_site: "University Site",
     privacy: "Privacy Policy",
 
-    // === Creativity & Learning Page (New) ===
-    nav_concept: "Concept",
-    nav_themes: "Themes",
-    nav_papers: "Papers",
-    
+    // === Experiments Page ===
+    page_subtitle: "Research Field 01",
+    page_title: "Web Psychology<br>Experiments",
+    page_desc: "Building learning environments using e-learning, LMS, and ICT, combined with an empirical approach via psychological experiments. We explore how technology supports learner creativity and autonomy, bridging basic experiments to field applications.",
+    concept_kicker: "Methodology",
+    concept_head: "From Lab Code to Social Implementation.",
+    concept_body: "We provide a 'Web-based Psychology Experiment Platform' that runs instantly in your browser.\n\nThese are keys to unlocking the black box of human cognition: exposing interference in 'Stroop', testing spatial manipulation in 'Mental Rotation', challenging memory limits in 'N-back', and exploring dialogue depth in 'AI Counseling'.\n\nThe sharp insights gained from these 10+ experiments (Lab) form the foundation for systems in education and care (Field).\nThis cycle creates technology truly optimized for humans.",
+    featured_title: "Advanced Research",
+    feat_1_title: "Attention & RSVP",
+    feat_1_desc: "Elucidating attentional resource consumption and monitoring processes under high-stress conditions using 'Rapid Serial Visual Presentation (RSVP)' tasks. Basic research exploring the limits of metacognitive functions.",
+    feat_2_title: "Gamification for CPS",
+    feat_2_desc: "Developing card game materials to foster Creative Problem Solving (CPS) skills. We verify psychological stress reduction and rule acquisition effects from gameplay logs and interactions.",
+    feat_3_title: "AI & Bio-Sensing",
+    feat_3_desc: "Challenging the construction of systems that objectively evaluate well-being and concentration by combining child behavior sensing (expressions, gaze, posture) and EEG measurements in educational settings.",
+    achievements_kicker: "Selected Publications",
+    achievements_title: "Key Research Achievements",
+    achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
+    achieve_1_desc: "",
+    achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Co-author / Intl. Conf.",
+    achieve_2_title: "Preliminary Study on the Effect of Tactile Care Intervention on EEG Topography",
+    achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Single Author",
+    achieve_3_title: "A Study on Attentional Resource-Consuming and Monitoring Processes under Rapid Serial Visual Presentation",
+    achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Single Author",
+    achieve_4_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
+    achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Co-author",
+    achieve_view_all: "Back to All Publications",
+    libraryTitle: "Experiment Library",
+    searchPlaceholder: "Search experiments...",
+    filterAll: "All",
+    startBtn: "Start",
+    alertMsg: "Currently under preparation.",
+    cat_Cognition: "Cognition", cat_Memory: "Memory", cat_Attention: "Attention", cat_Perception: "Perception",
+    cat_Spatial: "Spatial", cat_Inhibition: "Inhibition", cat_Social: "Social", cat_ProblemSolving: "Problem Solving",
+    diff_Easy: "Easy", diff_Medium: "Medium", diff_Hard: "Hard",
+    precautionTitle: "Precautions before Experiment",
+    precautionSubtitle: "Technical checks to improve data reliability",
+    prec_screen_title: "Achieving High-Definition Presentation",
+    prec_screen_desc: "Consistent refresh rates are crucial for accurate visual experiments. Use this tool to diagnose your display.",
+    prec_screen_link: "Frame Timing Diagnostics",
+    prec_input_title: "Measuring Reaction Time Accurately",
+    prec_input_desc: "Input lag introduces noise into data. Check your environment's response speed here.",
+    prec_input_link: "Key Response Benchmark",
+    prec_data_title: "Data Storage & Security",
+    prec_data_desc: "Understand the risks and best practices for storing experiment data (CSV/GAS/Firebase).",
+    prec_data_link: "Open Data Manual",
+    modal_notice: "Notice",
+    modal_close: "Close",
+    terms_title: "Terms of Use & Disclaimer",
+    terms_subtitle: "Important legal and usage information",
+    term_1_head: "Disclaimer",
+    term_1_body: "These programs are provided for educational and research purposes only. They are NOT intended for medical diagnosis. The laboratory assumes no responsibility for any results obtained.",
+    term_2_head: "Terms of Use (License)",
+    term_2_body: "Free for use in educational settings (schools, universities) and personal learning. Commercial use, unauthorized reproduction, modification, or redistribution is strictly prohibited. Please contact us for research use.",
+    term_3_head: "System Requirements",
+    term_3_body: "Latest versions of Chrome, Firefox, Safari, or Edge are recommended. A physical keyboard is recommended for accurate timing.",
+
+    // === Creativity & Learning Page ===
     cl_page_title: "Creativity &<br>Learning",
     cl_page_desc: "Creativity is not a process that occurs solely within the brain. We aim to scientifically unravel and expand human creative behavior at the intersection of Technology (AI/Robots), Embodiment (Senses/Environment), and Cognitive Mechanisms.",
-    
     cl_concept_head: "Science of Ideation, Design of Environment.",
     cl_concept_body: `Traditional creativity research often focused on individual abilities or personality traits. However, we believe that "interaction with the environment" is the key to creativity.<br><br>
       For example, how does Attention Control change under stress? How does the "natural environment" seen in Nordic outdoor education affect the brain? And how does dialogue with humanoid robots or AI expand our storytelling abilities?<br><br>
       We approach these questions from both the Lab and the Field, combining rigorous experimental methods of cognitive psychology with educational technology system development.`,
-    
     cl_themes_title: "Multidimensional Approaches",
-    
     cl_theme_1_title: "Human-Agent Interaction",
     cl_theme_1_desc: "Research on introducing humanoid robots (e.g., Pepper) and Generative AI as 'co-creation partners' in educational settings. We verify the effects of Digital Storytelling using robots on infants' emotional understanding and creative expression.",
-    
     cl_theme_2_title: "Cognitive & Neuroscience",
     cl_theme_2_desc: "Conducting EEG topography measurements during touch care and creative tasks, as well as investigating attention resource consumption using RSVP tasks. We elucidate via physiological indicators how stress or relaxation affects 'insight' and learning efficiency.",
-    
     cl_theme_3_title: "Ecological & Outdoor Edu.",
     cl_theme_3_desc: "Modeled after Swedish Outdoor Education, we research how 'living wisdom' and sensory experiences in natural environments nurture Creative Problem Solving (CPS) abilities. Designing learning spaces beyond the classroom.",
     cl_link_kinder: "Visit: Affiliated Forest Kindergarten",
-
     cl_theme_4_title: "Everyday Behavior × Adaptation",
     cl_theme_4_desc: "Eat, Sleep, Play. We explore how these daily routines influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
-
     cl_theme_5_title: "Children's Everyday Life × Developmental Support",
     cl_theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone, and support their development.",
-
     cl_papers_title: "Key Research Achievements",
     cl_paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
     cl_paper_2_title: "Preliminary Study on the Effect of Tactile Care Intervention on EEG Topography",
@@ -245,12 +362,44 @@ window.translations = {
     cl_paper_6_source: "Kitaohji Shobo (2016)",
     cl_paper_new_title: "Construction of a Causal Model of Abnormal Eating Behavior in Female University Students",
     cl_paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
-    
     cl_role_presen: "Co-author / Intl. Conf.",
     cl_role_single: "Single Author",
     cl_role_co: "Co-author",
     cl_role_cotrans: "Co-trans",
-    cl_role_invited: "Invited Paper"
+    cl_role_invited: "Invited Paper",
+
+    // === WB Page (New) ===
+    wb_nav_concept: "Concept",
+    wb_nav_collab: "Collaboration",
+    wb_nav_cases: "Cases",
+    wb_page_title: "Well-being &<br>Psychology",
+    wb_page_desc: "We scientifically explore human 'well-being'—a state of physical, mental, and social fulfillment—through the fusion of psychology and technology. Combining advanced Nordic insights with the latest sensing technology, we create new value in education and care settings.",
+    wb_concept_head: "Multidimensional Approach to Mental Health",
+    wb_concept_body: `Well-being in modern society cannot be measured solely by subjective indicators of 'happiness.'<br>
+      Our laboratory adopts a multidimensional approach that combines physiological indicators (Biometrics) such as EEG and autonomic nervous systems with psychological indicators (Psychometrics) like self-efficacy and resilience.<br><br>
+      In particular, through collaboration with the CWWH (Center for Wellbeing, Welfare and Happiness) at the Stockholm School of Economics in Sweden, we are elucidating the impact of 'Awareness of the Here and Now' on the mind and body, and advancing applications in policy recommendations and educational programs.`,
+    wb_collab_title: "Strategic Initiatives",
+    wb_collab_sub: "A hybrid approach of international academic collaboration and implementation research using cutting-edge technology.",
+    wb_proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
+    wb_proj_1_desc: "Collaborating with the Center for Wellbeing, Welfare and Happiness at the Stockholm School of Economics to conduct joint research and policy recommendations for applying the Nordic well-being model to Japanese child policy.",
+    wb_link_cwwh: "Visit: CWWH Official Site",
+    wb_proj_2_name: "AI-Based Well-being Evaluation",
+    wb_proj_2_desc: "Developing an AI evaluation method to estimate subjective well-being from child behavior sensing (facial expressions, gaze, posture) in childcare settings (KAKENHI Grant-in-Aid for Scientific Research B). Visualizing the 'invisible mind' as objective data.",
+    wb_proj_3_name: "Disaster Resilience & \"Inochi\" Education",
+    wb_proj_3_desc: "Developing a disaster education curriculum integrating lessons from the Great East Japan Earthquake with Nordic 'children's rights.' Includes outreach activities at children's centers to foster immediate judgment and psychological resilience.",
+    wb_link_child_center: "Visit: Institute for Child and Future",
+    wb_proj_4_name: "Social Implementation & Governance",
+    wb_proj_4_desc: "Participating in governance to implement research findings into social systems. Leading policy making as Vice-Chair of the Miyagi Children & Child-rearing Council and Board Member of a Certified NPO, while also managing campus well-being as Chairman of the University Co-op Board.",
+    wb_link_machispo: "Visit: Machispo Sendai",
+    wb_cases_title: "Key Publications in Well-being",
+    wb_work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
+    wb_work_2_title: "Development and Educational Evaluation of Disaster Prevention Education Programs in Childcare Worker Training",
+    wb_work_3_title: "Effect of baseline self-efficacy on physical activity and psychological stress after a one-week pedometer intervention",
+    wb_work_4_title: "Effects of Reducing Stress Reaction with Brainstorming Card Game",
+    wb_work_5_title: "'Brain and Learning: Knowledge Required for Future Schools'",
+    wb_work_role_single: "Single Author",
+    wb_work_role_co: "Co-author",
+    wb_work_role_edit: "Ed/Trans"
   },
   se: {
     // === Common Navigation & Meta ===
@@ -326,37 +475,81 @@ window.translations = {
     univ_site: "Universitetswebbplats",
     privacy: "Integritetspolicy",
 
-    // === Creativity & Learning Page (New) ===
-    nav_concept: "Koncept",
-    nav_themes: "Teman",
-    nav_papers: "Publikationer",
-    
+    // === Experiments Page ===
+    page_subtitle: "Forskningsområde 01",
+    page_title: "Webbpsykologiska<br>Experiment",
+    page_desc: "Vi bygger lärmiljöer med e-learning och IKT, kombinerat med en empirisk ansats via psykologiska experiment. Vi utforskar hur teknik stödjer inlärarens kreativitet och autonomi, från grundläggande experiment till fältapplikationer.",
+    concept_kicker: "Metodik",
+    concept_head: "Från labb insikter till social implementering.",
+    concept_body: "Vår forskning börjar med grundläggande psykologiska experiment (Lab) i webbläsare. Insikterna om 'uppmärksamhet', 'minne' och 'motivation' lägger grunden för systemutveckling inom utbildning och omsorg (Fält).\n\nCykeln av grundläggande och tillämpad forskning skapar effektiv utbildningsteknologi.",
+    featured_title: "Avancerad Forskning",
+    feat_1_title: "Uppmärksamhet & RSVP",
+    feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation (RSVP)'. Grundforskning om metakognitiva gränser.",
+    feat_2_title: "Spelifiering för CPS",
+    feat_2_desc: "Utveckling av kortspel för att främja kreativ problemlösning (CPS). Vi verifierar stressreducering och regelinlärning genom analys av speldata.",
+    feat_3_title: "AI & Bio-Sensing",
+    feat_3_desc: "Vi utvecklar system för att objektivt utvärdera välbefinnande och koncentration genom att kombinera beteendeavkänning (AI) och EEG-mätningar i utbildningsmiljöer.",
+    achievements_kicker: "Valda Publikationer",
+    achievements_title: "Viktiga Forskningsresultat",
+    achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
+    achieve_1_desc: "",
+    achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Medförfattare",
+    achieve_2_title: "Preliminär studie om effekten av taktil vårdintervention på EEG-topografi",
+    achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Enskild författare",
+    achieve_3_title: "Studie om uppmärksamhetsresurser under snabb seriell visuell presentation",
+    achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Enskild författare",
+    achieve_4_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
+    achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Medförfattare",
+    achieve_view_all: "Tillbaka till alla publikationer",
+    libraryTitle: "Experimentbibliotek",
+    searchPlaceholder: "Sök experiment...",
+    filterAll: "Alla",
+    startBtn: "Starta",
+    alertMsg: "Under förberedelse.",
+    cat_Cognition: "Kognition", cat_Memory: "Minne", cat_Attention: "Uppmärksamhet", cat_Perception: "Perception",
+    cat_Spatial: "Spatial", cat_Inhibition: "Inhibition", cat_Social: "Social", cat_ProblemSolving: "Problemlösning",
+    diff_Easy: "Lätt", diff_Medium: "Medium", diff_Hard: "Svår",
+    precautionTitle: "Försiktighetsåtgärder",
+    precautionSubtitle: "Tekniska kontroller för datatillförlitlighet",
+    prec_screen_title: "Högupplöst presentation",
+    prec_screen_desc: "Konsekventa uppdateringsfrekvenser är avgörande för noggrannhet. Kontrollera din skärm.",
+    prec_screen_link: "Diagnostik av Bildtider",
+    prec_input_title: "Mäta reaktionstid",
+    prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
+    prec_input_link: "Key Response Benchmark",
+    prec_data_title: "Datalagring och säkerhet",
+    prec_data_desc: "Förstå risker och praxis för datalagring.",
+    prec_data_link: "Öppna datamanual",
+    modal_notice: "Meddelande",
+    modal_close: "Stäng",
+    terms_title: "Användarvillkor & Ansvarsfriskrivning",
+    terms_subtitle: "Viktig information om användning",
+    term_1_head: "Ansvarsfriskrivning",
+    term_1_body: "Dessa program tillhandahålls endast för utbildnings- och forskningsändamål. De är INTE avsedda för medicinsk diagnos. Laboratoriet tar inget ansvar för erhållna resultat.",
+    term_2_head: "Användarvillkor",
+    term_2_body: "Gratis för användning i utbildningsmiljöer och personligt lärande. Kommersiell användning, otillåten reproduktion eller modifiering är strängt förbjuden.",
+    term_3_head: "Systemkrav",
+    term_3_body: "Senaste versionerna av Chrome, Firefox, Safari eller Edge rekommenderas. Fysiskt tangentbord rekommenderas för exakt tidtagning.",
+
+    // === Creativity & Learning Page ===
     cl_page_title: "Kreativitet &<br>Lärande",
     cl_page_desc: "Kreativitet är inte en process som sker enbart i hjärnan. Vi strävar efter att vetenskapligt klargöra och utvidga mänskligt kreativt beteende i skärningspunkten mellan teknologi (AI/Robotar), kroppslighet (Sinnen/Miljö) och kognitiva mekanismer.",
-    
     cl_concept_head: "Vetenskap om idéer, Design av miljö.",
     cl_concept_body: `Traditionell kreativitetsforskning fokuserade ofta på individuella förmågor. Men vi tror att "interaktion med miljön" är nyckeln till kreativitet.<br><br>
       Till exempel, hur förändras uppmärksamhetskontroll under stress? Hur påverkar den "naturliga miljön" i nordisk utomhuspedagogik hjärnan? Och hur utvidgar dialog med humanoida robotar vår berättarförmåga?<br><br>
       Vi närmar oss dessa frågor från både laboratoriet och fältet, genom att kombinera kognitiv psykologi med utbildningsteknologi.`,
-    
     cl_themes_title: "Multidimensionella tillvägagångssätt",
-    
     cl_theme_1_title: "Människa-Agent Interaktion",
     cl_theme_1_desc: "Forskning om att introducera humanoida robotar (t.ex. Pepper) och generativ AI som 'samkapande partners' i utbildningsmiljöer. Vi verifierar effekterna av digitalt berättande med robotar på barns emotionella förståelse.",
-    
     cl_theme_2_title: "Kognition & Neurovetenskap",
     cl_theme_2_desc: "Genomförande av EEG-mätningar under beröringsvård och kreativa uppgifter. Vi klargör via fysiologiska indikatorer hur stress eller avslappning påverkar 'insikt' och inlärningseffektivitet.",
-    
     cl_theme_3_title: "Ekologisk & Utomhuspedagogik",
     cl_theme_3_desc: "Med svensk utomhuspedagogik som modell forskar vi om hur 'levnadsvisdom' och sinnesupplevelser i naturmiljöer främjar kreativ problemlösning (CPS). Vi designar lärplatser bortom klassrummet.",
     cl_link_kinder: "Besök: Skogsförskolan (Miyagi Gakuin)",
-
     cl_theme_4_title: "Vardagsbeteende × Anpassning",
     cl_theme_4_desc: "Äta, Sova, Leka. Vi utforskar hur dessa dagliga rutiner påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
-
     cl_theme_5_title: "Barns vardagsliv × Utvecklingsstöd",
     cl_theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data, och stödjer deras utveckling.",
-
     cl_papers_title: "Viktiga Forskningsresultat",
     cl_paper_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
     cl_paper_2_title: "Preliminär studie om effekten av taktil vårdintervention på EEG-topografi",
@@ -368,11 +561,43 @@ window.translations = {
     cl_paper_6_source: "Kitaohji Shobo (2016)",
     cl_paper_new_title: "Konstruktion av en orsaksmodell för onormalt ätbeteende hos kvinnliga universitetsstudenter",
     cl_paper_new_source: "Journal of Developmental Science, MGWU, Vol.14 (2014)",
-    
     cl_role_presen: "Medförf / Intl. Konf.",
     cl_role_single: "Enskild författare",
     cl_role_co: "Medförfattare",
     cl_role_cotrans: "Medövers",
-    cl_role_invited: "Inbjuden"
+    cl_role_invited: "Inbjuden",
+
+    // === WB Page (New) ===
+    wb_nav_concept: "Koncept",
+    wb_nav_collab: "Samarbete",
+    wb_nav_cases: "Publikationer",
+    wb_page_title: "Välbefinnande &<br>Psykologi",
+    wb_page_desc: "Vi utforskar vetenskapligt mänskligt 'välbefinnande' genom en fusion av psykologi och teknik. Genom att kombinera nordiska insikter med den senaste sensortekniken skapar vi nya värden inom utbildning och omsorg.",
+    wb_concept_head: "Ett multidimensionellt tillvägagångssätt",
+    wb_concept_body: `Välbefinnande i det moderna samhället kan inte mätas enbart med subjektiva indikatorer på lycka.<br>
+      Vårt laboratorium antar ett multidimensionellt tillvägagångssätt som kombinerar fysiologiska indikatorer (Biometri) såsom EEG med psykologiska indikatorer (Psykometri) som självförmåga och resiliens.<br><br>
+      Särskilt genom samarbete med CWWH (Center for Wellbeing, Welfare and Happiness) vid Handelshögskolan i Stockholm, klargör vi effekterna av 'medvetenhet om här och nu' och främjar tillämpningar i policyrekommendationer.`,
+    wb_collab_title: "Strategiska Initiativ",
+    wb_collab_sub: "Ett hybridtillvägagångssätt med internationellt akademiskt samarbete och implementeringsforskning.",
+    wb_proj_1_name: "Samarbete med CWWH (Handelshögskolan i Stockholm)",
+    wb_proj_1_desc: "Samarbete med Center for Wellbeing, Welfare and Happiness för att tillämpa den nordiska välfärdsmodellen på japansk barnpolitik genom gemensam forskning.",
+    wb_link_cwwh: "Besök: CWWH Officiell Webbplats",
+    wb_proj_2_name: "AI-baserad utvärdering av välbefinnande",
+    wb_proj_2_desc: "Utveckling av en AI-metod för att uppskatta subjektivt välbefinnande från barnens beteende (ansiktsuttryck, blick, hållning) i förskolemiljöer.",
+    wb_proj_3_name: "Katastrofberedskap & \"Inochi\"-utbildning",
+    wb_proj_3_desc: "Utveckling av en läroplan för katastrofutbildning som integrerar lärdomar från den stora jordbävningen i östra Japan med nordiska 'barns rättigheter'. Inkluderar outreach-aktiviteter på fritidshem för att främja omedelbar bedömning och resiliens.",
+    wb_link_child_center: "Besök: Institutet för barn och framtid",
+    wb_proj_4_name: "Social implementering och styrning",
+    wb_proj_4_desc: "Deltagande i styrning för att implementera forskningsresultat i sociala system. Leder policyarbete som vice ordförande i Miyagis barn- och föräldraråd och styrelseledamot i en certifierad NPO, samtidigt som han hanterar campus välbefinnande som ordförande för universitetskooperativet.",
+    wb_link_machispo: "Besök: Machispo Sendai",
+    wb_cases_title: "Nyckelpublikationer inom Välbefinnande",
+    wb_work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
+    wb_work_2_title: "Utveckling och utvärdering av utbildningsprogram för katastrofberedskap",
+    wb_work_3_title: "Effekten av grundläggande självförmåga på fysisk aktivitet och psykologisk stress",
+    wb_work_4_title: "Effekter av stressreducering med brainstorming-kortspel",
+    wb_work_5_title: "'Hjärnan och lärande: Kunskap som krävs för framtidens skolor'",
+    wb_work_role_single: "Enskild författare",
+    wb_work_role_co: "Medförfattare",
+    wb_work_role_edit: "Red/Övers"
   }
 };
