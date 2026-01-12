@@ -38,69 +38,51 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
-  
+
   <link rel="stylesheet" href="./style.css">
 
   <style>
-    /* ページ固有のスタイル（上書き・追加分） */
-    
-    /* Hero for Subpage */
+    /* ページ固有のスタイル */
     .hero-sub{
-      position:relative;
-      min-height: 50vh;
-      padding: 160px 0 80px;
-      background: var(--white);
-      overflow:hidden;
-      display:flex;
-      align-items:center;
+      position:relative; min-height: 50vh; padding: 160px 0 80px;
+      background: var(--white); overflow:hidden; display:flex; align-items:center;
+    }
+    .dot-grid{
+      position:absolute; inset:0; opacity:.40; pointer-events:none;
+      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+      background-size: 32px 32px;
     }
     
     .page-header h1{
-      font-size: clamp(36px, 7vw, 72px);
-      line-height: 1.1;
-      margin: 0 0 24px;
-      color: var(--dark);
-      letter-spacing: -0.02em;
+      font-size: clamp(36px, 7vw, 72px); line-height: 1.1; margin: 0 0 24px;
+      color: var(--dark); letter-spacing: -0.02em;
     }
     .page-header .subtitle{
-      font-family: "Inter", sans-serif;
-      color: var(--indigo);
-      font-size: 14px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-weight: 700;
-      margin-bottom: 16px;
-      display: block;
+      font-family: "Inter", sans-serif; color: var(--indigo);
+      font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase;
+      font-weight: 700; margin-bottom: 16px; display: block;
     }
     .page-desc{
-      max-width: 600px;
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.8;
-      font-weight: 300;
+      max-width: 600px; color: var(--muted); font-size: 16px;
+      line-height: 1.8; font-weight: 300;
     }
 
-    /* Concept Section */
     .concept-section { padding: 100px 0; background: #fff; }
     .text-block h3 { font-size: 28px; margin-bottom: 24px; color: var(--dark); }
     .text-block p { color: var(--muted); line-height: 1.9; margin-bottom: 24px; font-weight: 300; }
     
-    /* Global Network & Tools Grid */
     .tools-section { background: #f1f5f9; padding: 100px 0; }
     .grid-3 {
       display: grid; grid-template-columns: 1fr; gap: 32px;
     }
-    /* Adjusted to 2 columns for a 2x2 layout on desktop */
     @media (min-width: 900px){ 
       .grid-3{ grid-template-columns: repeat(2, 1fr); } 
     }
     
     .tool-card {
-      background: #fff;
-      padding: 40px 32px;
+      background: #fff; padding: 40px 32px;
       border: 1px solid rgba(226,232,240,0.8);
-      transition: all 0.3s ease;
-      position: relative;
+      transition: all 0.3s ease; position: relative;
     }
     .tool-card:hover {
       transform: translateY(-8px);
@@ -108,54 +90,42 @@
       border-color: rgba(79,70,229,0.3);
     }
     .tool-icon {
-      width: 56px; height: 56px;
-      background: #f8fafc;
-      color: var(--indigo);
-      display: grid; place-items: center;
-      margin-bottom: 24px;
-      font-size: 24px;
-      border-radius: 8px;
+      width: 56px; height: 56px; background: #f8fafc; color: var(--indigo);
+      display: grid; place-items: center; margin-bottom: 24px; font-size: 24px; border-radius: 8px;
     }
-    .tool-card h4 {
-      margin: 0 0 16px;
-      font-size: 18px;
-      color: var(--dark);
-      line-height: 1.4;
-    }
-    .tool-card a {
-      transition: color 0.2s ease;
-    }
-    .tool-card a:hover {
-      color: var(--indigo);
-    }
-    .tool-card p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 24px;
-    }
-    .tag-list {
-      display: flex; flex-wrap: wrap; gap: 8px;
-    }
+    .tool-card h4 { margin: 0 0 16px; font-size: 18px; color: var(--dark); line-height: 1.4; }
+    .tool-card a { transition: color 0.2s ease; }
+    .tool-card a:hover { color: var(--indigo); }
+    .tool-card p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag {
-      font-size: 10px;
-      padding: 4px 10px;
-      border-radius: 99px;
-      background: #f1f5f9;
-      color: var(--muted);
-      letter-spacing: 0.05em;
-      font-weight: 600;
+      font-size: 10px; padding: 4px 10px; border-radius: 99px;
+      background: #f1f5f9; color: var(--muted); letter-spacing: 0.05em; font-weight: 600;
     }
     
-    /* Research List (Simple) */
     .research-list-sec { padding: 100px 0; }
-    .res-item {
-      padding: 24px 0;
-      border-bottom: 1px solid var(--line);
-    }
+    .res-item { padding: 24px 0; border-bottom: 1px solid var(--line); }
     .res-item:first-child { border-top: 1px solid var(--line); }
     .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; }
     .res-meta { font-size: 13px; color: var(--muted); }
+
+    footer{
+      background:#020617; padding: 16px 0; text-align:center;
+      color: rgba(148,163,184,.75); font-size: 11px; letter-spacing:.14em; text-transform:uppercase;
+    }
+    .fade-up{ opacity:0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
+    .fade-up.show{ opacity:1; transform: translateY(0); }
+    .mt-48 { margin-top: 48px; }
+    .viewall {
+      display: inline-flex; gap: 10px; align-items: center;
+      font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+      color: var(--dark); transition: color .2s ease;
+    }
+    .viewall:hover { color: var(--indigo); }
+    .mini-arrow {
+      width: 10px; height: 10px; border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+    }
   </style>
 </head>
 
@@ -172,11 +142,11 @@
 
       <div class="nav-actions">
         <nav class="nav-links">
-          <a href="index.html">Home</a>
-          <a href="#concept" data-i18n="nav_concept">Concept</a>
-          <a href="#collab" data-i18n="nav_collab">Collaboration</a>
-          <a href="#cases" data-i18n="nav_cases">Cases</a>
-          <a href="index.html#contact">Contact</a>
+          <a href="index.html" data-i18n="nav_home">Home</a>
+          <a href="#concept" data-i18n="wb_nav_concept">Concept</a>
+          <a href="#collab" data-i18n="wb_nav_collab">Collaboration</a>
+          <a href="#cases" data-i18n="wb_nav_cases">Cases</a>
+          <a href="index.html#contact" data-i18n="nav_contact">Contact</a>
         </nav>
 
         <div class="lang-switch">
@@ -193,9 +163,9 @@
     <div class="container">
       <div class="page-header fade-up">
         <span class="subtitle">Research Field 03</span>
-        <h1 data-i18n="page_title">Well-being &amp;<br>Psychology</h1>
+        <h1 data-i18n="wb_page_title">Well-being &amp;<br>Psychology</h1>
         <div class="page-desc">
-          <p data-i18n="page_desc">
+          <p data-i18n="wb_page_desc">
             私たちは、心理学とテクノロジーの融合を通じて、人間の「ウェルビーイング（身体的・精神的・社会的に満たされた状態）」を科学的に探求しています。北欧の先進的な知見と、最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。
           </p>
         </div>
@@ -207,8 +177,8 @@
     <div class="container">
       <div class="text-block fade-up">
         <span class="kicker">Evidence-Based Well-being</span>
-        <h3 data-i18n="concept_head">多面的アプローチによる心の健康</h3>
-        <p data-i18n="concept_body">
+        <h3 data-i18n="wb_concept_head">多面的アプローチによる心の健康</h3>
+        <p data-i18n="wb_concept_body">
           現代社会におけるウェルビーイングは、単なる「幸福感」という主観的な指標だけでは測りきれません。<br>
           当研究室では、脳波や自律神経系といった生理学的指標（Biometrics）と、自己効力感やレジリエンスといった心理学的指標（Psychometrics）を組み合わせた多面的なアプローチを採用しています。<br><br>
           特に、スウェーデン・ストックホルム商科大学 CWWH (Center for Wellbeing, Welfare and Happiness) との連携を通じて、「いま・ここ」の気づき（Awareness of the Here and Now）がもたらす心身への影響を解明し、政策提言や教育プログラムへの応用を進めています。
@@ -221,8 +191,8 @@
     <div class="container">
       <div class="fade-up" style="margin-bottom:48px;">
         <span class="kicker">Projects & Collaborations</span>
-        <h2 style="font-size:36px; margin:0;" data-i18n="collab_title">Strategic Initiatives</h2>
-        <p style="color:var(--muted); margin-top:12px;" data-i18n="collab_sub">
+        <h2 style="font-size:36px; margin:0;" data-i18n="wb_collab_title">Strategic Initiatives</h2>
+        <p style="color:var(--muted); margin-top:12px;" data-i18n="wb_collab_sub">
           国際的な学術連携と、最先端技術を用いた実装研究のハイブリッドアプローチ。
         </p>
       </div>
@@ -230,13 +200,13 @@
       <div class="grid-3">
         <article class="tool-card fade-up">
           <div class="tool-icon">🇸🇪</div>
-          <h4 data-i18n="proj_1_name">Collaboration with CWWH (Stockholm School of Economics)</h4>
-          <p data-i18n="proj_1_desc">
+          <h4 data-i18n="wb_proj_1_name">Collaboration with CWWH (Stockholm School of Economics)</h4>
+          <p data-i18n="wb_proj_1_desc">
             ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。
           </p>
           
           <a href="https://www.hhs.se/en/research/centers/cwwh/" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
-             <span data-i18n="link_cwwh">Visit: CWWH Official Site</span>
+             <span data-i18n="wb_link_cwwh">Visit: CWWH 公式サイト</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
 
@@ -249,8 +219,8 @@
 
         <article class="tool-card fade-up" style="transition-delay: 0.1s;">
           <div class="tool-icon">📷</div>
-          <h4 data-i18n="proj_2_name">AI-Based Well-being Evaluation</h4>
-          <p data-i18n="proj_2_desc">
+          <h4 data-i18n="wb_proj_2_name">AI-Based Well-being Evaluation</h4>
+          <p data-i18n="wb_proj_2_desc">
             保育現場における子どもの行動センシング（表情・視線・姿勢）から、主観的ウェルビーイングを推定するAI評価法を開発中（科研費基盤B）。「見えない心」を客観的データとして可視化します。
           </p>
           <div class="tag-list">
@@ -262,13 +232,13 @@
 
         <article class="tool-card fade-up" style="transition-delay: 0.2s;">
           <div class="tool-icon">⛑️</div>
-          <h4 data-i18n="proj_3_name">Disaster Resilience & "Inochi" Education</h4>
-          <p data-i18n="proj_3_desc">
+          <h4 data-i18n="wb_proj_3_name">Disaster Resilience & "Inochi" Education</h4>
+          <p data-i18n="wb_proj_3_desc">
             東日本大震災の教訓を基盤に、北欧の「子どもの権利」の視点を統合した防災教育カリキュラムを開発。児童館でのアウトリーチ活動なども展開し、災害時の即時判断力と、困難を乗り越える心理的レジリエンス（回復力）を育みます。
           </p>
           
           <a href="https://www.mgu.ac.jp/child-future/" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
-             <span data-i18n="link_child_center">Visit: Institute for Child and Future</span>
+             <span data-i18n="wb_link_child_center">Visit: 地域子ども学研究センター</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
           
@@ -281,13 +251,13 @@
         
         <article class="tool-card fade-up" style="transition-delay: 0.3s;">
           <div class="tool-icon">🏛️</div>
-          <h4 data-i18n="proj_4_name">Social Implementation & Governance</h4>
-          <p data-i18n="proj_4_desc">
+          <h4 data-i18n="wb_proj_4_name">Social Implementation & Governance</h4>
+          <p data-i18n="wb_proj_4_desc">
             研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認定NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。
           </p>
 
           <a href="https://www.machispo-sendai.com/" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
-             <span data-i18n="link_machispo">Visit: まちづくりスポット仙台</span>
+             <span data-i18n="wb_link_machispo">Visit: まちづくりスポット仙台</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
           
@@ -305,52 +275,52 @@
     <div class="container">
       <div class="fade-up">
         <span class="kicker">Selected Works</span>
-        <h2 style="font-size:36px; margin:0 0 32px;" data-i18n="cases_title">Key Publications in Well-being</h2>
+        <h2 style="font-size:36px; margin:0 0 32px;" data-i18n="wb_cases_title">Key Publications in Well-being</h2>
       </div>
 
       <div class="list">
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_1_title">
+          <span class="res-title" data-i18n="wb_work_1_title">
             Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health
           </span>
           <div class="res-meta">
-            Spring Symposium 2025, Center for Wellbeing, Welfare and Happiness, Stockholm School of Economics (Invited Talk) | <span data-i18n="work_role_single">単著</span>
+            Spring Symposium 2025, Center for Wellbeing, Welfare and Happiness, Stockholm School of Economics (Invited Talk) | <span data-i18n="wb_work_role_single">単著</span>
           </div>
         </div>
 
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_2_title">
+          <span class="res-title" data-i18n="wb_work_2_title">
             保育者養成における防災教育プログラム開発と教育評価に関する研究
           </span>
           <div class="res-meta">
-            『宮城学院女子大学発達科学研究』23号 (2023/2024) | <span data-i18n="work_role_co">共著</span>
+            『宮城学院女子大学発達科学研究』23号 (2023/2024) | <span data-i18n="wb_work_role_co">共著</span>
           </div>
         </div>
 
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_3_title">
+          <span class="res-title" data-i18n="wb_work_3_title">
             Effect of baseline self-efficacy on physical activity and psychological stress after a one-week pedometer intervention
           </span>
           <div class="res-meta">
-            Perceptual and Motor Skills, 114(2) (2012) | <span data-i18n="work_role_co">共著</span>
+            Perceptual and Motor Skills, 114(2) (2012) | <span data-i18n="wb_work_role_co">共著</span>
           </div>
         </div>
 
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_4_title">
+          <span class="res-title" data-i18n="wb_work_4_title">
             Effects of Reducing Stress Reaction with Brainstorming Card Game
           </span>
           <div class="res-meta">
-            29th International Congress of Psychology (2008) | <span data-i18n="work_role_co">共著</span>
+            29th International Congress of Psychology (2008) | <span data-i18n="wb_work_role_co">共著</span>
           </div>
         </div>
         
         <div class="res-item fade-up">
-          <span class="res-title" data-i18n="work_5_title">
+          <span class="res-title" data-i18n="wb_work_5_title">
             『脳と学習一未来の学校に必要な知識』 (Neuroscience basis for well-being)
           </span>
           <div class="res-meta">
-            宮城学院女子大学 西浦研究室 (2022/2023) | <span data-i18n="work_role_edit">編訳</span>
+            宮城学院女子大学 西浦研究室 (2022/2023) | <span data-i18n="wb_work_role_edit">編訳</span>
           </div>
         </div>
 
@@ -369,119 +339,7 @@
     &copy; <span id="year"></span> Nishiura Laboratory. All Rights Reserved.
   </footer>
 
-  <script>
-    const translations = {
-      ja: {
-        lab_name_short: "Nishiura Lab.",
-        univ_name_short: "Miyagi Gakuin Women's Univ.",
-        nav_concept: "Concept",
-        nav_collab: "Collaboration",
-        nav_cases: "Cases",
-        page_title: "Well-being &<br>Psychology",
-        page_desc: "私たちは、心理学とテクノロジーの融合を通じて、人間の「ウェルビーイング（身体的・精神的・社会的に満たされた状態）」を科学的に探求しています。北欧の先進的な知見と、最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。",
-        concept_head: "多面的アプローチによる心の健康",
-        concept_body: `現代社会におけるウェルビーイングは、単なる「幸福感」という主観的な指標だけでは測りきれません。<br>
-          当研究室では、脳波や自律神経系といった生理学的指標（Biometrics）と、自己効力感やレジリエンスといった心理学的指標（Psychometrics）を組み合わせた多面的なアプローチを採用しています。<br><br>
-          特に、スウェーデン・ストックホルム商科大学 CWWH (Center for Wellbeing, Welfare and Happiness) との連携を通じて、「いま・ここ」の気づき（Awareness of the Here and Now）がもたらす心身への影響を解明し、政策提言や教育プログラムへの応用を進めています。`,
-        collab_title: "Strategic Initiatives",
-        collab_sub: "国際的な学術連携と、最先端技術を用いた実装研究のハイブリッドアプローチ。",
-        proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
-        proj_1_desc: "ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。",
-        link_cwwh: "Visit: CWWH 公式サイト",
-        proj_2_name: "AI-Based Well-being Evaluation",
-        proj_2_desc: "保育現場における子どもの行動センシング（表情・視線・姿勢）から、主観的ウェルビーイングを推定するAI評価法を開発中（科研費基盤B）。「見えない心」を客観的データとして可視化します。",
-        proj_3_name: "Disaster Resilience & \"Inochi\" Education",
-        proj_3_desc: "東日本大震災の教訓を基盤に、北欧の「子どもの権利」の視点を統合した防災教育カリキュラムを開発。児童館でのアウトリーチ活動なども展開し、災害時の即時判断力と、困難を乗り越える心理的レジリエンス（回復力）を育みます。",
-        link_child_center: "Visit: 地域子ども学研究センター",
-        proj_4_name: "Social Implementation & Governance",
-        proj_4_desc: "研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認定NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。",
-        link_machispo: "Visit: まちづくりスポット仙台",
-        cases_title: "Key Publications in Well-being",
-        work_1_title: "ウェルビーイングへの多面的アプローチ：「いま・ここ」の気づきが心身の健康にもたらす効果",
-        work_2_title: "保育者養成における防災教育プログラム開発と教育評価に関する研究",
-        work_3_title: "1週間の歩数計介入後の身体活動と心理的ストレスにおけるベースライン自己効力感の影響",
-        work_4_title: "カードゲーム型ブレインストーミングによるストレス反応低減効果",
-        work_5_title: "『脳と学習一未来の学校に必要な知識』(Neuroscience basis for well-being)",
-        work_role_single: "単著",
-        work_role_co: "共著",
-        work_role_edit: "編訳",
-        back_home: "全業績リストへ戻る"
-      },
-      en: {
-        lab_name_short: "Nishiura Lab.",
-        univ_name_short: "Miyagi Gakuin Women's Univ.",
-        nav_concept: "Concept",
-        nav_collab: "Collaboration",
-        nav_cases: "Cases",
-        page_title: "Well-being &<br>Psychology",
-        page_desc: "We scientifically explore human 'well-being'—a state of physical, mental, and social fulfillment—through the fusion of psychology and technology. Combining advanced Nordic insights with the latest sensing technology, we create new value in education and care settings.",
-        concept_head: "Multidimensional Approach to Mental Health",
-        concept_body: `Well-being in modern society cannot be measured solely by subjective indicators of 'happiness.'<br>
-          Our laboratory adopts a multidimensional approach that combines physiological indicators (Biometrics) such as EEG and autonomic nervous systems with psychological indicators (Psychometrics) like self-efficacy and resilience.<br><br>
-          In particular, through collaboration with the CWWH (Center for Wellbeing, Welfare and Happiness) at the Stockholm School of Economics in Sweden, we are elucidating the impact of 'Awareness of the Here and Now' on the mind and body, and advancing applications in policy recommendations and educational programs.`,
-        collab_title: "Strategic Initiatives",
-        collab_sub: "A hybrid approach of international academic collaboration and implementation research using cutting-edge technology.",
-        proj_1_name: "Collaboration with CWWH (Stockholm School of Economics)",
-        proj_1_desc: "Collaborating with the Center for Wellbeing, Welfare and Happiness at the Stockholm School of Economics to conduct joint research and policy recommendations for applying the Nordic well-being model to Japanese child policy.",
-        link_cwwh: "Visit: CWWH Official Site",
-        proj_2_name: "AI-Based Well-being Evaluation",
-        proj_2_desc: "Developing an AI evaluation method to estimate subjective well-being from child behavior sensing (facial expressions, gaze, posture) in childcare settings (KAKENHI Grant-in-Aid for Scientific Research B). Visualizing the 'invisible mind' as objective data.",
-        proj_3_name: "Disaster Resilience & \"Inochi\" Education",
-        proj_3_desc: "Developing a disaster education curriculum integrating lessons from the Great East Japan Earthquake with Nordic 'children's rights.' Includes outreach activities at children's centers to foster immediate judgment and psychological resilience.",
-        link_child_center: "Visit: Institute for Child and Future",
-        proj_4_name: "Social Implementation & Governance",
-        proj_4_desc: "Participating in governance to implement research findings into social systems. Leading policy making as Vice-Chair of the Miyagi Children & Child-rearing Council and Board Member of a Certified NPO, while also managing campus well-being as Chairman of the University Co-op Board.",
-        link_machispo: "Visit: Machispo Sendai",
-        cases_title: "Key Publications in Well-being",
-        work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
-        work_2_title: "Development and Educational Evaluation of Disaster Prevention Education Programs in Childcare Worker Training",
-        work_3_title: "Effect of baseline self-efficacy on physical activity and psychological stress after a one-week pedometer intervention",
-        work_4_title: "Effects of Reducing Stress Reaction with Brainstorming Card Game",
-        work_5_title: "'Brain and Learning: Knowledge Required for Future Schools'",
-        work_role_single: "Single Author",
-        work_role_co: "Co-author",
-        work_role_edit: "Ed/Trans",
-        back_home: "Back to All Publications"
-      },
-      se: {
-        lab_name_short: "Nishiura Lab.",
-        univ_name_short: "Miyagi Gakuin Kvinnouniversitet",
-        nav_concept: "Koncept",
-        nav_collab: "Samarbete",
-        nav_cases: "Publikationer",
-        page_title: "Välbefinnande &<br>Psykologi",
-        page_desc: "Vi utforskar vetenskapligt mänskligt 'välbefinnande' genom en fusion av psykologi och teknik. Genom att kombinera nordiska insikter med den senaste sensortekniken skapar vi nya värden inom utbildning och omsorg.",
-        concept_head: "Ett multidimensionellt tillvägagångssätt",
-        concept_body: `Välbefinnande i det moderna samhället kan inte mätas enbart med subjektiva indikatorer på lycka.<br>
-          Vårt laboratorium antar ett multidimensionellt tillvägagångssätt som kombinerar fysiologiska indikatorer (Biometri) såsom EEG med psykologiska indikatorer (Psykometri) som självförmåga och resiliens.<br><br>
-          Särskilt genom samarbete med CWWH (Center for Wellbeing, Welfare and Happiness) vid Handelshögskolan i Stockholm, klargör vi effekterna av 'medvetenhet om här och nu' och främjar tillämpningar i policyrekommendationer.`,
-        collab_title: "Strategiska Initiativ",
-        collab_sub: "Ett hybridtillvägagångssätt med internationellt akademiskt samarbete och implementeringsforskning.",
-        proj_1_name: "Samarbete med CWWH (Handelshögskolan i Stockholm)",
-        proj_1_desc: "Samarbete med Center for Wellbeing, Welfare and Happiness för att tillämpa den nordiska välfärdsmodellen på japansk barnpolitik genom gemensam forskning.",
-        link_cwwh: "Besök: CWWH Officiell Webbplats",
-        proj_2_name: "AI-baserad utvärdering av välbefinnande",
-        proj_2_desc: "Utveckling av en AI-metod för att uppskatta subjektivt välbefinnande från barnens beteende (ansiktsuttryck, blick, hållning) i förskolemiljöer.",
-        proj_3_name: "Katastrofberedskap & \"Inochi\"-utbildning",
-        proj_3_desc: "Utveckling av en läroplan för katastrofutbildning som integrerar lärdomar från den stora jordbävningen i östra Japan med nordiska 'barns rättigheter'. Inkluderar outreach-aktiviteter på fritidshem för att främja omedelbar bedömning och resiliens.",
-        link_child_center: "Besök: Institutet för barn och framtid",
-        proj_4_name: "Social implementering och styrning",
-        proj_4_desc: "Deltagande i styrning för att implementera forskningsresultat i sociala system. Leder policyarbete som vice ordförande i Miyagis barn- och föräldraråd och styrelseledamot i en certifierad NPO, samtidigt som han hanterar campus välbefinnande som ordförande för universitetskooperativet.",
-        link_machispo: "Besök: Machispo Sendai",
-        cases_title: "Nyckelpublikationer inom Välbefinnande",
-        work_1_title: "Multidimensional Approach to Well-being: How Awareness of the 'Here and Now' Brings Mental and Physical Health",
-        work_2_title: "Utveckling och utvärdering av utbildningsprogram för katastrofberedskap",
-        work_3_title: "Effekten av grundläggande självförmåga på fysisk aktivitet och psykologisk stress",
-        work_4_title: "Effekter av stressreducering med brainstorming-kortspel",
-        work_5_title: "'Hjärnan och lärande: Kunskap som krävs för framtidens skolor'",
-        work_role_single: "Enskild författare",
-        work_role_co: "Medförfattare",
-        work_role_edit: "Red/Övers",
-        back_home: "Tillbaka till alla publikationer"
-      }
-    };
-  </script>
-
+  <script src="./translations.js"></script>
   <script src="./script.js"></script>
 </body>
 </html>
