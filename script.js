@@ -1,10 +1,9 @@
 // --- script.js (Logic Only) ---
 // データは translations.js (window.translations) から読み込みます
 
-// --- I18n Logic ---
-// HTMLのonclickから呼び出せるよう window オブジェクトに紐付けます
+// 【重要】 HTMLのボタンから呼べるように window.setLanguage にする
 window.setLanguage = (lang) => {
-  // 1. Update active button state (ボタンの見た目を更新)
+  // 1. ボタンの見た目を更新
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.remove('active');
     const btnText = btn.textContent.trim().toLowerCase();
@@ -13,7 +12,7 @@ window.setLanguage = (lang) => {
     else if (lang === 'se' && btnText === 'se') btn.classList.add('active');
   });
 
-  // 2. Update text content (テキストの書き換え)
+  // 2. テキストの書き換え
   // translations.js で定義した window.translations を参照
   const allTranslations = window.translations;
   
@@ -32,18 +31,19 @@ window.setLanguage = (lang) => {
       }
     });
   } else {
-    console.warn('Translation data not found for language:', lang);
+    // データが読み込めていない場合のエラー表示
+    console.warn('Translation data not found. Check if translations.js is loaded correctly.');
   }
 
-  // 3. Update html lang attribute (HTMLタグの言語設定更新)
+  // 3. HTMLタグの言語設定更新
   document.documentElement.lang = lang;
 };
 
-// --- Initialize Language based on Browser Settings ---
+// --- 初期化処理 ---
 const initLanguage = () => {
-  // translations.js の読み込みを待ってから実行
+  // translations.js の読み込みを待つ
   if (!window.translations) {
-    // データがまだ無ければ少し待って再試行
+    // まだ読み込まれていなければ、50ms後に再トライ
     setTimeout(initLanguage, 50);
     return;
   }
@@ -58,21 +58,20 @@ const initLanguage = () => {
   }
 };
 
-// Execute initialization
-// DOM読み込み完了後に初期化
+// DOM読み込み完了後に初期化を実行
 document.addEventListener('DOMContentLoaded', () => {
     initLanguage();
     
-    // Footer year (フッターの年号更新)
+    // フッターの年号更新
     const yearSpan = document.getElementById('year');
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     }
 });
 
-// --- UI Logic (Navigation & Scroll) ---
+// --- UI Logic (ナビゲーション・スクロール) ---
 
-// Nav style on scroll
+// スクロール時のナビゲーションバー背景切り替え
 const nav = document.getElementById('siteNav');
 if (nav) {
     const onScroll = () => {
@@ -88,7 +87,7 @@ if (nav) {
     onScroll();
 }
 
-// Active nav highlight (スクロール連動ハイライト)
+// 現在のセクションをハイライト
 const sections = ['home','news','about','research','publications','contact']
   .map(id => document.getElementById(id))
   .filter(Boolean);
@@ -109,7 +108,7 @@ if (sections.length > 0) {
     sections.forEach(s => observer.observe(s));
 }
 
-// Fade-up on view (フェードインアニメーション)
+// フェードインアニメーション
 const fades = document.querySelectorAll('.fade-up');
 const fadeObs = new IntersectionObserver((entries) => {
   entries.forEach(e => {
@@ -118,7 +117,7 @@ const fadeObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 fades.forEach(el => fadeObs.observe(el));
 
-// --- Load News from JSON (ニュース読み込み) ---
+// --- ニュース読み込み (JSON) ---
 const newsList = document.getElementById('news-list');
 if (newsList) {
   fetch('./news.json')
