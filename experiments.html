@@ -7,8 +7,9 @@
     <title>Web心理学実験プラットフォーム（インストール不要・無料ブラウザ版）｜西浦研究室</title>
     
     <meta name="description" content="宮城学院女子大学 西浦研究室が無料公開する「Web心理学実験ライブラリ」。ストループ課題、メンタルローテーション、N-back課題など10種類以上の実験が、インストール不要・ブラウザだけですぐに実施可能です。オンライン授業やレポート課題のデータ収集に最適です。">
-    
     <meta name="keywords" content="心理学実験,Web実験,オンライン実験,ストループ課題,メンタルローテーション,教育工学,西浦研究室,宮城学院女子大学,ブラウザ実験">
+
+    <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html">
 
     <meta property="og:title" content="Web心理学実験プラットフォーム（インストール不要）｜西浦研究室" />
     <meta property="og:type" content="website" />
@@ -145,17 +146,6 @@
             <div style="padding: 40px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
                 <h1>Web心理学実験プラットフォーム（無料・ブラウザ版）</h1>
                 <p>宮城学院女子大学 西浦研究室が提供する、インストール不要の心理学実験ツールです。以下の実験プログラムがブラウザ上ですぐに動作します。</p>
-                
-                <h2>公開中の実験プログラム一覧</h2>
-                <ul>
-                    <li><strong>ストループ課題 (Stroop Task)</strong>: 注意の制御と干渉効果を測定</li>
-                    <li><strong>メンタルローテーション (Mental Rotation)</strong>: 空間認識能力の測定</li>
-                    <li><strong>N-back課題</strong>: ワーキングメモリの測定</li>
-                    <li><strong>ミュラー・リヤー錯視</strong>: 知覚心理学の調整法実験</li>
-                    <li><strong>ポズナーの手がかり課題</strong>: 注意の移動実験</li>
-                    <li><strong>視覚探索 (Visual Search)</strong>: 特徴探索と結合探索</li>
-                    <li><strong>AI心理相談</strong>: 生成AIを用いたカウンセリング体験</li>
-                </ul>
                 <p>ご利用にはJavaScriptを有効にして再読み込みしてください。</p>
             </div>
         </noscript>
@@ -166,6 +156,8 @@
             </div>
         </div>
     </div>
+
+    <script src="./translations.js"></script>
 
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
@@ -204,251 +196,8 @@
             print: <><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></>
         };
 
-        // --- Translations ---
-        const translations = {
-            ja: {
-                lab_name: "Nishiura Lab.",
-                univ_name: "Miyagi Gakuin Women's Univ.",
-                nav_home: "Home",
-                nav_about: "About",
-                nav_dev: "DEVELOPMENT STORY",
-                nav_research: "Research",
-                nav_publications: "Publications",
-                nav_contact: "Contact",
-                
-                page_subtitle: "Research Field 01",
-                page_title: "Web心理学実験<br>プラットフォーム",
-                page_desc: "e-learning、LMS、ICTを活用した学習環境の構築と、心理学実験による実証的アプローチ。テクノロジーが学習者の創造性や自律性をどう支援するかを探求し、基礎実験からフィールド応用までを一貫して行います。",
-                
-                concept_kicker: "Methodology",
-                concept_head: "実験室のコードを、社会実装の礎へ。",
-                concept_body: "私たちは、ブラウザ上で即座に動作する「Web心理学実験プラットフォーム」を構築・提供しています。\n\nここにあるのは、単なる教材ではありません。\n認知の干渉を暴く「ストループ」、脳内の空間操作を試す「メンタルローテーション」、記憶容量の限界に挑む「N-back」、そして「AIカウンセリング」による対話の深層——。\nこれら10を超える実験群は、人間の「注意」「記憶」「意思決定」というブラックボックスを解き明かすための鍵です。\n\n基礎実験（Lab）で得られた鋭利な知見を、教育やケアの現場（Field）へ。\nこの循環こそが、真に人間に最適化されたテクノロジーを生み出します。",
-
-                featured_title: "Advanced Research",
-                feat_1_title: "Attention & RSVP",
-                feat_1_desc: "「高速継時呈示（RSVP）」課題を用い、高ストレス状況下での注意資源の消費とモニタリング過程を解明。文字認知の誤りやメタ認知機能の限界を探る基礎研究です。",
-                feat_2_title: "Gamification for CPS",
-                feat_2_desc: "創造的問題解決（CPS）能力を育成するためのカードゲーム教材を開発。プレイ中の発話や行動ログから、学習者の心理的ストレス低減とルール習得効果を検証します。",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "保育・教育現場における子どもの行動センシング（表情・視線・姿勢）と脳波測定を組み合わせ、ウェルビーイングや集中度を客観的に評価するシステムの構築に挑んでいます。",
-
-                achievements_kicker: "Selected Publications",
-                achievements_title: "Key Research Achievements",
-                achieve_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及す効果",
-                achieve_1_desc: "(The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot)",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | 共著・国際会議発表",
-                achieve_2_title: "タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究",
-                achieve_2_meta: "日本創造学会 第43回研究大会 (2021) | 単著",
-                achieve_3_title: "高速度継時呈示事態における注意資源の消費とモニタリングに関する研究",
-                achieve_3_meta: "心理学研究 第69巻 (1998) | 単著",
-                achieve_4_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
-                achieve_4_meta: "山形大学紀要 Vol.17 (2011) | 共著",
-                achieve_view_all: "全業績リストへ戻る",
-
-                libraryTitle: "Experiment Library",
-                searchPlaceholder: "実験を検索...",
-                filterAll: "すべて",
-                startBtn: "Start",
-                alertMsg: "現在準備中です。公開をお待ちください。",
-                footerRights: "Nishiura Laboratory. All rights reserved.",
-                cat_Cognition: "認知",
-                cat_Memory: "記憶",
-                cat_Attention: "注意",
-                cat_Perception: "知覚",
-                cat_Spatial: "空間",
-                cat_Inhibition: "抑制",
-                cat_Social: "社会",
-                cat_ProblemSolving: "問題解決",
-                diff_Easy: "初級",
-                diff_Medium: "中級",
-                diff_Hard: "上級",
-                precautionTitle: "実験をする前の注意事項",
-                precautionSubtitle: "データの信頼性を高めるための技術的チェック",
-                prec_screen_title: "高精細の画面提示を実現するには",
-                prec_screen_desc: "正確な実験のためには、画面の書き換え速度（リフレッシュレート）が安定していることが重要です。",
-                prec_screen_link: "フレームレート計測ツール",
-                prec_input_title: "反応時間を正確に測定するには",
-                prec_input_desc: "キーボード入力の遅延はデータに誤差を生じさせます。ご自身の環境の応答速度をチェックしましょう。",
-                prec_input_link: "キー入力応答計測ツール",
-                prec_data_title: "データの保存とセキュリティ",
-                prec_data_desc: "Web実験ではデータの保存方法（CSV/GAS/Firebase）によってセキュリティリスクが異なります。安全な管理方法について確認してください。",
-                prec_data_link: "保存・管理マニュアルを開く",
-                modal_notice: "お知らせ",
-                modal_close: "閉じる",
-
-                // Terms & Disclaimer
-                terms_title: "ご利用上の注意・免責事項",
-                terms_subtitle: "Terms of Use & Disclaimer",
-                term_1_head: "目的と免責",
-                term_1_body: "本ウェブサイトで公開している実験プログラムは、教育および研究目的で提供されています。これらは医学的な診断（ADHD、認知症等の診断）を行うものではありません。得られた結果について、当研究室は一切の責任を負いかねます。",
-                term_2_head: "利用規約 (License)",
-                term_2_body: "教育機関（学校、大学等）での授業利用、および個人の学習利用は自由です（連絡不要）。ただし、営利目的での利用、無断転載、プログラムの改変・再配布は固くお断りします。研究目的でデータを使用したい場合は、必ず事前にご連絡ください。",
-                term_3_head: "推奨環境",
-                term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します。"
-            },
-            en: {
-                lab_name: "Nishiura Lab.",
-                univ_name: "Miyagi Gakuin Women's Univ.",
-                nav_home: "Home",
-                nav_about: "About",
-                nav_dev: "Dev Story",
-                nav_research: "Research",
-                nav_publications: "Publications",
-                nav_contact: "Contact",
-
-                page_subtitle: "Research Field 01",
-                page_title: "Web Psychology<br>Experiments",
-                page_desc: "Building learning environments using e-learning, LMS, and ICT, combined with an empirical approach via psychological experiments. We explore how technology supports learner creativity and autonomy, bridging basic experiments to field applications.",
-
-                concept_kicker: "Methodology",
-                concept_head: "From Lab Code to Social Implementation.",
-                concept_body: "We provide a 'Web-based Psychology Experiment Platform' that runs instantly in your browser.\n\nThese are keys to unlocking the black box of human cognition: exposing interference in 'Stroop', testing spatial manipulation in 'Mental Rotation', challenging memory limits in 'N-back', and exploring dialogue depth in 'AI Counseling'.\n\nThe sharp insights gained from these 10+ experiments (Lab) form the foundation for systems in education and care (Field).\nThis cycle creates technology truly optimized for humans.",
-
-                featured_title: "Advanced Research",
-                feat_1_title: "Attention & RSVP",
-                feat_1_desc: "Elucidating attentional resource consumption and monitoring processes under high-stress conditions using 'Rapid Serial Visual Presentation (RSVP)' tasks. Basic research exploring the limits of metacognitive functions.",
-                feat_2_title: "Gamification for CPS",
-                feat_2_desc: "Developing card game materials to foster Creative Problem Solving (CPS) skills. We verify psychological stress reduction and rule acquisition effects from gameplay logs and interactions.",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "Challenging the construction of systems that objectively evaluate well-being and concentration by combining child behavior sensing (expressions, gaze, posture) and EEG measurements in educational settings.",
-
-                achievements_kicker: "Selected Publications",
-                achievements_title: "Key Research Achievements",
-                achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
-                achieve_1_desc: "",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Co-author / Intl. Conf.",
-                achieve_2_title: "Preliminary Study on the Effect of Tactile Care Intervention on EEG Topography",
-                achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Single Author",
-                achieve_3_title: "A Study on Attentional Resource-Consuming and Monitoring Processes under Rapid Serial Visual Presentation",
-                achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Single Author",
-                achieve_4_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
-                achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Co-author",
-                achieve_view_all: "Back to All Publications",
-
-                libraryTitle: "Experiment Library",
-                searchPlaceholder: "Search experiments...",
-                filterAll: "All",
-                startBtn: "Start",
-                alertMsg: "Currently under preparation.",
-                footerRights: "Nishiura Laboratory. All rights reserved.",
-                cat_Cognition: "Cognition",
-                cat_Memory: "Memory",
-                cat_Attention: "Attention",
-                cat_Perception: "Perception",
-                cat_Spatial: "Spatial",
-                cat_Inhibition: "Inhibition",
-                cat_Social: "Social",
-                cat_ProblemSolving: "Problem Solving",
-                diff_Easy: "Easy",
-                diff_Medium: "Medium",
-                diff_Hard: "Hard",
-                precautionTitle: "Precautions before Experiment",
-                precautionSubtitle: "Technical checks to improve data reliability",
-                prec_screen_title: "Achieving High-Definition Presentation",
-                prec_screen_desc: "Consistent refresh rates are crucial for accurate visual experiments. Use this tool to diagnose your display.",
-                prec_screen_link: "Frame Timing Diagnostics",
-                prec_input_title: "Measuring Reaction Time Accurately",
-                prec_input_desc: "Input lag introduces noise into data. Check your environment's response speed here.",
-                prec_input_link: "Key Response Benchmark",
-                prec_data_title: "Data Storage & Security",
-                prec_data_desc: "Understand the risks and best practices for storing experiment data (CSV/GAS/Firebase).",
-                prec_data_link: "Open Data Manual",
-                modal_notice: "Notice",
-                modal_close: "Close",
-
-                // Terms & Disclaimer
-                terms_title: "Terms of Use & Disclaimer",
-                terms_subtitle: "Important legal and usage information",
-                term_1_head: "Disclaimer",
-                term_1_body: "These programs are provided for educational and research purposes only. They are NOT intended for medical diagnosis. The laboratory assumes no responsibility for any results obtained.",
-                term_2_head: "Terms of Use (License)",
-                term_2_body: "Free for use in educational settings (schools, universities) and personal learning. Commercial use, unauthorized reproduction, modification, or redistribution is strictly prohibited. Please contact us for research use.",
-                term_3_head: "System Requirements",
-                term_3_body: "Latest versions of Chrome, Firefox, Safari, or Edge are recommended. A physical keyboard is recommended for accurate timing."
-            },
-            se: {
-                lab_name: "Nishiura Lab.",
-                univ_name: "Miyagi Gakuin Kvinnouniversitet",
-                nav_home: "Hem",
-                nav_about: "Om oss",
-                nav_dev: "Utveckling",
-                nav_research: "Forskning",
-                nav_publications: "Publikationer",
-                nav_contact: "Kontakt",
-
-                page_subtitle: "Forskningsområde 01",
-                page_title: "Webbpsykologiska<br>Experiment",
-                page_desc: "Vi bygger lärmiljöer med e-learning och IKT, kombinerat med en empirisk ansats via psykologiska experiment. Vi utforskar hur teknik stödjer inlärarens kreativitet och autonomi, från grundläggande experiment till fältapplikationer.",
-
-                concept_kicker: "Metodik",
-                concept_head: "Från labb insikter till social implementering.",
-                concept_body: "Vår forskning börjar med grundläggande psykologiska experiment (Lab) i webbläsare. Insikterna om 'uppmärksamhet', 'minne' och 'motivation' lägger grunden för systemutveckling inom utbildning och omsorg (Fält).\n\nCykeln av grundläggande och tillämpad forskning skapar effektiv utbildningsteknologi.",
-
-                featured_title: "Avancerad Forskning",
-                feat_1_title: "Uppmärksamhet & RSVP",
-                feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation (RSVP)'. Grundforskning om metakognitiva gränser.",
-                feat_2_title: "Spelifiering för CPS",
-                feat_2_desc: "Utveckling av kortspel för att främja kreativ problemlösning (CPS). Vi verifierar stressreducering och regelinlärning genom analys av speldata.",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "Vi utvecklar system för att objektivt utvärdera välbefinnande och koncentration genom att kombinera beteendeavkänning (AI) och EEG-mätningar i utbildningsmiljöer.",
-
-                achievements_kicker: "Valda Publikationer",
-                achievements_title: "Viktiga Forskningsresultat",
-                achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
-                achieve_1_desc: "",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Medförfattare",
-                achieve_2_title: "Preliminär studie om effekten av taktil vårdintervention på EEG-topografi",
-                achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Enskild författare",
-                achieve_3_title: "Studie om uppmärksamhetsresurser under snabb seriell visuell presentation",
-                achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Enskild författare",
-                achieve_4_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
-                achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Medförfattare",
-                achieve_view_all: "Tillbaka till alla publikationer",
-
-                libraryTitle: "Experimentbibliotek",
-                searchPlaceholder: "Sök experiment...",
-                filterAll: "Alla",
-                startBtn: "Starta",
-                alertMsg: "Under förberedelse.",
-                footerRights: "Nishiura Laboratory. Med ensamrätt.",
-                cat_Cognition: "Kognition",
-                cat_Memory: "Minne",
-                cat_Attention: "Uppmärksamhet",
-                cat_Perception: "Perception",
-                cat_Spatial: "Spatial",
-                cat_Inhibition: "Inhibition",
-                cat_Social: "Social",
-                cat_ProblemSolving: "Problemlösning",
-                diff_Easy: "Lätt",
-                diff_Medium: "Medium",
-                diff_Hard: "Svår",
-                precautionTitle: "Försiktighetsåtgärder",
-                precautionSubtitle: "Tekniska kontroller för datatillförlitlighet",
-                prec_screen_title: "Högupplöst presentation",
-                prec_screen_desc: "Konsekventa uppdateringsfrekvenser är avgörande för noggrannhet. Kontrollera din skärm.",
-                prec_screen_link: "Diagnostik av Bildtider",
-                prec_input_title: "Mäta reaktionstid",
-                prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
-                prec_input_link: "Key Response Benchmark",
-                prec_data_title: "Datalagring och säkerhet",
-                prec_data_desc: "Förstå risker och praxis för datalagring.",
-                prec_data_link: "Öppna datamanual",
-                modal_notice: "Meddelande",
-                modal_close: "Stäng",
-
-                // Terms & Disclaimer
-                terms_title: "Användarvillkor & Ansvarsfriskrivning",
-                terms_subtitle: "Viktig information om användning",
-                term_1_head: "Ansvarsfriskrivning",
-                term_1_body: "Dessa program tillhandahålls endast för utbildnings- och forskningsändamål. De är INTE avsedda för medicinsk diagnos. Laboratoriet tar inget ansvar för erhållna resultat.",
-                term_2_head: "Användarvillkor",
-                term_2_body: "Gratis för användning i utbildningsmiljöer och personligt lärande. Kommersiell användning, otillåten reproduktion eller modifiering är strängt förbjuden.",
-                term_3_head: "Systemkrav",
-                term_3_body: "Senaste versionerna av Chrome, Firefox, Safari eller Edge rekommenderas. Fysiskt tangentbord rekommenderas för exakt tidtagning."
-            }
-        };
-
-        // --- Data ---
+        // --- Data (Experiment List) ---
+        // 実験の構成データ（データベース的扱いのため、ここに保持）
         const experimentsData = [
             { id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
             { id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
@@ -800,11 +549,10 @@ service cloud.firestore {
             </button>
         );
 
-        // 【SEO対策5】 リンク構造の改善：ExperimentCardをアンカータグ(a)ベースに変更
+        // ExperimentCard
         const ExperimentCard = ({ data, index, lang, t, onAlert }) => {
             const delayStyle = { animationDelay: `${index * 0.05}s` };
             
-            // カードの共通コンテンツ
             const content = (
                 <>
                     <div className="flex justify-between items-start mb-6">
@@ -830,7 +578,6 @@ service cloud.firestore {
                 </>
             );
 
-            // リンクがある場合は <a>タグとしてレンダリング (SEO最適化)
             if (data.link) {
                 return (
                     <a 
@@ -842,7 +589,6 @@ service cloud.firestore {
                     </a>
                 );
             } else {
-                // リンクがない場合（準備中）は div でアラート表示
                 return (
                     <div 
                         style={delayStyle} 
@@ -904,7 +650,10 @@ service cloud.firestore {
 
             useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
 
-            const t = translations[lang];
+            // --- Step 3 Fix: Read from external translations.js ---
+            // グローバル変数 window.translations からデータを取得
+            // 読み込み遅延等でデータがない場合のフォールバックを設定
+            const t = (window.translations && window.translations[lang]) ? window.translations[lang] : {};
             
             const handleAlert = (msg) => {
                 setModalMessage(msg);
@@ -919,6 +668,17 @@ service cloud.firestore {
                     return matchesCategory && (titleMatch || descriptionMatch);
                 });
             }, [activeCategory, searchQuery, lang]);
+
+            // データ読み込み待ちのロード画面
+            if (!t.lab_name) {
+                return (
+                    <div style={{height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#fcfcfc"}}>
+                        <div style={{textAlign: "center", color: "#64748b"}}>
+                            <p>Loading Resources...</p>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="min-h-screen pb-24 font-sans">

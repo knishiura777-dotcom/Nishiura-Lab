@@ -8,10 +8,12 @@
   <meta name="description" content="宮城学院女子大学 西浦研究室の「創造性と学習」研究。AI・ロボットとの共創（HAI）、脳波測定による認知メカニズムの解明、北欧アウトドア教育による創造性育成など、環境と人間の相互作用から創造性を科学します。">
   <meta name="keywords" content="創造性,Creativity,学習科学,Human-Agent Interaction,HAI,アウトドア教育,認知神経科学,西浦研究室,宮城学院女子大学,森のこども園,食行動,発達心理学">
 
+  <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/creativity_learning.html">
+
   <meta property="og:title" content="Creativity & Learning | 西浦研究室" />
   <meta property="og:type" content="article" />
   <meta property="og:description" content="AI・ロボット、身体性、認知科学の交差点から「人間の創造性」を拡張する。西浦研究室の研究プロジェクト紹介。" />
-  <meta property="og:url" content="https://www.mgu.ac.jp/.../creativity_learning.html" />
+  <meta property="og:url" content="https://knishiura777-dotcom.github.io/Nishiura-Lab/creativity_learning.html" />
   <meta property="og:image" content="./profile.jpg" />
   <meta property="og:site_name" content="Nishiura Lab." />
   <meta name="twitter:card" content="summary_large_image" />
@@ -37,103 +39,17 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="./style.css">
+
   <style>
-    /* Shared Variables & Basic Reset */
-    :root{
-      --bg:#f8fafc;
-      --text:#0f172a;
-      --muted:#64748b;
-      --muted2:#94a3b8;
-      --line:#e2e8f0;
-      --white:#ffffff;
-      --indigo:#4f46e5;
-      --indigo2:#312e81;
-      --dark:#0b1220;
-      --dark2:#020617;
-      --shadow: 0 8px 24px rgba(2,6,23,0.06);
-      --max: 1120px;
-    }
-
-    *{ box-sizing:border-box; }
-    html{ scroll-behavior:smooth; }
-    body{
-      margin:0;
-      font-family:"Noto Sans JP", system-ui, -apple-system, "Segoe UI", sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      overflow-x:hidden;
-    }
-    ::selection{ background: rgba(79,70,229,.18); color: var(--indigo2); }
-
-    h1,h2,h3,.serif{ font-family:"Noto Serif JP", serif; }
-    .english-title{ font-family:"Cinzel", serif; }
-
-    a{ color:inherit; text-decoration:none; }
-    .container{ width:min(var(--max), 92%); margin:0 auto; }
-
-    /* Nav (Consistent with index) */
-    .nav{
-      position:fixed; inset:0 0 auto 0;
-      z-index:999;
-      padding:28px 0;
-      transition: all .35s ease;
-      background:transparent;
-    }
-    .nav.scrolled{
-      padding:14px 0;
-      background:rgba(255,255,255,.95);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid rgba(226,232,240,.8);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-    .nav-inner{
-      width:min(95%, 1280px);
-      margin:0 auto;
-      display:flex; align-items:center; justify-content:space-between; gap:18px;
-    }
-    .brand{ display:flex; align-items:center; gap:12px; }
-    .brand-mark{
-      width:40px; height:40px; display:grid; place-items:center;
-      background: #0f172a; color:#fff; transition: background .35s ease;
-      font-family:"Noto Serif JP", serif; font-weight:300; font-size:18px;
-    }
-    .brand:hover .brand-mark{ background: var(--indigo); }
-    .brand-title{ display:flex; flex-direction:column; line-height:1.1; }
-    .brand-title strong{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
-    .brand-title span{ font-size:10px; letter-spacing:.08em; color:var(--muted); display:none; }
-    @media (min-width: 768px){ .brand-title span{ display:block; } }
-
-    .nav-actions { display: flex; align-items: center; gap: 28px; }
-    .nav-links{ display:none; gap:28px; align-items:center; }
-    @media (min-width: 900px){ .nav-links{ display:flex; } }
-
-    .nav-links a{
-      position:relative; padding:6px 6px; font-size:11px; letter-spacing:.2em;
-      text-transform:uppercase; color: #64748b; transition: color .25s ease;
-    }
-    .nav-links a:hover{ color: var(--indigo); }
-    .nav-links a.active{ color: var(--indigo2); font-weight:700; }
-
-    /* Language Switcher */
-    .lang-switch {
-      display: flex; align-items: center; gap: 8px;
-      font-family: "Inter", sans-serif; font-size: 11px; font-weight: 600;
-      color: #64748b; margin-left: 12px; border-left: 1px solid #e2e8f0; padding-left: 20px;
-    }
-    .lang-btn { cursor: pointer; opacity: 0.5; transition: opacity 0.2s, color 0.2s; }
-    .lang-btn:hover { opacity: 1; color: var(--indigo); }
-    .lang-btn.active { opacity: 1; color: var(--indigo2); text-decoration: underline; text-underline-offset: 4px; }
-
+    /* ページ固有のスタイル（上書き・追加分） */
+    
     /* Hero Subpage */
     .hero-sub{
       position:relative; min-height: 50vh; padding: 160px 0 80px;
       background: var(--white); overflow:hidden; display:flex; align-items:center;
     }
-    .dot-grid{
-      position:absolute; inset:0; opacity:.40; pointer-events:none;
-      background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
-      background-size: 32px 32px;
-    }
+    
     .page-header h1{
       font-size: clamp(40px, 8vw, 80px); line-height: 1.1; margin: 0 0 24px;
       color: var(--dark); letter-spacing: -0.02em;
@@ -150,7 +66,6 @@
 
     /* Sections */
     .concept-section { padding: 100px 0; background: #fff; }
-    .kicker { color: var(--indigo); font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom: 12px; }
     
     /* Research Themes Grid - Flexbox for 3x2 Layout */
     .themes-section { background: #f1f5f9; padding: 100px 0; }
@@ -202,24 +117,6 @@
     .res-item:first-child { border-top: 1px solid var(--line); }
     .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; line-height:1.6; }
     .res-meta { font-size: 13px; color: var(--muted); }
-    
-    /* Footer & Utils */
-    footer{
-      background:#020617; padding: 16px 0; text-align:center;
-      color: rgba(148,163,184,.75); font-size: 11px; letter-spacing:.14em; text-transform:uppercase;
-    }
-    .fade-up{ opacity:0; transform: translateY(12px); transition: opacity .7s ease, transform .7s ease; }
-    .fade-up.show{ opacity:1; transform: translateY(0); }
-    .viewall {
-      margin-top: 48px; display: inline-flex; gap: 10px; align-items: center;
-      font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-      color: var(--dark); transition: color .2s ease;
-    }
-    .viewall:hover { color: var(--indigo); }
-    .mini-arrow {
-      width: 10px; height: 10px; border-right: 2px solid currentColor;
-      border-bottom: 2px solid currentColor; transform: rotate(-45deg);
-    }
   </style>
 </head>
 
@@ -473,7 +370,6 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "「食べる（食行動）、寝る（睡眠）、遊ぶ（活動）」。これら日常的ルーチンが、環境適応や創造的問題解決にどう影響するかを探求しています。ウェアラブルデバイスによる行動計測と主観報告を組み合わせ、生活習慣とひらめきの関連を調査します。",
 
-        // UPDATED: Title and Desc
         theme_5_title: "Children's Everyday Life × Developmental Support",
         theme_5_desc: "保育所や家庭など、子どもの「生活の場」における微細な発達プロセスを追跡しています。参与観察やエスノグラフィーの手法を用い、定量データだけでは捉えきれない、一人ひとりの物語的な変容（Narrative Development）を描き出し、発達を支援します。",
 
@@ -527,7 +423,6 @@
         theme_4_title: "Everyday Behavior × Adaptation",
         theme_4_desc: "Eat, Sleep, Play. We explore how these daily routines influence environmental adaptation and creative problem-solving. Using wearable tracking and subjective reporting, we investigate the link between lifestyle habits and insight.",
 
-        // UPDATED: Title and Desc
         theme_5_title: "Children's Everyday Life × Developmental Support",
         theme_5_desc: "Tracking subtle developmental processes in children's 'living spaces' such as nurseries and homes. Using participant observation and ethnography, we portray narrative transformations that cannot be captured by quantitative data alone, and support their development.",
 
@@ -581,7 +476,6 @@
         theme_4_title: "Vardagsbeteende × Anpassning",
         theme_4_desc: "Äta, Sova, Leka. Vi utforskar hur dessa dagliga rutiner påverkar miljöanpassning och kreativ problemlösning. Med hjälp av bärbar teknik undersöker vi sambandet mellan livsstilsvanor och insikt.",
 
-        // UPDATED: Title and Desc
         theme_5_title: "Barns vardagsliv × Utvecklingsstöd",
         theme_5_desc: "Spårning av subtila utvecklingsprocesser i barns 'livsrum' som förskolor och hem. Med deltagande observation och etnografi skildrar vi narrativa transformationer som inte kan fångas enbart med kvantitativa data, och stödjer deras utveckling.",
 
@@ -606,57 +500,8 @@
         back_home: "Tillbaka till alla publikationer"
       }
     };
-
-    // --- I18n Logic ---
-    const setLanguage = (lang) => {
-      document.querySelectorAll('.lang-btn').forEach(btn => {
-        btn.classList.remove('active');
-        const btnText = btn.textContent.toLowerCase();
-        if (lang === 'ja' && btnText === 'jp') btn.classList.add('active');
-        else if (lang === 'en' && btnText === 'en') btn.classList.add('active');
-        else if (lang === 'se' && btnText === 'se') btn.classList.add('active');
-      });
-
-      const data = translations[lang];
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (data[key]) {
-          if (key.includes('body') || key.includes('title') || key.includes('desc')) {
-            el.innerHTML = data[key];
-          } else {
-            el.textContent = data[key];
-          }
-        }
-      });
-      document.documentElement.lang = lang;
-    };
-
-    const initLanguage = () => {
-      const browserLang = (navigator.language || navigator.userLanguage || 'en').substring(0, 2).toLowerCase();
-      if (browserLang === 'ja') setLanguage('ja');
-      else if (browserLang === 'sv') setLanguage('se');
-      else setLanguage('en');
-    };
-    initLanguage();
-
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    const nav = document.getElementById('siteNav');
-    const onScroll = () => {
-      if (window.scrollY > 50) nav.classList.add('scrolled');
-      else nav.classList.remove('scrolled');
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-
-    // Fade-up on view
-    const fades = document.querySelectorAll('.fade-up');
-    const fadeObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) e.target.classList.add('show');
-      });
-    }, { threshold: 0.12 });
-    fades.forEach(el => fadeObs.observe(el));
   </script>
+
+  <script src="./script.js"></script>
 </body>
 </html>
