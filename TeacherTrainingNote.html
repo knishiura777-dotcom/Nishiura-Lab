@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育実習日誌（Word読込・自動作図・編集機能付）v19</title>
+    <title>教育実習日誌（Word読込・自動作図・編集機能付）v20</title>
     <!-- Wordファイル解析用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -27,12 +27,49 @@
             border-radius: 4px;
         }
 
-        h1 {
-            text-align: center;
+        /* タイトルヘッダーエリア（変更点） */
+        .title-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             border-bottom: 2px solid #333;
             padding-bottom: 10px;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            margin: 0;
+            padding: 0;
+            border: none;
             font-size: 24px;
+            line-height: 1.2;
+        }
+
+        .student-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            text-align: right;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .info-label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
+
+        .info-input {
+            min-width: 160px;
+            border-bottom: 1px solid #ccc;
         }
 
         /* 編集可能エリア */
@@ -267,7 +304,7 @@
             .editable { background-color: transparent !important; padding: 0; }
             .editable:empty::before { content: ""; }
             .env-drawing-area { border: 1px solid #333; }
-            .drawing-toolbar { display: none; } /* 印刷時にツールバーを隠す */
+            .drawing-toolbar { display: none; }
         }
     </style>
 </head>
@@ -299,7 +336,21 @@
     </div>
 
     <div class="container" id="journal-area">
-        <h1>教育実習日誌</h1>
+        
+        <!-- タイトル・氏名ヘッダー（変更部分） -->
+        <div class="title-header">
+            <h1>教育実習日誌</h1>
+            <div class="student-info">
+                <div class="info-row">
+                    <span class="info-label">大学名</span>
+                    <div class="editable info-input" id="field-university" contenteditable="true"></div>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">氏名</span>
+                    <div class="editable info-input" id="field-name" contenteditable="true"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- 基本情報テーブル -->
         <table class="header-table">
@@ -960,7 +1011,42 @@
                         sectionParent.replaceChild(table, section);
                     });
 
-                    // 7. HTML生成とダウンロード
+                    // 7. タイトルヘッダーの構造変換（Word用にTable化）
+                    const titleHeader = clone.querySelector('.title-header');
+                    if (titleHeader) {
+                        const table = document.createElement('table');
+                        table.setAttribute("width", "100%");
+                        table.style.border = "none";
+                        table.style.borderBottom = "2px solid #333"; 
+                        table.style.marginBottom = "20px";
+                        
+                        const tr = document.createElement('tr');
+                        
+                        // タイトルセル
+                        const tdTitle = document.createElement('td');
+                        tdTitle.style.border = "none";
+                        tdTitle.style.verticalAlign = "bottom";
+                        tdTitle.innerHTML = "<h1 style='margin:0; font-size:24px;'>教育実習日誌</h1>";
+                        
+                        // 情報セル
+                        const tdInfo = document.createElement('td');
+                        tdInfo.style.border = "none";
+                        tdInfo.style.textAlign = "right";
+                        tdInfo.style.verticalAlign = "bottom";
+                        
+                        const uni = clone.querySelector('#field-university').innerText;
+                        const name = clone.querySelector('#field-name').innerText;
+                        
+                        tdInfo.innerHTML = `<div style='margin-bottom:5px;'>大学名：<span style='text-decoration:underline;'>${uni}</span></div><div>氏名：<span style='text-decoration:underline;'>${name}</span></div>`;
+                        
+                        tr.appendChild(tdTitle);
+                        tr.appendChild(tdInfo);
+                        table.appendChild(tr);
+                        
+                        titleHeader.parentNode.replaceChild(table, titleHeader);
+                    }
+
+                    // 8. HTML生成とダウンロード
                     const css = `
                         <style>
                             body { font-family: 'MS Mincho', 'Hiragino Mincho ProN', serif; font-size: 10.5pt; }
@@ -1013,6 +1099,9 @@
 
         function clearAll() {
             document.querySelectorAll('.editable').forEach(el => el.innerText = '');
+            document.getElementById('field-university').innerText = ''; // 追加: クリア処理
+            document.getElementById('field-name').innerText = '';       // 追加: クリア処理
+            
             const tbody = document.getElementById('timeline-body');
             tbody.innerHTML = '';
             for(let i=0; i<6; i++) addTimelineRow();
@@ -1103,19 +1192,24 @@
             // --- 1. 基本情報の抽出 ---
             const elements = tempDiv.querySelectorAll('p, tr, h1, h2, h3, h4, h5, h6, li');
             
-            let dateVal = "", weatherVal = "", classVal = "", attendVal = "";
+            let dateVal = "", weatherVal = "", classVal = "", attendVal = "", uniVal = "", nameVal = "";
             elements.forEach(el => {
                 const text = el.innerText.trim();
                 if (!dateVal && text.match(/日付\s*[:：]?\s*(\S.*)/)) dateVal = RegExp.$1.trim();
                 if (!weatherVal && text.match(/天気\s*[:：]?\s*(\S.*)/)) weatherVal = RegExp.$1.trim();
                 if (!classVal && text.match(/配属組\s*[:：]?\s*(\S.*)/)) classVal = RegExp.$1.trim();
                 if (!attendVal && text.match(/出席\s*[:：]?\s*(\S.*)/)) attendVal = RegExp.$1.trim();
+                // 大学名・氏名の抽出追加
+                if (!uniVal && text.match(/大学名\s*[:：]?\s*(\S.*)/)) uniVal = RegExp.$1.trim();
+                if (!nameVal && text.match(/氏名\s*[:：]?\s*(\S.*)/)) nameVal = RegExp.$1.trim();
             });
 
             if(dateVal) document.getElementById('field-date').innerText = dateVal;
             if(weatherVal) document.getElementById('field-weather').innerText = weatherVal;
             if(classVal) document.getElementById('field-class').innerText = classVal;
             if(attendVal) document.getElementById('field-attendance').innerText = attendVal;
+            if(uniVal) document.getElementById('field-university').innerText = uniVal;
+            if(nameVal) document.getElementById('field-name').innerText = nameVal;
 
             // --- 2. セクションごとのテキスト抽出 ---
             let currentMode = "none"; let subMode = "none"; 
