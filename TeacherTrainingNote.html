@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育実習日誌（Word読込・自動作図機能付）v18</title>
+    <title>教育実習日誌（Word読込・自動作図・編集機能付）v19</title>
     <!-- Wordファイル解析用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -115,8 +115,13 @@
             display: flex;
             gap: 20px;
         }
-        .env-drawing-area {
+        .env-drawing-container {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .env-drawing-area {
             border: 2px dashed #ccc;
             height: 300px;
             display: flex;
@@ -125,23 +130,54 @@
             background-color: #fff;
             position: relative;
             overflow: hidden;
-            cursor: pointer;
+            /* cursor: pointer; removed to handle by canvas logic */
         }
         .env-drawing-area canvas {
             max-width: 100%;
             max-height: 100%;
+            cursor: crosshair;
         }
+        .env-drawing-area canvas.dragging {
+            cursor: grabbing;
+        }
+        .env-drawing-area canvas.hovering {
+            cursor: grab;
+        }
+
         #manual-image {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             position: absolute;
             display: none;
+            pointer-events: none; /* クリック透過 */
         }
         .env-text-area {
             flex: 1;
             font-size: 13px;
         }
+
+        /* 描画ツールバー */
+        .drawing-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 5px;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        .tool-btn {
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #999;
+            border-radius: 3px;
+        }
+        .tool-btn:hover { background: #e9ecef; }
+        .tool-btn.danger { color: #d32f2f; border-color: #d32f2f; }
 
         /* 記録・反省エリア */
         .record-section {
@@ -231,6 +267,7 @@
             .editable { background-color: transparent !important; padding: 0; }
             .editable:empty::before { content: ""; }
             .env-drawing-area { border: 1px solid #333; }
+            .drawing-toolbar { display: none; } /* 印刷時にツールバーを隠す */
         }
     </style>
 </head>
@@ -305,12 +342,27 @@
         <div class="env-section">
             <span style="font-weight:bold; border-bottom:1px dashed #999; display:block; margin-bottom:10px;">環境構成・配置図</span>
             <div class="env-content">
-                <div style="flex:1;">
+                <div class="env-drawing-container">
+                    <!-- ツールバー -->
+                    <div class="drawing-toolbar no-print">
+                        <button class="tool-btn" onclick="addObj('teacher')">＋保育者</button>
+                        <button class="tool-btn" onclick="addObj('child')">＋子供</button>
+                        <button class="tool-btn" onclick="addObj('desk')">＋机</button>
+                        <button class="tool-btn" onclick="addObj('chair')">＋椅子</button>
+                        <button class="tool-btn" onclick="addObj('piano')">＋ピアノ</button>
+                        <button class="tool-btn" onclick="addObj('mat')">＋マット</button>
+                        <button class="tool-btn" onclick="addObj('cone')">＋コーン</button>
+                        <button class="tool-btn" onclick="addObj('goal')">＋ゴール</button>
+                        <button class="tool-btn" onclick="generateDiagramFromText()">🔄再生成</button>
+                        <button class="tool-btn danger" onclick="deleteSelectedObj()">✖ 削除</button>
+                    </div>
+
                     <div class="env-drawing-area" id="drawing-area">
                         <canvas id="env-canvas" width="400" height="300"></canvas>
                         <img id="manual-image" alt="環境構成図">
                         <div id="placeholder-text" style="position:absolute; color:#999; pointer-events:none;">
-                            テキストから図を自動生成します<br>（図の差し替えボタンで画像に変更可）
+                            テキストから図を自動生成します<br>
+                            （ドラッグで移動、ツールバーで追加可能）
                         </div>
                     </div>
                 </div>
@@ -365,8 +417,18 @@
     </div>
 
     <script>
+        // --- 変数定義 ---
+        let canvasObjects = []; // 描画オブジェクト配列
+        let selectedIndex = -1; // 選択中のオブジェクトインデックス
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
         // --- 初期化 ---
         window.onload = function() {
+            initCanvasEvents();
             clearAll();
         };
 
@@ -381,6 +443,10 @@
         }
 
         function printDocument() {
+            // 印刷前に選択状態を解除して描画
+            selectedIndex = -1;
+            renderCanvas();
+            
             const originalTitle = document.title;
             document.title = `教育実習日誌_${getFormattedDate()}`;
             window.focus();
@@ -390,10 +456,320 @@
             }, 2000);
         }
 
+        // --- Canvas イベント処理 (ドラッグ移動・選択) ---
+        function initCanvasEvents() {
+            const canvas = document.getElementById('env-canvas');
+            
+            // マウスイベント
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp); // Canvas外で放してもOKなように
+
+            // タッチイベント (スマホ対応)
+            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+            window.addEventListener('touchend', handleMouseUp);
+        }
+
+        function getMousePos(evt) {
+            const canvas = document.getElementById('env-canvas');
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            
+            if (evt.changedTouches) {
+                clientX = evt.changedTouches[0].clientX;
+                clientY = evt.changedTouches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
+            }
+
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            
+            // 逆順（前面から）ヒットテスト
+            let hitIndex = -1;
+            for (let i = canvasObjects.length - 1; i >= 0; i--) {
+                if (hitTest(canvasObjects[i], pos.x, pos.y)) {
+                    hitIndex = i;
+                    break;
+                }
+            }
+
+            if (hitIndex !== -1) {
+                selectedIndex = hitIndex;
+                isDragging = true;
+                dragStartX = pos.x;
+                dragStartY = pos.y;
+                dragOffsetX = canvasObjects[hitIndex].x - pos.x;
+                dragOffsetY = canvasObjects[hitIndex].y - pos.y;
+            } else {
+                selectedIndex = -1; // 何もないところをクリックで選択解除
+            }
+            renderCanvas();
+        }
+
+        function handleMouseMove(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            const canvas = document.getElementById('env-canvas');
+
+            // ホバー効果
+            let hit = false;
+            for (let i = canvasObjects.length - 1; i >= 0; i--) {
+                if (hitTest(canvasObjects[i], pos.x, pos.y)) {
+                    hit = true; break;
+                }
+            }
+            if (isDragging) {
+                canvas.style.cursor = 'grabbing';
+            } else if (hit) {
+                canvas.style.cursor = 'grab';
+            } else {
+                canvas.style.cursor = 'crosshair';
+            }
+
+            if (isDragging && selectedIndex !== -1) {
+                const obj = canvasObjects[selectedIndex];
+                obj.x = pos.x + dragOffsetX;
+                obj.y = pos.y + dragOffsetY;
+                renderCanvas();
+            }
+        }
+
+        function handleMouseUp(e) {
+            isDragging = false;
+            renderCanvas();
+        }
+
+        // タッチイベント用ラッパー
+        function handleTouchStart(e) { handleMouseDown(e); }
+        function handleTouchMove(e) { handleMouseMove(e); }
+
+        // --- ヒットテスト ---
+        function hitTest(obj, mx, my) {
+            // 背景系オブジェクトなど選択不可にしたい場合はここで弾く
+            // if (obj.locked) return false;
+
+            // 簡易的にタイプ別サイズ定義
+            let w = 20, h = 20;
+            
+            if (obj.type === 'track') {
+                // トラックは楕円の内側かどうか
+                // 簡易判定：矩形
+                return (Math.abs(mx - obj.x) < obj.w/2 && Math.abs(my - obj.y) < obj.h/2);
+            }
+
+            // サイズ決定
+            if (obj.w && obj.h) { w = obj.w; h = obj.h; }
+            else if (obj.type === 'teacher' || obj.type === 'child' || obj.type === 'cone') { w = 30; h = 30; }
+            else if (obj.type === 'desk') { w = 40; h = 25; }
+            else if (obj.type === 'piano') { w = 40; h = 40; }
+
+            // 中心座標(x,y)からの矩形判定
+            return (mx >= obj.x - w/2 && mx <= obj.x + w/2 &&
+                    my >= obj.y - h/2 && my <= obj.y + h/2);
+        }
+
+        // --- オブジェクト追加・削除 ---
+        function addObj(type) {
+            const canvas = document.getElementById('env-canvas');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            let newObj = { type: type, x: cx + (Math.random()*40-20), y: cy + (Math.random()*40-20) };
+
+            // タイプ別初期設定
+            if (type === 'teacher') { newObj.label = 'T'; newObj.color = 'red'; }
+            if (type === 'child') { newObj.label = '子'; newObj.color = '#333'; }
+            if (type === 'desk') { newObj.w = 50; newObj.h = 30; newObj.color = '#e0e0e0'; }
+            if (type === 'chair') { newObj.w = 15; newObj.h = 15; newObj.color = '#e0e0e0'; }
+            if (type === 'piano') { newObj.w = 40; newObj.h = 50; newObj.color = '#333'; }
+            if (type === 'mat') { newObj.w = 60; newObj.h = 40; newObj.color = '#81c784'; }
+            if (type === 'cone') { newObj.color = 'red'; }
+            if (type === 'goal') { newObj.color = 'blue'; }
+
+            canvasObjects.push(newObj);
+            selectedIndex = canvasObjects.length - 1; // 追加したものを選択状態に
+            document.getElementById('placeholder-text').style.display = 'none';
+            renderCanvas();
+        }
+
+        function deleteSelectedObj() {
+            if (selectedIndex !== -1) {
+                canvasObjects.splice(selectedIndex, 1);
+                selectedIndex = -1;
+                renderCanvas();
+            }
+        }
+
+        // --- 描画ロジック (レンダラー) ---
+        function renderCanvas() {
+            const canvas = document.getElementById('env-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // クリア
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, width, height);
+
+            // 枠線
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, width, height);
+
+            if (canvasObjects.length === 0) return;
+
+            // 全オブジェクト描画
+            canvasObjects.forEach((obj, index) => {
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+
+                const isSelected = (index === selectedIndex);
+                if (isSelected) {
+                    ctx.shadowColor = 'rgba(0, 123, 255, 0.8)';
+                    ctx.shadowBlur = 10;
+                }
+
+                // タイプ別描画
+                if (obj.type === 'teacher') {
+                    // ×印
+                    ctx.font = "bold 20px Arial";
+                    ctx.fillStyle = obj.color || "red";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("×", 0, 0);
+                    if (obj.label) {
+                        ctx.font = "12px Arial";
+                        ctx.fillText(obj.label, 15, 5);
+                    }
+                }
+                else if (obj.type === 'child') {
+                    // ○印
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = obj.color || "#333";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    if (obj.label) {
+                        ctx.font = "10px Arial";
+                        ctx.fillStyle = "#333";
+                        ctx.textAlign = "center";
+                        ctx.fillText(obj.label, 0, -12);
+                    }
+                }
+                else if (obj.type === 'desk' || obj.type === 'mat') {
+                    // 矩形
+                    const w = obj.w || 40;
+                    const h = obj.h || 25;
+                    ctx.fillStyle = obj.color || "#e0e0e0";
+                    ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.strokeStyle = "#999";
+                    ctx.strokeRect(-w/2, -h/2, w, h);
+                }
+                else if (obj.type === 'chair') {
+                    // 小さい丸/四角
+                    const w = obj.w || 15;
+                    ctx.fillStyle = obj.color || "#fff";
+                    ctx.fillRect(-w/2, -w/2, w, w);
+                    ctx.strokeStyle = "#666";
+                    ctx.strokeRect(-w/2, -w/2, w, w);
+                    // 背もたれ線
+                    ctx.beginPath();
+                    ctx.moveTo(-w/2, -w/2); ctx.lineTo(w/2, -w/2);
+                    ctx.stroke();
+                }
+                else if (obj.type === 'piano') {
+                    // ピアノ形状
+                    const w = obj.w || 40;
+                    const h = obj.h || 50;
+                    ctx.fillStyle = "#333";
+                    ctx.fillRect(-w/2, -h/2, w, h);
+                    // 鍵盤
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(-w/2, h/4, w, h/4); 
+                }
+                else if (obj.type === 'cone') {
+                    // 三角
+                    ctx.beginPath();
+                    ctx.moveTo(0, -10);
+                    ctx.lineTo(8, 10);
+                    ctx.lineTo(-8, 10);
+                    ctx.closePath();
+                    ctx.fillStyle = obj.color || "red";
+                    ctx.fill();
+                    ctx.strokeStyle = "#333";
+                    ctx.stroke();
+                }
+                else if (obj.type === 'goal') {
+                    // 旗
+                    ctx.beginPath();
+                    ctx.moveTo(0, 10);
+                    ctx.lineTo(0, -20);
+                    ctx.strokeStyle = "#333";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = obj.color || "blue";
+                    ctx.fillRect(0, -20, 15, 10);
+                }
+                else if (obj.type === 'track') {
+                    // トラック（楕円）
+                    const w = obj.w || width * 0.7;
+                    const h = obj.h || height * 0.5;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, w/2, h/2, 0, 0, 2 * Math.PI);
+                    ctx.strokeStyle = "#555";
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                    // 編集用の枠線（選択時）
+                    if (isSelected) {
+                        ctx.strokeStyle = "blue";
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([5, 5]);
+                        ctx.strokeRect(-w/2, -h/2, w, h);
+                        ctx.setLineDash([]);
+                    }
+                }
+                else if (obj.type === 'text') {
+                    ctx.fillStyle = "#000";
+                    ctx.font = "14px Arial";
+                    ctx.textAlign = "center";
+                    ctx.fillText(obj.text || "Text", 0, 0);
+                }
+
+                // 選択時の強調表示（枠）- トラック以外共通
+                if (isSelected && obj.type !== 'track') {
+                    ctx.strokeStyle = "#007bff";
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([2, 2]);
+                    ctx.strokeRect(-20, -20, 40, 40); // 簡易枠
+                    ctx.setLineDash([]);
+                    
+                    // 削除ボタン的アイコン（オプション）
+                }
+
+                ctx.restore();
+            });
+        }
+
+
         // --- 図を画像として保存 ---
         function saveDiagramImage() {
             const canvas = document.getElementById('env-canvas');
             const manualImg = document.getElementById('manual-image');
+            
+            // 描画前に選択解除
+            const prevSelected = selectedIndex;
+            selectedIndex = -1;
+            renderCanvas();
             
             let downloadUrl;
             
@@ -404,12 +780,20 @@
                     downloadUrl = canvas.toDataURL("image/png");
                 } catch(e) {
                     alert("図の保存に失敗しました。");
+                    selectedIndex = prevSelected;
+                    renderCanvas();
                     return;
                 }
             } else {
                 alert("保存する図がありません。");
+                selectedIndex = prevSelected;
+                renderCanvas();
                 return;
             }
+
+            // 選択状態を戻す
+            selectedIndex = prevSelected;
+            renderCanvas();
 
             const link = document.createElement('a');
             link.href = downloadUrl;
@@ -423,6 +807,10 @@
         function exportToWord() {
             document.getElementById('status-msg').innerText = "ファイルを生成中...";
             
+            // 選択解除して描画を確定
+            selectedIndex = -1;
+            renderCanvas();
+
             setTimeout(() => {
                 try {
                     const journal = document.getElementById('journal-area');
@@ -450,18 +838,21 @@
                         img.style.width = '300px';        // スタイルでも指定
                         img.style.border = "1px solid #ccc";
                         
-                        const drawingArea = clone.querySelector('.env-drawing-area');
-                        if (drawingArea) {
-                            drawingArea.innerHTML = '';
-                            drawingArea.appendChild(img);
+                        // ツールバーとCanvasを削除し、画像を配置
+                        const drawingContainer = clone.querySelector('.env-drawing-container');
+                        if (drawingContainer) {
+                            drawingContainer.innerHTML = '';
+                            drawingContainer.appendChild(img);
                         }
                     } else {
-                        const drawingArea = clone.querySelector('.env-drawing-area');
-                        if(drawingArea) drawingArea.innerHTML = '（図なし）';
+                         const drawingContainer = clone.querySelector('.env-drawing-container');
+                         if(drawingContainer) drawingContainer.innerHTML = '（図なし）';
                     }
 
                     // 2. 不要要素の削除
                     clone.querySelectorAll('#placeholder-text, #diagram-description').forEach(el => el.remove());
+                    // ツールバー削除
+                    clone.querySelectorAll('.drawing-toolbar').forEach(el => el.remove());
 
                     // 3. 入力エリアの調整
                     clone.querySelectorAll('.editable').forEach(el => {
@@ -511,10 +902,11 @@
                         tdImg.setAttribute("width", "50%");
                         tdImg.setAttribute("valign", "top");
                         tdImg.style.border = "none";
-                        const drawingArea = envContent.querySelector('.env-drawing-area');
-                        if(drawingArea) {
-                             drawingArea.style.border = "none";
-                             tdImg.innerHTML = drawingArea.innerHTML;
+                        
+                        // env-drawing-containerの中身（画像）を移植
+                        const drawingContainer = envContent.querySelector('.env-drawing-container');
+                        if(drawingContainer) {
+                             tdImg.innerHTML = drawingContainer.innerHTML;
                         }
                         tr.appendChild(tdImg);
 
@@ -611,8 +1003,6 @@
         }
 
         // --- 同じファイルでも再読み込みできるようにする処理 ---
-        // input要素をクリックした際にvalueをリセットすることで、
-        // 前回と同じファイルを選んでもonchangeイベントが発火するようにする
         document.getElementById('docx-input').addEventListener('click', function() {
             this.value = null;
         });
@@ -627,15 +1017,15 @@
             tbody.innerHTML = '';
             for(let i=0; i<6; i++) addTimelineRow();
             
-            // Canvasクリア & 差し替え画像リセット
-            const canvas = document.getElementById('env-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Canvasデータリセット
+            canvasObjects = [];
+            selectedIndex = -1;
+            renderCanvas();
             
             const manualImg = document.getElementById('manual-image');
             manualImg.src = "";
             manualImg.style.display = 'none';
-            canvas.style.display = 'block';
+            document.getElementById('env-canvas').style.display = 'block';
 
             // ファイル入力もリセット
             document.getElementById('docx-input').value = null;
@@ -682,15 +1072,10 @@
         // --- Word読み込みロジック (Mammoth.js使用) ---
         document.getElementById('docx-input').addEventListener('change', function(event) {
             const file = event.target.files[0];
-            if (!file) {
-                return;
-            }
+            if (!file) return;
             
             if (file.size === 0) {
-                const msg = "ファイルが空のようです。正しいWordファイルを選択してください。";
-                document.getElementById('status-msg').innerText = msg;
-                alert(msg);
-                return;
+                alert("ファイルが空のようです。"); return;
             }
 
             document.getElementById('status-msg').innerText = "ファイルを解析中...";
@@ -698,48 +1083,29 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const arrayBuffer = e.target.result;
-                
-                // バッファが正常に読み込めたか確認
-                if (!arrayBuffer || arrayBuffer.byteLength === 0) {
-                    handleError(new Error("ファイルの内容を読み取れませんでした。"));
-                    return;
-                }
-
-                // Mammoth.js の convertToHtml に直接 arrayBuffer を渡す
                 mammoth.convertToHtml({arrayBuffer: arrayBuffer})
                     .then(displayResult)
                     .catch(handleError);
             };
-            
-            // エラーハンドリングを追加
-            reader.onerror = function() {
-                handleError(new Error("ファイルの読み込み中にエラーが発生しました。"));
-            };
-
+            reader.onerror = function() { handleError(new Error("読込エラー")); };
             reader.readAsArrayBuffer(file);
         });
 
         function displayResult(result) {
             document.getElementById('status-msg').innerText = "";
             const html = result.value;
-            console.log("Raw HTML:", html);
-            
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
 
-            // Word読込時はCanvas表示に戻す
             document.getElementById('env-canvas').style.display = 'block';
             document.getElementById('manual-image').style.display = 'none';
-            document.getElementById('placeholder-text').style.display = 'none';
 
-            // --- 1. 基本情報の抽出 (正規表現の強化) ---
+            // --- 1. 基本情報の抽出 ---
             const elements = tempDiv.querySelectorAll('p, tr, h1, h2, h3, h4, h5, h6, li');
             
             let dateVal = "", weatherVal = "", classVal = "", attendVal = "";
-            
             elements.forEach(el => {
                 const text = el.innerText.trim();
-                // "項目: 値" の形式に柔軟に対応
                 if (!dateVal && text.match(/日付\s*[:：]?\s*(\S.*)/)) dateVal = RegExp.$1.trim();
                 if (!weatherVal && text.match(/天気\s*[:：]?\s*(\S.*)/)) weatherVal = RegExp.$1.trim();
                 if (!classVal && text.match(/配属組\s*[:：]?\s*(\S.*)/)) classVal = RegExp.$1.trim();
@@ -751,344 +1117,181 @@
             if(classVal) document.getElementById('field-class').innerText = classVal;
             if(attendVal) document.getElementById('field-attendance').innerText = attendVal;
 
-
-            // --- 2. セクションごとのテキスト抽出 (厳密なセクション分割) ---
-            
-            let currentMode = "none"; 
-            let subMode = "none"; 
-
+            // --- 2. セクションごとのテキスト抽出 ---
+            let currentMode = "none"; let subMode = "none"; 
             let sectionContent = {
-                classGoal: [],
-                studentGoal: [],
-                envText: [],
-                envImageDesc: [],
-                record: [],
-                reflectionToday: [],
-                reflectionTomorrow: [],
-                feedback: []
+                classGoal: [], studentGoal: [], envText: [], envImageDesc: [],
+                record: [], reflectionToday: [], reflectionTomorrow: [], feedback: []
             };
 
             elements.forEach(el => {
                 let text = el.innerText.trim();
                 if(!text) return;
 
-                // --- セクション切り替え判定 ---
-                if (text.match(/^[2-9２-９][.．]?\s*ねらい/)) {
-                    currentMode = "goal"; subMode = "none"; return;
-                }
-                if (text.match(/^[3-9３-９][.．]?\s*環境構成/)) {
-                    currentMode = "env"; subMode = "none"; return;
-                }
-                if (text.match(/^[4-9４-９][.．]?\s*一日の実習の流れ/)) {
-                    currentMode = "timeline"; return;
-                }
-                if (text.match(/^[5-9５-９][.．]?\s*主な活動の記録/)) {
-                    currentMode = "record"; return;
-                }
-                if (text.match(/^[6-9６-９][.．]?\s*振り返りと課題/)) {
-                    currentMode = "reflection"; subMode = "none"; return;
-                }
-                if (text.match(/^[7-9７-９][.．]?\s*指導者の講評/)) {
-                    currentMode = "feedback"; return;
-                }
+                if (text.match(/^[2-9２-９][.．]?\s*ねらい/)) { currentMode = "goal"; subMode = "none"; return; }
+                if (text.match(/^[3-9３-９][.．]?\s*環境構成/)) { currentMode = "env"; subMode = "none"; return; }
+                if (text.match(/^[4-9４-９][.．]?\s*一日の実習の流れ/)) { currentMode = "timeline"; return; }
+                if (text.match(/^[5-9５-９][.．]?\s*主な活動の記録/)) { currentMode = "record"; return; }
+                if (text.match(/^[6-9６-９][.．]?\s*振り返りと課題/)) { currentMode = "reflection"; subMode = "none"; return; }
+                if (text.match(/^[7-9７-９][.．]?\s*指導者の講評/)) { currentMode = "feedback"; return; }
 
-                // --- サブセクション切り替え判定 & 内容取得 ---
-                
-                // ねらい
                 if (currentMode === "goal") {
                     if (text.includes("クラスのねらい")) {
-                        subMode = "class"; 
-                        text = text.replace(/.*クラスのねらい(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "class"; text = text.replace(/.*クラスのねらい(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     } else if (text.includes("実習生の目標")) {
-                        subMode = "student"; 
-                        text = text.replace(/.*実習生の目標(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "student"; text = text.replace(/.*実習生の目標(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     }
-                    
                     if (text) {
                         if (subMode === "class") sectionContent.classGoal.push(text);
                         if (subMode === "student") sectionContent.studentGoal.push(text);
                     }
                 }
-
-                // 環境構成
                 else if (currentMode === "env") {
                     if (text.includes("図のイメージ")) {
-                        subMode = "image";
-                        text = text.replace(/.*図のイメージ(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "image"; text = text.replace(/.*図のイメージ(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     } else if (text.includes("テキスト記述")) {
-                        subMode = "text";
-                        text = text.replace(/.*テキスト記述(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "text"; text = text.replace(/.*テキスト記述(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     }
-
                     if (text) {
                         if (subMode === "image") sectionContent.envImageDesc.push(text);
                         if (subMode === "text") sectionContent.envText.push(text);
                     }
                 }
-
-                // 主な活動の記録
                 else if (currentMode === "record") {
-                    // "5. 主な..."のような見出し行そのものは除外
                     if (!text.match(/^[5-9５-９][.．]/)) sectionContent.record.push(text);
                 }
-
-                // 振り返りと課題
                 else if (currentMode === "reflection") {
                     if (text.includes("本日の振り返り")) {
-                        subMode = "today";
-                        text = text.replace(/.*本日の振り返り(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "today"; text = text.replace(/.*本日の振り返り(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     } else if (text.includes("翌日への課題")) {
-                        subMode = "tomorrow";
-                        text = text.replace(/.*翌日への課題(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
+                        subMode = "tomorrow"; text = text.replace(/.*翌日への課題(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     }
-
                     if (text) {
                         if (subMode === "today") sectionContent.reflectionToday.push(text);
                         if (subMode === "tomorrow") sectionContent.reflectionTomorrow.push(text);
                     }
                 }
-
-                // 講評
                 else if (currentMode === "feedback") {
                     if (!text.match(/^[7-9７-９][.．]/)) sectionContent.feedback.push(text);
                 }
             });
 
-            // --- 結果の反映 ---
             document.getElementById('field-class-goal').innerText = sectionContent.classGoal.join('\n');
             document.getElementById('field-student-goal').innerText = sectionContent.studentGoal.join('\n');
-            
             document.getElementById('field-env-text').innerText = sectionContent.envText.join('\n');
             document.getElementById('diagram-description').innerText = sectionContent.envImageDesc.join('\n');
-            
             document.getElementById('field-record').innerText = sectionContent.record.join('\n');
             
             let reflectionText = "";
-            if (sectionContent.reflectionToday.length > 0) {
-                reflectionText += "【本日の振り返り】\n" + sectionContent.reflectionToday.join('\n') + "\n\n";
-            }
-            if (sectionContent.reflectionTomorrow.length > 0) {
-                reflectionText += "【翌日への課題】\n" + sectionContent.reflectionTomorrow.join('\n');
-            }
+            if (sectionContent.reflectionToday.length > 0) reflectionText += "【本日の振り返り】\n" + sectionContent.reflectionToday.join('\n') + "\n\n";
+            if (sectionContent.reflectionTomorrow.length > 0) reflectionText += "【翌日への課題】\n" + sectionContent.reflectionTomorrow.join('\n');
             document.getElementById('field-reflection').innerText = reflectionText;
-            
             document.getElementById('field-feedback').innerText = sectionContent.feedback.join('\n');
 
-
-            // --- 3. 時系列テーブルの解析 ---
+            // --- 3. 時系列テーブル ---
             const tables = tempDiv.querySelectorAll('table');
-            let timelineSet = false;
-            
             tables.forEach(table => {
                 const rows = table.querySelectorAll('tr');
                 let headerRowIndex = -1;
                 rows.forEach((row, idx) => {
                     const rowText = row.innerText;
-                    if(rowText.includes('時刻') && rowText.includes('活動')) {
-                        headerRowIndex = idx;
-                    }
+                    if(rowText.includes('時刻') && rowText.includes('活動')) headerRowIndex = idx;
                 });
-
                 if (headerRowIndex !== -1) {
                     const tbody = document.getElementById('timeline-body');
                     tbody.innerHTML = ''; 
                     for(let i = headerRowIndex + 1; i < rows.length; i++) {
                         const cells = rows[i].querySelectorAll('td');
                         if(cells.length > 0) {
-                            let t = cells[0]?.innerText || "";
-                            let c = cells[1]?.innerText || "";
-                            let tr = cells[2]?.innerText || "";
-                            let s = cells[3]?.innerText || "";
-                            
-                            addTimelineRow(t, c, tr, s);
+                            addTimelineRow(
+                                cells[0]?.innerText || "", cells[1]?.innerText || "",
+                                cells[2]?.innerText || "", cells[3]?.innerText || ""
+                            );
                         }
                     }
-                    timelineSet = true;
                 }
             });
 
-            // --- 4. 図の自動生成 ---
-            generateDiagram();
+            // --- 4. 図の自動生成（オブジェクト生成） ---
+            generateDiagramFromText();
         }
 
         function handleError(err) {
             console.error(err);
-            const msg = "読み込みエラーが発生しました。\nページをリロードするか、もう一度ファイルを選択してください。";
-            document.getElementById('status-msg').innerText = msg;
-            alert(msg + "\n" + err.message);
+            alert("読み込みエラー: " + err.message);
         }
 
-        // --- 自動作図ロジック (Canvas) ---
-        function generateDiagram() {
+        // --- テキストからオブジェクト生成 ---
+        function generateDiagramFromText() {
             const desc = document.getElementById('diagram-description').innerText;
             const canvas = document.getElementById('env-canvas');
-            const ctx = canvas.getContext('2d');
             const width = canvas.width;
             const height = canvas.height;
 
-            // クリア
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(0, 0, width, height);
+            // リセット
+            canvasObjects = [];
+            selectedIndex = -1;
 
-            // 枠線
-            ctx.strokeStyle = "#ccc";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(0, 0, width, height);
-
-            document.getElementById('placeholder-text').style.display = 'none';
-
-            // 図要素の描画
-            
-            // 1. トラック (楕円)
-            if (desc.includes("トラック") || desc.includes("楕円")) {
-                ctx.beginPath();
-                ctx.ellipse(width/2, height/2, width*0.35, height*0.25, 0, 0, 2 * Math.PI);
-                ctx.strokeStyle = "#555";
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                ctx.fillStyle = "#f9f9f9";
-                ctx.fill();
-            }
-
-            // 2. コーン / 待機場所
-            if (desc.includes("コーン") || desc.includes("待機")) {
-                const positions = [
-                    {x: width/2 - 40, y: height/2 + 30, color: "red"},
-                    {x: width/2 - 15, y: height/2 + 30, color: "white"},
-                    {x: width/2 + 15, y: height/2 + 30, color: "blue"},
-                    {x: width/2 + 40, y: height/2 + 30, color: "yellow"}
-                ];
-                positions.forEach(pos => {
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
-                    ctx.lineTo(pos.x + 8, pos.y + 16);
-                    ctx.lineTo(pos.x - 8, pos.y + 16);
-                    ctx.closePath();
-                    ctx.fillStyle = pos.color;
-                    ctx.fill();
-                    ctx.strokeStyle = "#333";
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                });
-            }
-
-            // 3. ゴール / 旗 / 得点板
-            if (desc.includes("ゴール") || desc.includes("旗") || desc.includes("得点板")) {
-                // 旗
-                ctx.beginPath();
-                ctx.moveTo(width - 50, height/2 - 30);
-                ctx.lineTo(width - 50, height/2 + 10);
-                ctx.strokeStyle = "#333";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                ctx.fillStyle = "blue";
-                ctx.fillRect(width - 50, height/2 - 30, 20, 15);
-                
-                // 得点板
-                ctx.fillStyle = "#fff";
-                ctx.fillRect(width - 60, height/2 - 50, 40, 20);
-                ctx.strokeRect(width - 60, height/2 - 50, 40, 20);
-                ctx.fillStyle = "#000";
-                ctx.font = "10px Arial";
-                ctx.fillText("得点", width - 55, height/2 - 38);
-            }
-
-            // 4. 保育者 (×印)
-            if (desc.includes("保育者") || desc.includes("×") || desc.includes("読み手")) {
-                const teachers = [
-                    {x: 60, y: 60, label: "T1"},
-                    {x: width - 60, y: height - 60, label: "T2"},
-                    {x: width/2, y: height - 40, label: "T3"}
-                ];
-                teachers.forEach(t => {
-                    ctx.font = "bold 16px Arial";
-                    ctx.fillStyle = "red";
-                    ctx.fillText("×", t.x, t.y);
-                    ctx.font = "10px Arial";
-                    ctx.fillText(t.label, t.x + 12, t.y);
-                });
-            }
-
-            // 5. かるた / 札 (円形 + ランダムな四角)
-            if (desc.includes("かるた") || desc.includes("札") || desc.includes("円形")) {
-                // 円形スペース
-                ctx.beginPath();
-                ctx.arc(width/2, height/2, 80, 0, 2 * Math.PI);
-                ctx.strokeStyle = "#888";
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]); // 点線
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.fillStyle = "#f0f8ff";
-                ctx.fill();
-
-                // ランダムな札
-                for(let i=0; i<8; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const r = Math.random() * 60; // 半径60以内で配置
-                    const x = width/2 + r * Math.cos(angle);
-                    const y = height/2 + r * Math.sin(angle);
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(x, y, 15, 20);
-                    ctx.strokeRect(x, y, 15, 20);
-                    // 文字風の線
-                    ctx.beginPath();
-                    ctx.moveTo(x+4, y+5);
-                    ctx.lineTo(x+11, y+15);
-                    ctx.stroke();
-                }
-            }
-
-            // 6. コの字 (ドット)
-            if (desc.includes("コの字")) {
-                const dots = [];
-                // 上辺
-                for(let x = 80; x < width - 80; x += 20) dots.push({x, y: 50});
-                // 左辺
-                for(let y = 50; y < height - 50; y += 20) dots.push({x: 80, y});
-                // 右辺
-                for(let y = 50; y < height - 50; y += 20) dots.push({x: width - 80, y});
-
-                ctx.fillStyle = "#333";
-                dots.forEach(d => {
-                    ctx.beginPath();
-                    ctx.arc(d.x, d.y, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-            }
-
-            // 7. ホワイトボード / 50音表
-            if (desc.includes("ホワイトボード") || desc.includes("50音")) {
-                // ホワイトボード
-                ctx.fillStyle = "#eee";
-                ctx.fillRect(width/2 - 40, 20, 80, 20);
-                ctx.strokeRect(width/2 - 40, 20, 80, 20);
-                ctx.fillStyle = "#000";
-                ctx.font = "10px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText("WB", width/2, 34);
-
-                // 50音表
-                if (desc.includes("50音")) {
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(width - 60, 30, 40, 50);
-                    ctx.strokeRect(width - 60, 30, 40, 50);
-                    ctx.fillStyle = "#000";
-                    ctx.fillText("あいう", width - 40, 50);
-                    ctx.fillText("えお", width - 40, 70);
-                }
-            }
-
-            // 何もマッチしなかった場合
             if (!desc && document.getElementById('field-env-text').innerText.trim() === "") {
-                 ctx.fillStyle = "#999";
-                 ctx.font = "12px sans-serif";
-                 ctx.textAlign = "center";
-                 ctx.fillText("【図のイメージ】の記述が読み込まれると", width/2, height/2);
-                 ctx.fillText("ここに自動で図が生成されます", width/2, height/2 + 20);
+                document.getElementById('placeholder-text').style.display = 'block';
+            } else {
+                document.getElementById('placeholder-text').style.display = 'none';
             }
+
+            // 1. トラック
+            if (desc.includes("トラック") || desc.includes("楕円")) {
+                canvasObjects.push({type: 'track', x: width/2, y: height/2, w: width*0.7, h: height*0.5});
+            }
+
+            // 2. コーン
+            if (desc.includes("コーン") || desc.includes("待機")) {
+                canvasObjects.push({type: 'cone', x: width/2 - 40, y: height/2 + 30, color: 'red'});
+                canvasObjects.push({type: 'cone', x: width/2 - 15, y: height/2 + 30, color: 'white'});
+                canvasObjects.push({type: 'cone', x: width/2 + 15, y: height/2 + 30, color: 'blue'});
+                canvasObjects.push({type: 'cone', x: width/2 + 40, y: height/2 + 30, color: 'yellow'});
+            }
+
+            // 3. ゴール
+            if (desc.includes("ゴール") || desc.includes("旗") || desc.includes("得点板")) {
+                canvasObjects.push({type: 'goal', x: width - 50, y: height/2 - 20});
+                canvasObjects.push({type: 'text', x: width - 40, y: height/2 - 40, text: "得点板"});
+            }
+
+            // 4. 保育者
+            if (desc.includes("保育者") || desc.includes("×") || desc.includes("読み手")) {
+                canvasObjects.push({type: 'teacher', x: 60, y: 60, label: 'T1', color: 'red'});
+                canvasObjects.push({type: 'teacher', x: width - 60, y: height - 60, label: 'T2', color: 'red'});
+                canvasObjects.push({type: 'teacher', x: width/2, y: height - 40, label: 'T3', color: 'red'});
+            }
+
+            // 5. かるた (円形配置の子供など)
+            if (desc.includes("かるた") || desc.includes("円形")) {
+                for(let i=0; i<8; i++) {
+                    const angle = (i / 8) * Math.PI * 2;
+                    const r = 60;
+                    canvasObjects.push({
+                        type: 'child', 
+                        x: width/2 + r * Math.cos(angle), 
+                        y: height/2 + r * Math.sin(angle),
+                        label: '子'
+                    });
+                }
+            }
+
+            // 6. コの字
+            if (desc.includes("コの字")) {
+                 for(let x = 80; x < width - 80; x += 30) canvasObjects.push({type: 'child', x: x, y: 50, label: '子'});
+                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
+                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
+            }
+
+            // 7. ホワイトボード
+            if (desc.includes("ホワイトボード") || desc.includes("50音")) {
+                canvasObjects.push({type: 'desk', x: width/2, y: 30, w: 80, h: 20, color: '#eee'});
+                canvasObjects.push({type: 'text', x: width/2, y: 34, text: 'WB'});
+            }
+
+            renderCanvas();
         }
     </script>
 </body>
