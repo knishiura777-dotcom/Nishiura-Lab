@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育実習日誌（Word読込・自動作図機能付）v12</title>
+    <title>教育実習日誌（Word読込・自動作図機能付）v15</title>
     <!-- Wordファイル解析用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -255,7 +255,7 @@
         </div>
 
         <button class="btn btn-purple" onclick="saveDiagramImage()">🖼️ 図を画像保存</button>
-        <button class="btn btn-clear" onclick="clearAll()">🗑️ クリア</button>
+        <button class="btn btn-clear" onclick="clearAll()">🗑️ クリア/リセット</button>
         
         <div id="status-msg"></div>
         <div class="note-msg">※Wordで図が表示されない場合は、「図を画像保存」で保存し、Wordに貼り付けてください。</div>
@@ -370,7 +370,6 @@
             clearAll();
         };
 
-        // 現在日時を取得して文字列（YYYYMMDD_HHmm）で返す関数
         function getFormattedDate() {
             const now = new Date();
             const yyyy = now.getFullYear();
@@ -383,11 +382,9 @@
 
         function printDocument() {
             const originalTitle = document.title;
-            // 印刷時のデフォルトファイル名としてタイトルを変更
             document.title = `教育実習日誌_${getFormattedDate()}`;
             window.focus();
             window.print();
-            // 少し待ってから元に戻す
             setTimeout(() => {
                 document.title = originalTitle;
             }, 2000);
@@ -401,10 +398,8 @@
             let downloadUrl;
             
             if (manualImg.style.display !== 'none' && manualImg.src) {
-                // 差し替え画像がある場合
                 downloadUrl = manualImg.src;
             } else if (canvas && canvas.style.display !== 'none') {
-                // Canvasの場合
                 try {
                     downloadUrl = canvas.toDataURL("image/png");
                 } catch(e) {
@@ -439,7 +434,6 @@
                     const originalImg = document.getElementById('manual-image');
                     const cloneCanvas = clone.querySelector('canvas');
                     
-                    // Canvasまたは差し替え画像を表示用画像タグに置換
                     let imgData = null;
                     if (originalImg.style.display !== 'none' && originalImg.src) {
                         imgData = originalImg.src;
@@ -456,14 +450,12 @@
                         img.style.width = '300px';        // スタイルでも指定
                         img.style.border = "1px solid #ccc";
                         
-                        // clone内の描画エリア（canvasとimg）を一旦削除して、新しいimgを入れる
                         const drawingArea = clone.querySelector('.env-drawing-area');
                         if (drawingArea) {
                             drawingArea.innerHTML = '';
                             drawingArea.appendChild(img);
                         }
                     } else {
-                        // 画像がない場合は空にする
                         const drawingArea = clone.querySelector('.env-drawing-area');
                         if(drawingArea) drawingArea.innerHTML = '（図なし）';
                     }
@@ -613,10 +605,21 @@
                 } catch (e) {
                     console.error(e);
                     document.getElementById('status-msg').innerText = "エラー: " + e.message;
-                    alert("保存中にエラーが発生しました。\n" + e.message);
+                    alert("保存中にエラーが発生しました。\n" + e.message + "\n\nページをリロードしてもう一度お試しください。");
                 }
             }, 100);
         }
+
+        // --- 同じファイルでも再読み込みできるようにする処理 ---
+        // input要素をクリックした際にvalueをリセットすることで、
+        // 前回と同じファイルを選んでもonchangeイベントが発火するようにする
+        document.getElementById('docx-input').addEventListener('click', function() {
+            this.value = null;
+        });
+        
+        document.getElementById('manual-img-input').addEventListener('click', function() {
+            this.value = null;
+        });
 
         function clearAll() {
             document.querySelectorAll('.editable').forEach(el => el.innerText = '');
@@ -633,6 +636,10 @@
             manualImg.src = "";
             manualImg.style.display = 'none';
             canvas.style.display = 'block';
+
+            // ファイル入力もリセット
+            document.getElementById('docx-input').value = null;
+            document.getElementById('manual-img-input').value = null;
 
             document.getElementById('placeholder-text').style.display = 'block';
             document.getElementById('diagram-description').innerText = '';
@@ -883,8 +890,9 @@
 
         function handleError(err) {
             console.error(err);
-            document.getElementById('status-msg').innerText = "読み込みエラー: " + err.message;
-            alert("読み込みエラー: " + err.message);
+            const msg = "読み込みエラーが発生しました。\nページをリロードするか、もう一度ファイルを選択してください。";
+            document.getElementById('status-msg').innerText = msg;
+            alert(msg + "\n" + err.message);
         }
 
         // --- 自動作図ロジック (Canvas) ---
@@ -965,7 +973,7 @@
             }
 
             // 4. 保育者 (×印)
-            if (desc.includes("保育者") || desc.includes("×")) {
+            if (desc.includes("保育者") || desc.includes("×") || desc.includes("読み手")) {
                 const teachers = [
                     {x: 60, y: 60, label: "T1"},
                     {x: width - 60, y: height - 60, label: "T2"},
@@ -978,6 +986,76 @@
                     ctx.font = "10px Arial";
                     ctx.fillText(t.label, t.x + 12, t.y);
                 });
+            }
+
+            // 5. かるた / 札 (円形 + ランダムな四角)
+            if (desc.includes("かるた") || desc.includes("札") || desc.includes("円形")) {
+                // 円形スペース
+                ctx.beginPath();
+                ctx.arc(width/2, height/2, 80, 0, 2 * Math.PI);
+                ctx.strokeStyle = "#888";
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]); // 点線
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = "#f0f8ff";
+                ctx.fill();
+
+                // ランダムな札
+                for(let i=0; i<8; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const r = Math.random() * 60; // 半径60以内で配置
+                    const x = width/2 + r * Math.cos(angle);
+                    const y = height/2 + r * Math.sin(angle);
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(x, y, 15, 20);
+                    ctx.strokeRect(x, y, 15, 20);
+                    // 文字風の線
+                    ctx.beginPath();
+                    ctx.moveTo(x+4, y+5);
+                    ctx.lineTo(x+11, y+15);
+                    ctx.stroke();
+                }
+            }
+
+            // 6. コの字 (ドット)
+            if (desc.includes("コの字")) {
+                const dots = [];
+                // 上辺
+                for(let x = 80; x < width - 80; x += 20) dots.push({x, y: 50});
+                // 左辺
+                for(let y = 50; y < height - 50; y += 20) dots.push({x: 80, y});
+                // 右辺
+                for(let y = 50; y < height - 50; y += 20) dots.push({x: width - 80, y});
+
+                ctx.fillStyle = "#333";
+                dots.forEach(d => {
+                    ctx.beginPath();
+                    ctx.arc(d.x, d.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            // 7. ホワイトボード / 50音表
+            if (desc.includes("ホワイトボード") || desc.includes("50音")) {
+                // ホワイトボード
+                ctx.fillStyle = "#eee";
+                ctx.fillRect(width/2 - 40, 20, 80, 20);
+                ctx.strokeRect(width/2 - 40, 20, 80, 20);
+                ctx.fillStyle = "#000";
+                ctx.font = "10px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("WB", width/2, 34);
+
+                // 50音表
+                if (desc.includes("50音")) {
+                    ctx.fillStyle = "#fff";
+                    ctx.fillRect(width - 60, 30, 40, 50);
+                    ctx.strokeRect(width - 60, 30, 40, 50);
+                    ctx.fillStyle = "#000";
+                    ctx.fillText("あいう", width - 40, 50);
+                    ctx.fillText("えお", width - 40, 70);
+                }
             }
 
             // 何もマッチしなかった場合
