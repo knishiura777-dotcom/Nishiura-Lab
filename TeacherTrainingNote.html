@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>教育実習日誌（Word読込・自動作図機能付）v15</title>
+    <title>教育実習日誌（Word読込・自動作図機能付）v18</title>
     <!-- Wordファイル解析用ライブラリ -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -682,17 +682,40 @@
         // --- Word読み込みロジック (Mammoth.js使用) ---
         document.getElementById('docx-input').addEventListener('change', function(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                return;
+            }
+            
+            if (file.size === 0) {
+                const msg = "ファイルが空のようです。正しいWordファイルを選択してください。";
+                document.getElementById('status-msg').innerText = msg;
+                alert(msg);
+                return;
+            }
 
             document.getElementById('status-msg').innerText = "ファイルを解析中...";
 
             const reader = new FileReader();
-            reader.onload = function(event) {
-                const arrayBuffer = event.target.result;
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                
+                // バッファが正常に読み込めたか確認
+                if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+                    handleError(new Error("ファイルの内容を読み取れませんでした。"));
+                    return;
+                }
+
+                // Mammoth.js の convertToHtml に直接 arrayBuffer を渡す
                 mammoth.convertToHtml({arrayBuffer: arrayBuffer})
                     .then(displayResult)
                     .catch(handleError);
             };
+            
+            // エラーハンドリングを追加
+            reader.onerror = function() {
+                handleError(new Error("ファイルの読み込み中にエラーが発生しました。"));
+            };
+
             reader.readAsArrayBuffer(file);
         });
 
