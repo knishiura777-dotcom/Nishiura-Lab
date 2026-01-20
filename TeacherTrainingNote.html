@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（Award-Winning Design）v38-alpha.2</title>
+    <title>教育実習日誌（Undo/Redo機能実装版）v41-beta</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -27,6 +27,9 @@
             --text-color: #374151;
             --border-radius: 12px;
             --control-radius: 99px; /* ピル型 */
+            --error-bg: #fff1f0;
+            --error-border: #ffccc7;
+            --error-text: #ef4444;
         }
 
         body {
@@ -93,11 +96,6 @@
             height: 20px;
             background-color: #d1d5db;
             margin: 0 8px;
-        }
-
-        .spacer {
-            flex-grow: 1;
-            min-width: 20px;
         }
 
         .file-upload-wrapper {
@@ -345,6 +343,26 @@
         }
         .save-check-item input { margin-top: 3px; accent-color: #111; }
 
+        /* バリデーション警告（モーダル内） */
+        .validation-warning {
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
+            color: #c2410c;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .validation-warning.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
         /* --- 著作権 --- */
         .copyright {
             text-align: center;
@@ -383,9 +401,38 @@
         .header-table th, .header-table td, .content-table th, .content-table td { border: 1px solid #e5e7eb; padding: 12px; vertical-align: top; }
         .header-table th { background-color: #f9fafb; text-align: center; width: 15%; font-weight: 700; color: #374151; }
         
-        .editable { background-color: #fffbeb; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; min-height: 1.5em; outline: none; }
+        .editable { 
+            position: relative;
+            background-color: #fffbeb; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            transition: all 0.2s; 
+            min-height: 1.5em; 
+            outline: none; 
+        }
         .editable:focus { background-color: #fef3c7; box-shadow: 0 0 0 2px #fcd34d; }
         .editable:empty::before { content: "[入力]"; color: #d1d5db; }
+
+        /* 必須項目の強調表示 */
+        .editable[data-required="true"]:empty {
+            background-color: var(--error-bg);
+            box-shadow: 0 0 0 1px var(--error-border);
+        }
+        /* 必須バッジ */
+        .editable[data-required="true"]:empty::after {
+            content: "必須";
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            background-color: var(--error-text);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            pointer-events: none;
+            opacity: 0.8;
+        }
 
         .env-section { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 30px; background-color: #fff; border-radius: 8px; }
         .env-drawing-area { border: 2px dashed #e5e7eb; height: 300px; display: flex; align-items: center; justify-content: center; background-color: #fafafa; position: relative; overflow: hidden; border-radius: 8px; }
@@ -416,13 +463,33 @@
         .tool-btn.danger { color: #ef4444; border-color: #fecaca; }
         .tool-btn.danger:hover { background-color: #fef2f2; border-color: #ef4444; }
 
+        /* 区切り線 */
+        .tool-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #e5e7eb;
+            margin: 0 8px;
+        }
+
+        /* フッターエリア (バージョン & 自動保存情報) */
+        .footer-info {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
         /* 印刷設定 */
         @media print {
             body { background: #fff; padding: 0; }
             .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; border-radius: 0; }
             .no-print, .controls, .copyright, .modal-overlay { display: none !important; }
-            .editable { background-color: transparent !important; padding: 0; }
+            .editable { background-color: transparent !important; padding: 0; box-shadow: none !important; }
             .editable:empty::before { content: ""; }
+            .editable[data-required="true"]:empty::after { display: none; } /* 印刷時は必須バッジ消す */
             .env-drawing-area { border: 1px solid #111; }
             .drawing-toolbar { display: none; }
             .controls { display: none; } /* コントロールパネル非表示 */
@@ -466,6 +533,11 @@
         <div class="modal-content">
             <div id="save-title" class="modal-title">保存前の確認</div>
             <div class="modal-body">
+                <!-- バリデーション警告メッセージ -->
+                <div id="validation-msg" class="validation-warning">
+                    <span>⚠️</span> <span id="validation-text"></span>
+                </div>
+                
                 <p>実習日誌を保存する前に、以下の点を確認してください。</p>
                 
                 <div class="save-check-list">
@@ -548,11 +620,11 @@
             <div class="student-info">
                 <div class="info-row">
                     <span class="info-label">大学名</span>
-                    <div class="editable info-input" id="field-university" contenteditable="true"></div>
+                    <div class="editable info-input" id="field-university" contenteditable="true" data-required="true"></div>
                 </div>
                 <div class="info-row">
                     <span class="info-label">氏名</span>
-                    <div class="editable info-input" id="field-name" contenteditable="true"></div>
+                    <div class="editable info-input" id="field-name" contenteditable="true" data-required="true"></div>
                 </div>
             </div>
         </div>
@@ -561,9 +633,9 @@
         <table class="header-table">
             <tr>
                 <th>月・日・曜日</th>
-                <td style="width: 25%;"><div class="editable" id="field-date" contenteditable="true"></div></td>
+                <td style="width: 25%;"><div class="editable" id="field-date" contenteditable="true" data-required="true"></div></td>
                 <th>天気</th>
-                <td style="width: 15%;"><div class="editable" id="field-weather" contenteditable="true"></div></td>
+                <td style="width: 15%;"><div class="editable" id="field-weather" contenteditable="true" data-required="true"></div></td>
                 <!-- 印鑑枠 -->
                 <td colspan="2" style="padding: 0; vertical-align: middle;">
                     <div class="stamp-area">
@@ -574,10 +646,10 @@
             </tr>
             <tr>
                 <th>配属組</th>
-                <td><div class="editable" id="field-class" contenteditable="true"></div></td>
+                <td><div class="editable" id="field-class" contenteditable="true" data-required="true"></div></td>
                 <th>出席</th>
                 <td colspan="3">
-                    <div class="editable" id="field-attendance" contenteditable="true"></div>
+                    <div class="editable" id="field-attendance" contenteditable="true" data-required="true"></div>
                 </td>
             </tr>
         </table>
@@ -586,11 +658,11 @@
         <table class="header-table">
             <tr>
                 <th>クラスの<br>ねらい</th>
-                <td><div class="editable" id="field-class-goal" contenteditable="true"></div></td>
+                <td><div class="editable" id="field-class-goal" contenteditable="true" data-required="true"></div></td>
             </tr>
             <tr>
                 <th>実習生の<br>目標</th>
-                <td><div class="editable" id="field-student-goal" contenteditable="true"></div></td>
+                <td><div class="editable" id="field-student-goal" contenteditable="true" data-required="true"></div></td>
             </tr>
         </table>
 
@@ -599,8 +671,11 @@
             <span style="font-weight:bold; display:block; margin-bottom:15px; font-size:14px; color:#6b7280; letter-spacing:0.05em;">環境構成・配置図</span>
             <div class="env-content">
                 <div class="env-drawing-container">
-                    <!-- 作図ツールバー（CSSでボタンのデザインも微調整） -->
+                    <!-- 作図ツールバー -->
                     <div id="drawing-toolbar" class="drawing-toolbar no-print">
+                        <button class="tool-btn" data-action="undo" title="元に戻す (Ctrl+Z)">↶ 元に戻す</button>
+                        <button class="tool-btn" data-action="redo" title="やり直す (Ctrl+Y)">↷ やり直す</button>
+                        <div class="tool-divider" style="display:inline-block; width:1px; height:16px; background:#ddd; margin:0 5px; vertical-align:middle;"></div>
                         <button class="tool-btn" data-action="add" data-type="teacher">＋保育者</button>
                         <button class="tool-btn" data-action="add" data-type="child">＋子供</button>
                         <button class="tool-btn" data-action="add" data-type="desk">＋机</button>
@@ -620,7 +695,7 @@
                 </div>
                 
                 <div class="env-text-area">
-                    <div class="editable" id="field-env-text" contenteditable="true"></div>
+                    <div class="editable" id="field-env-text" contenteditable="true" data-required="true"></div>
                 </div>
             </div>
              <div id="diagram-description" style="display:none;"></div>
@@ -645,14 +720,14 @@
         <div class="record-section">
             <div class="record-header">主な活動の記録</div>
             <div class="record-body">
-                <div class="editable" id="field-record" contenteditable="true"></div>
+                <div class="editable" id="field-record" contenteditable="true" data-required="true"></div>
             </div>
         </div>
 
         <div class="record-section">
             <div class="record-header">振り返りと課題</div>
             <div class="record-body">
-                <div class="editable" id="field-reflection" contenteditable="true"></div>
+                <div class="editable" id="field-reflection" contenteditable="true" data-required="true"></div>
             </div>
         </div>
 
@@ -663,9 +738,10 @@
             </div>
         </div>
 
-        <!-- バージョン情報表示 -->
-        <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #d1d5db; margin-top: 20px;">
-            App Version: v38-alpha.2 (UI Redesigned)
+        <!-- バージョン情報表示 (フッターエリア) -->
+        <div class="footer-info no-print">
+            <span id="auto-save-status"></span>
+            <span>App Version: v41-beta (Undo/Redo Added)</span>
         </div>
 
     </div>
@@ -684,6 +760,7 @@
         let dragStartY = 0;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
+        let isDragStarted = false; // ドラッグ開始判定フラグ
         
         let currentObjectUrl = null;
         let currentFileName = "";
@@ -694,12 +771,207 @@
 
         const focusableElementsSelector = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
 
+        // --- 自動保存用設定 ---
+        const STORAGE_KEY = 'tt_note_data_v1';
+        let saveTimeout = null;
+
+        // --- Undo/Redo 履歴管理 ---
+        const MAX_HISTORY = 50;
+        let history = [];
+        let historyStep = -1;
+
         // --- 初期化 ---
         window.addEventListener('DOMContentLoaded', function() {
             initApp();
             initModal();        
             initSaveConfirmModal(); 
+            // データ復元を試みる
+            loadFromStorage();
+            
+            // Undo/Redo キーボードショートカット
+            window.addEventListener('keydown', function(e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+                    e.preventDefault();
+                    undo();
+                }
+                if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            });
         });
+
+        // --- 履歴管理関数 ---
+        function saveState() {
+            // 現在の状態をディープコピー（簡易）
+            const state = JSON.stringify(canvasObjects);
+            
+            // 同じ状態なら保存しない（連続クリック対策など）
+            if (historyStep >= 0 && history[historyStep] === state) {
+                return;
+            }
+
+            // 現在のステップ以降の履歴を削除（分岐後のRedo不可）
+            if (historyStep < history.length - 1) {
+                history = history.slice(0, historyStep + 1);
+            }
+            
+            history.push(state);
+            historyStep++;
+            
+            if (history.length > MAX_HISTORY) {
+                history.shift();
+                historyStep--;
+            }
+            
+            updateUndoRedoButtons();
+            debouncedSave(); // 履歴が変わったら自動保存もトリガー
+        }
+
+        function undo() {
+            if (historyStep > 0) {
+                historyStep--;
+                const state = JSON.parse(history[historyStep]);
+                canvasObjects = state;
+                selectedIndex = -1; // 選択解除
+                renderCanvas();
+                updateUndoRedoButtons();
+                debouncedSave();
+            }
+        }
+
+        function redo() {
+            if (historyStep < history.length - 1) {
+                historyStep++;
+                const state = JSON.parse(history[historyStep]);
+                canvasObjects = state;
+                selectedIndex = -1; // 選択解除
+                renderCanvas();
+                updateUndoRedoButtons();
+                debouncedSave();
+            }
+        }
+        
+        function updateUndoRedoButtons() {
+            const undoBtn = document.querySelector('button[data-action="undo"]');
+            const redoBtn = document.querySelector('button[data-action="redo"]');
+            if(undoBtn) undoBtn.disabled = (historyStep <= 0);
+            if(redoBtn) redoBtn.disabled = (historyStep >= history.length - 1);
+        }
+
+        // --- 自動保存ロジック ---
+        function saveToStorage() {
+            const data = {
+                fields: {},
+                timeline: [],
+                canvasObjects: canvasObjects,
+                timestamp: new Date().getTime()
+            };
+
+            // IDを持つeditableフィールドの保存
+            const ids = ['field-university', 'field-name', 'field-date', 'field-weather', 'field-class', 'field-attendance', 'field-class-goal', 'field-student-goal', 'field-env-text', 'field-record', 'field-reflection', 'field-feedback'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) data.fields[id] = el.innerHTML; // リッチテキスト(改行含む)維持のためinnerHTML
+            });
+            
+            // タイムラインの保存
+            const tbody = document.getElementById('timeline-body');
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(tr => {
+                const cells = tr.querySelectorAll('.editable');
+                const rowData = [];
+                cells.forEach(c => rowData.push(c.innerHTML));
+                data.timeline.push(rowData);
+            });
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                
+                // 保存時刻の更新
+                const now = new Date();
+                const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                const statusEl = document.getElementById('auto-save-status');
+                if(statusEl) statusEl.innerText = `最終保存: ${timeStr}`;
+                
+            } catch(e) {
+                console.error("Storage save error", e);
+            }
+        }
+
+        // デバウンス付き保存関数（入力が止まってから1秒後に保存）
+        function debouncedSave() {
+            if(saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveToStorage, 1000);
+        }
+
+        // --- 自動復元ロジック ---
+        function loadFromStorage() {
+            const json = localStorage.getItem(STORAGE_KEY);
+            if (!json) {
+                // 初回起動時は空の履歴で初期化
+                saveState();
+                return;
+            }
+
+            try {
+                const data = JSON.parse(json);
+                
+                // フィールド復元
+                if (data.fields) {
+                    for (const [id, html] of Object.entries(data.fields)) {
+                        const el = document.getElementById(id);
+                        if (el) el.innerHTML = sanitizeHtml(html);
+                    }
+                }
+
+                // タイムライン復元
+                if (data.timeline && Array.isArray(data.timeline)) {
+                    const tbody = document.getElementById('timeline-body');
+                    tbody.innerHTML = ''; // 一旦クリア
+                    data.timeline.forEach(rowData => {
+                        const tr = document.createElement('tr');
+                        rowData.forEach(cellHtml => {
+                            const td = document.createElement('td');
+                            const div = document.createElement('div');
+                            div.className = 'editable';
+                            div.contentEditable = 'true';
+                            div.innerHTML = sanitizeHtml(cellHtml);
+                            // 復元した要素にもイベントリスナー再設定が必要
+                            div.addEventListener('input', debouncedSave);
+                            td.appendChild(div);
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                }
+                
+                // 行数が不足している場合は足す（基本6行維持のため）
+                const currentRows = document.getElementById('timeline-body').querySelectorAll('tr').length;
+                for(let i = currentRows; i < 6; i++) {
+                    addTimelineRow();
+                }
+
+                // Canvasオブジェクト復元
+                if (data.canvasObjects) {
+                    canvasObjects = data.canvasObjects;
+                    renderCanvas();
+                    // 復元した状態を履歴の初期状態とする
+                    history = []; historyStep = -1;
+                    saveState();
+                } else {
+                    saveState(); // なければ空状態で初期化
+                }
+
+                // 復元完了通知
+                updateStatus('success', '自動保存データを復元しました');
+
+            } catch (e) {
+                console.error("Load error", e);
+                saveState(); // エラー時は初期化
+            }
+        }
+
 
         // --- ステータス表示更新用関数 ---
         function updateStatus(type, text, fileName) {
@@ -825,10 +1097,23 @@
              lastFocusedElement = document.activeElement; 
              const modal = document.getElementById('save-confirm-modal');
              
+             // チェックリセット
              const checkboxes = modal.querySelectorAll('.save-check');
              const executeBtn = document.getElementById('btn-execute-save');
              checkboxes.forEach(cb => cb.checked = false);
              executeBtn.disabled = true;
+
+             // 未入力チェック（入力漏れ検知）
+             const emptyRequired = document.querySelectorAll('.editable[data-required="true"]:empty');
+             const validationMsg = document.getElementById('validation-msg');
+             const validationText = document.getElementById('validation-text');
+             
+             if (emptyRequired.length > 0) {
+                 validationText.innerText = `未入力の必須項目が ${emptyRequired.length} 件あります。確認してください。`;
+                 validationMsg.classList.add('show');
+             } else {
+                 validationMsg.classList.remove('show');
+             }
              
              modal.style.display = 'flex';
              
@@ -871,20 +1156,31 @@
                         const type = e.target.getAttribute('data-type');
                         if (action === 'add' && type) {
                             addObj(type);
+                            saveState(); // 追加後履歴保存
                         } else if (action === 'regen') {
                             generateDiagramFromText();
+                            saveState(); // 再生成後履歴保存
                         } else if (action === 'delete') {
                             deleteSelectedObj();
+                            saveState(); // 削除後履歴保存
+                        } else if (action === 'undo') {
+                            undo();
+                        } else if (action === 'redo') {
+                            redo();
                         }
                     }
                 });
             }
 
             initCanvasEvents();
-            clearAll();
+            
+            // 全てのeditable要素に保存トリガーを設定
+            document.querySelectorAll('.editable').forEach(el => {
+                el.addEventListener('input', debouncedSave);
+            });
         }
 
-        // --- バグ修正: 大学名と氏名は消さない ---
+        // --- バグ修正: 大学名と氏名は消さない + ストレージクリア ---
         function clearAll() {
             document.querySelectorAll('.editable').forEach(el => {
                 if (el.id !== 'field-university' && el.id !== 'field-name') {
@@ -913,11 +1209,21 @@
             document.getElementById('docx-input').value = null;
             document.getElementById('manual-img-input').value = null;
 
+            // diagram-description はもう使っていないので無視してよいが念のため
             const desc = document.getElementById('diagram-description');
             if(desc) desc.innerText = '';
             
             updateStatus(null); 
             currentFileName = "";
+            
+            // ローカルストレージも削除
+            localStorage.removeItem(STORAGE_KEY);
+            const statusEl = document.getElementById('auto-save-status');
+            if(statusEl) statusEl.innerText = '';
+            
+            // 履歴リセット
+            history = []; historyStep = -1;
+            saveState(); // クリア状態を保存
         }
 
         function addTimelineRow(time='', child='', teacher='', student='') {
@@ -930,6 +1236,7 @@
                 div.className = 'editable';
                 div.contentEditable = 'true';
                 div.innerText = text; 
+                div.addEventListener('input', debouncedSave); // 新規行にも保存トリガー
                 td.appendChild(div);
                 return td;
             };
@@ -1055,6 +1362,7 @@
                 dragStartY = pos.y;
                 dragOffsetX = canvasObjects[hitIndex].x - pos.x;
                 dragOffsetY = canvasObjects[hitIndex].y - pos.y;
+                isDragStarted = true; // ドラッグ開始
             } else {
                 selectedIndex = -1;
             }
@@ -1079,7 +1387,14 @@
             }
         }
 
-        function handleMouseUp(e) { isDragging = false; renderCanvas(); }
+        function handleMouseUp(e) { 
+            if(isDragging && isDragStarted) {
+                isDragging = false; 
+                isDragStarted = false;
+                saveState(); // ドラッグ終了時に履歴保存
+            }
+            renderCanvas(); 
+        }
         function handleTouchStart(e) { handleMouseDown(e); }
         function handleTouchMove(e) { handleMouseMove(e); }
 
@@ -1656,8 +1971,8 @@
 
             // 8. コの字型配置
             if (has(["コの字"])) {
-                 for(let x = 80; x < width - 80; x += 40) canvasObjects.push({type: 'child', x: x, y: 80, label: '子'});
-                 for(let y = 80; y < height - 80; y += 40) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
+                 for(let x = 80; x < width - 80; x += 40) canvasObjects.push({type: 'child', x: x, y: 50, label: '子'});
+                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
                  for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
             }
 
