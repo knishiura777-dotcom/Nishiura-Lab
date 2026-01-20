@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（Undo/Redo機能実装版）v41-beta</title>
+    <title>教育実習日誌（自動保存インジケーター強化版）v42-beta</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -481,6 +481,16 @@
             font-size: 11px;
             color: #9ca3af;
         }
+        
+        .auto-save-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: monospace;
+            background-color: #f3f4f6;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
 
         /* 印刷設定 */
         @media print {
@@ -740,8 +750,8 @@
 
         <!-- バージョン情報表示 (フッターエリア) -->
         <div class="footer-info no-print">
-            <span id="auto-save-status"></span>
-            <span>App Version: v41-beta (Undo/Redo Added)</span>
+            <span id="auto-save-status" class="auto-save-label"></span>
+            <span>App Version: v42-beta</span>
         </div>
 
     </div>
@@ -861,6 +871,10 @@
 
         // --- 自動保存ロジック ---
         function saveToStorage() {
+            // 保存開始インジケーター
+            const statusEl = document.getElementById('auto-save-status');
+            if(statusEl) statusEl.innerText = '💾 保存中...';
+
             const data = {
                 fields: {},
                 timeline: [],
@@ -891,16 +905,22 @@
                 // 保存時刻の更新
                 const now = new Date();
                 const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                const statusEl = document.getElementById('auto-save-status');
-                if(statusEl) statusEl.innerText = `最終保存: ${timeStr}`;
+                if(statusEl) {
+                    statusEl.innerText = `☁️ 保存済み (${timeStr})`;
+                }
                 
             } catch(e) {
                 console.error("Storage save error", e);
+                if(statusEl) statusEl.innerText = '⚠️ 保存エラー';
             }
         }
 
         // デバウンス付き保存関数（入力が止まってから1秒後に保存）
         function debouncedSave() {
+            // 即時フィードバック：入力中であることを表示
+            const statusEl = document.getElementById('auto-save-status');
+            if(statusEl) statusEl.innerText = '🖊️ 保存待機中...';
+            
             if(saveTimeout) clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveToStorage, 1000);
         }
@@ -1109,7 +1129,7 @@
              const validationText = document.getElementById('validation-text');
              
              if (emptyRequired.length > 0) {
-                 validationText.innerText = `未入力の必須項目が ${emptyRequired.length} 件あります。確認してください。`;
+                 validationText.innerText = `⚠️ 未入力の必須項目が ${emptyRequired.length} 件あります。確認してください。`;
                  validationMsg.classList.add('show');
              } else {
                  validationMsg.classList.remove('show');
@@ -1156,13 +1176,13 @@
                         const type = e.target.getAttribute('data-type');
                         if (action === 'add' && type) {
                             addObj(type);
-                            saveState(); // 追加後履歴保存
+                            debouncedSave();
                         } else if (action === 'regen') {
                             generateDiagramFromText();
-                            saveState(); // 再生成後履歴保存
+                            debouncedSave();
                         } else if (action === 'delete') {
                             deleteSelectedObj();
-                            saveState(); // 削除後履歴保存
+                            debouncedSave();
                         } else if (action === 'undo') {
                             undo();
                         } else if (action === 'redo') {
@@ -1384,6 +1404,7 @@
                 obj.x = pos.x + dragOffsetX;
                 obj.y = pos.y + dragOffsetY;
                 renderCanvas();
+                debouncedSave(); // ドラッグ中も保存（頻度注意だが、mouseupで確定保存がいいかも）
             }
         }
 
