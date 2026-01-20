@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.6</title>
+    <title>教育実習日誌（修正完全版）v43-beta.9</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -238,6 +238,21 @@
         .modal-overlay[style*="display: flex"] .modal-content {
             transform: scale(1);
         }
+        
+        /* エディタ用モーダル拡張 */
+        .modal-content.wide {
+            max-width: 800px;
+            padding: 30px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-content.wide .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 20px;
+        }
 
         .modal-title {
             font-size: 24px;
@@ -284,6 +299,20 @@
         }
         .save-check-item { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; }
         .save-check-item input { margin-top: 3px; accent-color: #111; }
+
+        /* ルールエディタ用スタイル */
+        .rule-list { list-style: none; padding: 0; margin: 0; }
+        .rule-item { 
+            background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 8px; 
+        }
+        .rule-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: bold; font-size: 14px; }
+        .rule-keys-editor { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: monospace; box-sizing: border-box; }
+        .rule-type-badge { font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; margin-left: 8px; text-transform: uppercase; }
+        
+        .json-editor {
+            width: 100%; height: 150px; font-family: monospace; font-size: 12px; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #1e1e1e; color: #d4d4d4; resize: vertical; box-sizing: border-box;
+        }
+        .helper-text { font-size: 12px; color: #6b7280; margin-top: 4px; }
 
         /* バリデーション警告 */
         .validation-warning {
@@ -429,6 +458,42 @@
         </div>
     </div>
 
+    <!-- 3. ルール設定モーダル -->
+    <div id="settings-modal" class="modal-overlay no-print" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <div class="modal-content wide">
+            <div id="settings-title" class="modal-title">作図ルール設定</div>
+            <div class="modal-body">
+                <p style="margin-bottom: 20px;">環境構成図の自動生成キーワードをカスタマイズできます。</p>
+                
+                <h3 style="margin-top:0;">既存ルールの編集</h3>
+                <ul id="rule-list-container" class="rule-list">
+                    <!-- JSで生成 -->
+                </ul>
+
+                <h3 style="margin-top:30px;">カスタムルールの追加 (JSON形式)</h3>
+                <div style="background:#f0f0f0; padding:15px; border-radius:8px;">
+                    <textarea id="custom-rule-json" class="json-editor" placeholder='{
+  "name": "滑り台",
+  "keys": ["滑り台", "すべり台"],
+  "objects": [
+    { "type": "desk", "x": "30%", "y": "30%", "w": 60, "h": 100, "color": "orange" },
+    { "type": "text", "x": "30%", "y": "30%", "text": "滑り台" }
+  ]
+}'></textarea>
+                    <div class="helper-text">
+                        座標は "50%" (中央), "100%-50" (端から50px), 数値 (絶対座標) が使用可能です。
+                        使用可能なtype: teacher, child, desk, chair, piano, mat, cone, goal, text, track
+                    </div>
+                    <button id="btn-add-custom-rule" class="btn-outline" style="margin-top:10px; width:100%;">このルールを追加</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-close-settings" class="btn-solid">閉じる</button>
+                <button id="btn-reset-rules" class="btn-outline" style="color:#ef4444; border-color:#fca5a5;">設定リセット</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- モダンUI コントロールパネル -->
     <div class="controls no-print">
@@ -461,6 +526,9 @@
             </div>
             <button id="btn-save-img" class="btn" title="現在の図を画像として保存">
                 <span class="icon">⬇️</span> <span class="label">図をDL</span>
+            </button>
+            <button id="btn-settings" class="btn" title="作図ルール設定">
+                <span class="icon">⚙️</span> <span class="label">設定</span>
             </button>
         </div>
 
@@ -608,7 +676,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.6</span>
+            <span>App Version: v43-beta.9</span>
         </div>
 
     </div>
@@ -640,6 +708,7 @@
 
         // --- 自動保存用設定 ---
         const STORAGE_KEY = 'tt_note_data_v1';
+        const RULES_STORAGE_KEY = 'tt_note_rules_v1';
         let saveTimeout = null;
 
         // --- Undo/Redo 履歴管理 ---
@@ -651,7 +720,8 @@
         window.addEventListener('DOMContentLoaded', function() {
             initApp();
             initModal();        
-            initSaveConfirmModal(); 
+            initSaveConfirmModal();
+            initSettingsModal(); // 追加
             loadFromStorage();
             
             // Undo/Redo キーボードショートカット
@@ -922,6 +992,133 @@
             modal.style.display = 'none';
             if (lastFocusedElement) lastFocusedElement.focus();
         }
+
+        // --- 3. 設定モーダル（ルールエディタ） ---
+        let userRules = { defaults: {}, custom: [] }; // ユーザー設定（キーワード上書き, カスタムルール）
+
+        function initSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            const btnSettings = document.getElementById('btn-settings');
+            const btnClose = document.getElementById('btn-close-settings');
+            const btnReset = document.getElementById('btn-reset-rules');
+            const btnAddCustom = document.getElementById('btn-add-custom-rule');
+
+            btnSettings.addEventListener('click', () => {
+                loadUserRules();
+                renderRuleEditor();
+                modal.style.display = 'flex';
+            });
+
+            btnClose.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            btnReset.addEventListener('click', () => {
+                if(confirm('すべての設定（キーワード変更、カスタムルール）を初期化しますか？')) {
+                    userRules = { defaults: {}, custom: [] };
+                    saveUserRules();
+                    renderRuleEditor();
+                    alert('設定をリセットしました');
+                }
+            });
+
+            btnAddCustom.addEventListener('click', () => {
+                const jsonText = document.getElementById('custom-rule-json').value;
+                try {
+                    const rule = JSON.parse(jsonText);
+                    if(!rule.name || !rule.keys || !rule.objects) throw new Error('name, keys, objectsは必須です');
+                    userRules.custom.push(rule);
+                    saveUserRules();
+                    renderRuleEditor();
+                    alert(`ルール「${rule.name}」を追加しました`);
+                    document.getElementById('custom-rule-json').value = ''; // クリア
+                } catch(e) {
+                    alert('JSONの形式が正しくありません:\n' + e.message);
+                }
+            });
+        }
+
+        function loadUserRules() {
+            const saved = localStorage.getItem(RULES_STORAGE_KEY);
+            if(saved) {
+                try { userRules = JSON.parse(saved); } catch(e) { console.error(e); }
+            }
+            // 構造初期化チェック
+            if (!userRules.defaults) userRules.defaults = {};
+            if (!userRules.custom) userRules.custom = [];
+        }
+
+        function saveUserRules() {
+            localStorage.setItem(RULES_STORAGE_KEY, JSON.stringify(userRules));
+        }
+
+        function renderRuleEditor() {
+            const container = document.getElementById('rule-list-container');
+            container.innerHTML = '';
+
+            // 1. 既存ルール (Static & Layouts & Props)
+            const categories = [
+                {id: 'static', label: '固定設備'},
+                {id: 'layouts', label: 'レイアウト'},
+                {id: 'props', label: '用具・小物'}
+            ];
+
+            categories.forEach(cat => {
+                DIAGRAM_RULES[cat.id].forEach((rule, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'rule-item';
+                    
+                    // ID生成 (例: static_0)
+                    const ruleId = `${cat.id}_${idx}`;
+                    // 現在のキーワード（保存されたものがあればそれ、なければデフォルト）
+                    const currentKeys = userRules.defaults[ruleId] || rule.keys.join(', ');
+                    const defaultName = rule.keys[0]; // 代表名
+
+                    li.innerHTML = `
+                        <div class="rule-header">
+                            <span>${defaultName} <span class="rule-type-badge">${cat.label}</span></span>
+                        </div>
+                        <input type="text" class="rule-keys-editor" value="${currentKeys}" data-rule-id="${ruleId}">
+                    `;
+                    container.appendChild(li);
+                });
+            });
+
+            // 2. カスタムルール
+            userRules.custom.forEach((rule, idx) => {
+                const li = document.createElement('li');
+                li.className = 'rule-item';
+                li.style.borderLeft = '4px solid #2563eb';
+                li.innerHTML = `
+                    <div class="rule-header">
+                        <span>${rule.name} <span class="rule-type-badge" style="background:#dbeafe; color:#1e40af;">カスタム</span></span>
+                        <button class="btn-danger" onclick="deleteCustomRule(${idx})" style="padding:2px 8px; font-size:10px;">削除</button>
+                    </div>
+                    <div style="font-size:12px; color:#666; margin-bottom:4px;">キーワード: ${rule.keys.join(', ')}</div>
+                    <div style="font-size:12px; font-family:monospace; color:#888;">Objects: ${rule.objects.length}</div>
+                `;
+                container.appendChild(li);
+            });
+
+            // イベントリスナー設定
+            document.querySelectorAll('.rule-keys-editor').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const id = e.target.getAttribute('data-rule-id');
+                    userRules.defaults[id] = e.target.value; // 文字列のまま保存（後でsplitする）
+                    saveUserRules();
+                });
+            });
+        }
+
+        // グローバル関数として公開（HTML内のonclickから呼ぶため）
+        window.deleteCustomRule = function(idx) {
+            if(confirm('このカスタムルールを削除しますか？')) {
+                userRules.custom.splice(idx, 1);
+                saveUserRules();
+                renderRuleEditor();
+            }
+        };
+
 
         function initApp() {
             document.getElementById('btn-print').addEventListener('click', printDocument);
@@ -1601,43 +1798,110 @@
         const DIAGRAM_RULES = {
             // 静的設備 (併存可能)
             static: [
-                {
-                    keys: ["ドア", "扉", "入り口"],
-                    create: (w, h) => [
-                        {type: 'desk', x: 20, y: h - 40, w: 10, h: 50, color: '#8d6e63'},
-                        {type: 'text', x: 45, y: h - 40, text: 'ドア'}
-                    ]
-                },
-                {
-                    keys: ["窓", "カーテン", "逆光", "採光"],
-                    create: (w, h) => [
-                        {type: 'desk', x: w - 10, y: h/2, w: 10, h: 120, color: '#81d4fa'},
-                        {type: 'text', x: w - 30, y: h/2, text: '窓'}
-                    ]
-                },
-                {
-                    keys: ["ホワイトボード", "黒板", "掲示", "板書", "文字", "50音", "表"],
-                    create: (w, h) => [
-                        {type: 'desk', x: w/2, y: 30, w: 100, h: 10, color: '#eee'},
-                        {type: 'text', x: w/2, y: 45, text: 'WB/黒板'}
-                    ]
-                },
-                {
-                    keys: ["ピアノ", "歌", "音楽", "リトミック", "合唱", "伴奏"],
-                    create: (w, h) => [
-                        {type: 'piano', x: w - 50, y: 50, w: 40, h: 50, color: '#333'}
-                    ]
-                },
-                {
-                    keys: ["掲示", "ルール", "約束", "貼る", "ポスター", "イラスト", "壁"],
-                    create: (w, h) => [
-                        {type: 'desk', x: w/2 + 80, y: 20, w: 40, h: 5, color: '#ffecb3'},
-                        {type: 'text', x: w/2 + 80, y: 35, text: '掲示'}
-                    ]
-                }
+                { keys: ["ドア", "扉", "入り口"], create: (w, h) => [{type: 'desk', x: 20, y: h - 40, w: 10, h: 50, color: '#8d6e63'}, {type: 'text', x: 45, y: h - 40, text: 'ドア'}] },
+                { keys: ["窓", "カーテン", "逆光", "採光"], create: (w, h) => [{type: 'desk', x: w - 10, y: h/2, w: 10, h: 120, color: '#81d4fa'}, {type: 'text', x: w - 30, y: h/2, text: '窓'}] },
+                { keys: ["ホワイトボード", "黒板", "掲示", "板書", "文字", "50音", "表"], create: (w, h) => [{type: 'desk', x: w/2, y: 30, w: 100, h: 10, color: '#eee'}, {type: 'text', x: w/2, y: 45, text: 'WB/黒板'}] },
+                { keys: ["ピアノ", "歌", "音楽", "リトミック", "合唱", "伴奏"], create: (w, h) => [{type: 'piano', x: w - 50, y: 50, w: 40, h: 50, color: '#333'}] },
+                { keys: ["掲示", "ルール", "約束", "貼る", "ポスター", "イラスト", "壁"], create: (w, h) => [{type: 'desk', x: w/2 + 80, y: 20, w: 40, h: 5, color: '#ffecb3'}, {type: 'text', x: w/2 + 80, y: 35, text: '掲示'}] },
+                { keys: ["手洗い", "水道", "流し"], create: (w, h) => [{type: 'desk', x: 30, y: h/2, w: 20, h: 60, color: '#90caf9'}, {type: 'text', x: 55, y: h/2, text: '水道'}] },
+                { keys: ["トイレ", "便所"], create: (w, h) => [{type: 'desk', x: 30, y: 50, w: 40, h: 40, color: '#e0f7fa'}, {type: 'text', x: 30, y: 50, text: 'トイレ'}] },
+                { keys: ["ロッカー", "荷物", "着替え"], create: (w, h) => [{type: 'desk', x: w - 30, y: h - 50, w: 20, h: 80, color: '#cfd8dc'}, {type: 'text', x: w - 50, y: h - 50, text: 'ロッカー'}] },
+                { keys: ["下駄箱", "靴箱", "玄関"], create: (w, h) => [{type: 'desk', x: 20, y: h - 80, w: 20, h: 40, color: '#8d6e63'}, {type: 'text', x: 40, y: h - 80, text: '下駄箱'}] },
+                { keys: ["本棚", "ライブラリー"], create: (w, h) => [{type: 'desk', x: w - 30, y: 100, w: 20, h: 60, color: '#a1887f'}, {type: 'text', x: w - 50, y: 100, text: '本棚'}] },
+                { keys: ["時計"], create: (w, h) => [{type: 'child', x: w/2, y: 15, r: 8, color: '#000', label: '時'}] },
+                { keys: ["教卓", "先生の机"], create: (w, h) => [{type: 'desk', x: w/2 + 100, y: 50, w: 60, h: 40, color: '#8d6e63'}, {type: 'text', x: w/2 + 100, y: 50, text: '教卓'}] },
+                { keys: ["ゴミ箱", "ごみ箱"], create: (w, h) => [{type: 'desk', x: w - 30, y: h - 30, w: 20, h: 20, color: '#9e9e9e'}, {type: 'text', x: w - 50, y: h - 30, text: 'ゴミ箱'}] },
+                { keys: ["おもちゃ", "玩具", "トイ"], create: (w, h) => [{type: 'desk', x: w - 30, y: 160, w: 20, h: 60, color: '#ffcc80'}, {type: 'text', x: w - 55, y: 160, text: 'おもちゃ'}] },
+                { keys: ["水槽", "飼育", "カメ", "メダカ"], create: (w, h) => [{type: 'desk', x: 30, y: 100, w: 30, h: 40, color: '#b3e5fc'}, {type: 'text', x: 30, y: 100, text: '水槽'}] },
+                { keys: ["掃除", "ほうき", "モップ"], create: (w, h) => [{type: 'desk', x: w - 20, y: h - 100, w: 20, h: 30, color: '#bdbdbd'}, {type: 'text', x: w - 45, y: h - 100, text: '掃除用具'}] },
+                { keys: ["配膳台", "ワゴン"], create: (w, h) => [{type: 'desk', x: 70, y: h/2 + 50, w: 40, h: 60, color: '#eeeeee'}, {type: 'text', x: 70, y: h/2 + 50, text: '配膳台'}] }
             ],
             // レイアウト (排他制御: どれか一つ適用)
             layouts: [
+                {
+                    keys: ["お昼寝", "布団", "昼寝", "午睡", "コット"],
+                    create: (w, h) => {
+                        const objs = [{type: 'text', x: w/2, y: 30, text: 'お昼寝配置'}];
+                        for(let r=0; r<3; r++) {
+                            for(let c=0; c<4; c++) {
+                                objs.push({type: 'desk', x: 80 + c*70, y: 80 + r*60, w: 40, h: 30, color: '#e1f5fe'});
+                                objs.push({type: 'child', x: 80 + c*70, y: 80 + r*60 - 5, label: '子', r: 6});
+                            }
+                        }
+                        objs.push({type: 'teacher', x: w/2, y: h-40, label: 'T', color: 'red'});
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["椅子取り", "イス取り", "フルーツバスケット"],
+                    create: (w, h) => {
+                        const objs = [];
+                        for(let i=0; i<10; i++) {
+                            const angle = (i / 10) * Math.PI * 2;
+                            objs.push({type: 'chair', x: w/2 + 70 * Math.cos(angle), y: h/2 + 70 * Math.sin(angle)});
+                        }
+                        objs.push({type: 'text', x: w/2, y: h/2, text: '椅子'});
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["サーキット", "平均台", "巧技台"],
+                    create: (w, h) => [
+                        {type: 'mat', x: w/2-80, y: h/2, w: 60, h: 100, color: '#ffe0b2'}, // 平均台代わり
+                        {type: 'text', x: w/2-80, y: h/2, text: '平均台'},
+                        {type: 'mat', x: w/2+80, y: h/2, w: 60, h: 40, color: '#81c784'},
+                        {type: 'desk', x: w/2, y: h/2 - 80, w: 40, h: 40, color: '#bdbdbd'}, // 巧技台
+                        {type: 'text', x: w/2, y: h/2 - 80, text: '巧技台'},
+                        {type: 'cone', x: w/2, y: h/2 + 80, color: 'red'}
+                    ]
+                },
+                {
+                    keys: ["パラバルーン", "バルーン"],
+                    create: (w, h) => [
+                        {type: 'child', x: w/2, y: h/2, r: 80, color: 'rgba(255, 193, 7, 0.3)', label: 'バルーン'},
+                        ...Array.from({length: 12}, (_, i) => ({
+                            type: 'child', 
+                            x: w/2 + 90 * Math.cos(i/12 * Math.PI * 2), 
+                            y: h/2 + 90 * Math.sin(i/12 * Math.PI * 2), 
+                            label: '子'
+                        }))
+                    ]
+                },
+                {
+                    keys: ["ドッジボール", "ドッヂ"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w/2, y: h/2, w: 200, h: 120, color: '#fff'}, // コート
+                        {type: 'desk', x: w/2, y: h/2, w: 2, h: 120, color: '#000'}, // センターライン
+                        {type: 'text', x: w/2-50, y: h/2, text: '内野'},
+                        {type: 'text', x: w/2+50, y: h/2, text: '内野'},
+                        {type: 'child', x: w/2-110, y: h/2, label: '外野'},
+                        {type: 'child', x: w/2+110, y: h/2, label: '外野'}
+                    ]
+                },
+                {
+                    keys: ["給食", "おやつ", "ランチ", "対面"],
+                    create: (w, h) => {
+                        const objs = [];
+                        const groups = [{x: w/2 - 70, y: h/2-30}, {x: w/2 + 70, y: h/2-30}, {x: w/2 - 70, y: h/2+50}, {x: w/2 + 70, y: h/2+50}];
+                        groups.forEach(g => {
+                            objs.push({type: 'desk', x: g.x, y: g.y, w: 80, h: 40});
+                            objs.push({type: 'chair', x: g.x, y: g.y - 30});
+                            objs.push({type: 'chair', x: g.x, y: g.y + 30});
+                            objs.push({type: 'chair', x: g.x - 30, y: g.y});
+                            objs.push({type: 'chair', x: g.x + 30, y: g.y});
+                        });
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["ままごと", "キッチン", "お家ごっこ"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w-60, y: h-60, w: 80, h: 80, color: '#f8bbd0'}, // コーナー
+                        {type: 'desk', x: w-80, y: h-60, w: 20, h: 40, color: '#fff'}, // キッチン台
+                        {type: 'text', x: w-60, y: h-60, text: 'ままごと'},
+                        {type: 'desk', x: w-40, y: h-40, w: 30, h: 30, color: '#fff'}, // テーブル
+                    ]
+                },
                 {
                     keys: ["散歩", "探索", "自然", "どんぐり", "落ち葉", "拾う", "茂み", "植物図鑑"],
                     create: (w, h, has) => {
@@ -1762,14 +2026,12 @@
                             if (useChair) { objs.push({type: 'chair', x: centerX + ox, y: backRowY}); }
                             objs.push({type: 'child', x: centerX + ox, y: backRowY, label: '子'});
                         });
-                        // このレイアウトはTeacherを明示的に返すことでFallbackを回避できるが、
-                        // 汎用的にTを配置するためここでは返さずFallbackに任せるか、独自に追加する
                         objs.push({type: 'teacher', x: w/2, y: 60, label: 'T', color: 'red'});
                         return objs;
                     }
                 },
                 {
-                    keys: ["机", "テーブル", "座", "製作", "給食", "ランチ", "お弁当", "描画", "お絵かき"],
+                    keys: ["机", "テーブル", "座", "製作", "ランチ", "お弁当", "描画", "お絵かき"],
                     create: (w, h) => {
                         const objs = [];
                         const groups = [{x: w/2 - 60, y: h/2}, {x: w/2 + 60, y: h/2}];
@@ -1783,12 +2045,87 @@
                         return objs;
                     }
                 },
+                {
+                    keys: ["身体測定", "身長", "体重"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w/2 - 50, y: h/2, w: 30, h: 30, color: '#e0e0e0'}, {type: 'text', x: w/2 - 50, y: h/2 + 25, text: '体重計'},
+                        {type: 'desk', x: w/2 + 50, y: h/2, w: 10, h: 100, color: '#e0e0e0'}, {type: 'text', x: w/2 + 50, y: h/2, text: '身長計'},
+                        {type: 'teacher', x: w/2, y: h/2 + 50, label: 'T', color: 'red'}
+                    ]
+                },
+                {
+                    keys: ["避難訓練", "防災", "地震", "火事"],
+                    create: (w, h) => {
+                        const objs = [{type: 'text', x: w/2, y: h/2 - 50, text: '避難集合'}];
+                        for(let i=0; i<15; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const r = Math.random() * 60;
+                            objs.push({type: 'child', x: w/2 + r*Math.cos(angle), y: h/2 + r*Math.sin(angle), label: '子'});
+                        }
+                        objs.push({type: 'teacher', x: w/2, y: h/2 + 80, label: 'T', color: 'red'});
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["大縄", "長縄"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w/2, y: h/2, w: 200, h: 2, color: '#8d6e63'}, // Rope
+                        {type: 'teacher', x: w/2 - 110, y: h/2, label: 'T', color: 'red'},
+                        {type: 'teacher', x: w/2 + 110, y: h/2, label: 'T', color: 'red'},
+                        {type: 'child', x: w/2, y: h/2 - 30, label: '子'},
+                        {type: 'child', x: w/2 - 30, y: h/2 - 40, label: '子'},
+                        {type: 'child', x: w/2 - 60, y: h/2 - 50, label: '子'}
+                    ]
+                },
+                {
+                    keys: ["発表会", "劇", "ステージ"],
+                    create: (w, h) => {
+                        const objs = [
+                            {type: 'mat', x: w/2, y: 60, w: 250, h: 80, color: '#fff9c4'}, {type: 'text', x: w/2, y: 60, text: 'ステージ'},
+                            {type: 'piano', x: w-60, y: 120}
+                        ];
+                        for(let r=0; r<3; r++) {
+                            for(let c=0; c<6; c++) {
+                                objs.push({type: 'chair', x: w/2 - 100 + c*40, y: 160 + r*40});
+                                objs.push({type: 'child', x: w/2 - 100 + c*40, y: 160 + r*40 - 5, label: '客'});
+                            }
+                        }
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["グループ", "班", "グループワーク"],
+                    create: (w, h) => {
+                        const objs = [];
+                        const centers = [{x:w/4, y:h/3}, {x:w*3/4, y:h/3}, {x:w/4, y:h*2/3}, {x:w*3/4, y:h*2/3}];
+                        centers.forEach(c => {
+                            objs.push({type:'desk', x:c.x, y:c.y, w:60, h:40, color:'#fff'});
+                            objs.push({type:'chair', x:c.x, y:c.y-30}); objs.push({type:'child', x:c.x, y:c.y-30, label:'子'});
+                            objs.push({type:'chair', x:c.x, y:c.y+30}); objs.push({type:'child', x:c.x, y:c.y+30, label:'子'});
+                            objs.push({type:'chair', x:c.x-40, y:c.y}); objs.push({type:'child', x:c.x-40, y:c.y, label:'子'});
+                            objs.push({type:'chair', x:c.x+40, y:c.y}); objs.push({type:'child', x:c.x+40, y:c.y, label:'子'});
+                        });
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["対面", "お見合い"],
+                    create: (w, h) => {
+                        const objs = [];
+                        for(let i=0; i<6; i++) {
+                            objs.push({type:'chair', x:60+i*50, y:h/2-40});
+                            objs.push({type:'child', x:60+i*50, y:h/2-40, label:'子'});
+                            objs.push({type:'chair', x:60+i*50, y:h/2+40});
+                            objs.push({type:'child', x:60+i*50, y:h/2+40, label:'子'});
+                        }
+                        return objs;
+                    }
+                },
                 // Fallback Layouts
                 {
                     keys: ["円", "輪", "サークル", "集まる", "集合", "朝の会", "帰りの会", "カルタ", "かるた", "札", "取り札"],
                     create: (w, h, has, existingObjects) => {
                         const objs = [];
-                        // トラックがある場合は適用しない（既存チェック）
                         const isTrack = existingObjects.some(o => o.type === 'track');
                         if (!isTrack) {
                             for(let i=0; i<8; i++) {
@@ -1817,32 +2154,26 @@
             ],
             // 小物 (Props)
             props: [
-                {
-                    keys: ["コーン", "マーカー", "目印", "スタート", "ゴール"],
-                    create: (w, h, has, existingObjects) => {
-                        const isTrack = existingObjects.some(o => o.type === 'track');
-                        const cy = isTrack ? h/2 : h - 50;
-                        return [
-                            {type: 'cone', x: w/2 - 60, y: cy, color: 'red'},
-                            {type: 'cone', x: w/2 + 60, y: cy, color: 'blue'}
-                        ];
-                    }
-                },
-                {
-                    keys: ["ゴール", "旗", "得点", "サッカー"],
-                    create: (w, h) => [
-                        {type: 'goal', x: w - 50, y: h/2 - 20}
-                    ]
-                },
-                {
-                    keys: ["マット", "体操", "ゴロゴロ", "前転"],
-                    create: (w, h, has, existingObjects) => {
-                         if (!existingObjects.some(o => o.type === 'mat')) {
-                            return [{type: 'mat', x: w/2, y: h/2, w: 60, h: 40, color: '#81c784'}];
-                         }
-                         return [];
-                    }
-                }
+                { keys: ["コーン", "マーカー", "目印", "スタート", "ゴール"], create: (w, h, has, existingObjects) => { const isTrack = existingObjects.some(o => o.type === 'track'); const cy = isTrack ? h/2 : h - 50; return [{type: 'cone', x: w/2 - 60, y: cy, color: 'red'}, {type: 'cone', x: w/2 + 60, y: cy, color: 'blue'}]; } },
+                { keys: ["ゴール", "旗", "得点", "サッカー"], create: (w, h) => [{type: 'goal', x: w - 50, y: h/2 - 20}] },
+                { keys: ["マット", "体操", "ゴロゴロ", "前転"], create: (w, h, has, existingObjects) => { if (!existingObjects.some(o => o.type === 'mat')) { return [{type: 'mat', x: w/2, y: h/2, w: 60, h: 40, color: '#81c784'}]; } return []; } },
+                { keys: ["跳び箱", "とびばこ"], create: (w, h) => [{type: 'desk', x: w/2, y: h/2, w: 30, h: 40, color: '#ef6c00'}, {type: 'text', x: w/2, y: h/2, text: '跳び箱'}] },
+                { keys: ["鉄棒"], create: (w, h) => [{type: 'desk', x: w/2, y: h/2, w: 80, h: 5, color: '#bdbdbd'}, {type: 'text', x: w/2, y: h/2+15, text: '鉄棒'}] },
+                { keys: ["滑り台", "すべり台"], create: (w, h) => [{type: 'desk', x: w/2, y: h/2, w: 20, h: 80, color: '#ffcc80'}, {type: 'text', x: w/2+30, y: h/2, text: '滑り台'}] },
+                { keys: ["トンネル"], create: (w, h) => [{type: 'desk', x: w/2, y: h/2, w: 60, h: 40, color: '#4db6ac'}, {type: 'text', x: w/2, y: h/2, text: 'トンネル'}] },
+                { keys: ["フラフープ", "フープ"], create: (w, h) => [{type: 'child', x: w/2-30, y: h/2, r: 15, color: 'transparent', label: '○'}, {type: 'child', x: w/2+30, y: h/2, r: 15, color: 'transparent', label: '○'}] },
+                { keys: ["ボール", "玉"], create: (w, h) => [{type: 'child', x: w/2, y: h/2, r: 5, color: 'red'}, {type: 'child', x: w/2+15, y: h/2+10, r: 5, color: 'blue'}] },
+                { keys: ["玉入れ", "カゴ"], create: (w, h) => [{type: 'cone', x: w/2, y: h/2, color: 'red'}, {type: 'text', x: w/2, y: h/2-20, text: 'カゴ'}] },
+                { keys: ["避難車", "散歩車"], create: (w, h) => [{type: 'desk', x: 50, y: h-50, w: 60, h: 80, color: '#e3f2fd'}, {type: 'text', x: 50, y: h-50, text: '避難車'}] },
+                { keys: ["プール", "水遊び"], create: (w, h) => [{type: 'mat', x: w/2, y: h/2, w: 150, h: 100, color: '#03a9f4'}, {type: 'text', x: w/2, y: h/2, text: 'プール'}] },
+                { keys: ["トランポリン"], create: (w, h) => [{type: 'child', x: w/2, y: h/2, r: 30, color: 'transparent', label: 'トラ'}] },
+                { keys: ["一輪車"], create: (w, h) => [{type: 'child', x: 50, y: h-50, r: 10, color: '#b39ddb', label: '一'}] },
+                { keys: ["三輪車"], create: (w, h) => [{type: 'child', x: 80, y: h-50, r: 12, color: '#f48fb1', label: '三'}] },
+                { keys: ["竹馬"], create: (w, h) => [{type: 'desk', x: w-50, y: h-50, w: 10, h: 40, color: '#a1887f'}, {type: 'text', x: w-50, y: h-50, text: '竹馬'}] },
+                { keys: ["大玉", "転がし"], create: (w, h) => [{type: 'child', x: 100, y: h/2, r: 30, color: '#ef5350', label: '赤'}, {type: 'child', x: w-100, y: h/2, r: 30, color: '#fff', label: '白'}] },
+                { keys: ["ハードル"], create: (w, h) => [{type: 'desk', x: w/2, y: h/3, w: 40, h: 5, color: '#ffeb3b'}, {type: 'desk', x: w/2, y: h*2/3, w: 40, h: 5, color: '#ffeb3b'}] },
+                { keys: ["マイク", "朝礼台"], create: (w, h) => [{type: 'desk', x: w/2, y: 50, w: 40, h: 30, color: '#e0e0e0'}, {type: 'cone', x: w/2, y: 50, color: '#333'}, {type: 'text', x: w/2, y: 65, text: '朝礼台'}] },
+                { keys: ["平均台", "バランス"], create: (w, h) => [{type: 'desk', x: w/2, y: h/2, w: 150, h: 10, color: '#ffe0b2'}, {type: 'text', x: w/2, y: h/2+15, text: '平均台'}] }
             ],
             // デフォルト要素 (Fallback)
             defaults: [
@@ -1863,6 +2194,42 @@
             ]
         };
 
+        // 座標文字列のパース ("50%", "100%-20" 等)
+        function parseCoord(val, max) {
+            if (typeof val === 'number') return val;
+            if (typeof val !== 'string') return 0;
+            
+            // "50%" -> max * 0.5
+            let num = val.trim();
+            let base = 0;
+            let offset = 0;
+
+            // "50%" を処理
+            if (num.includes('%')) {
+                const parts = num.split('%');
+                const p = parseFloat(parts[0]);
+                base = max * (p / 100);
+                if (parts[1]) {
+                    // 残りの部分（オフセット）があれば処理（簡易版：+10, -20等）
+                    offset = parseFloat(parts[1]) || 0;
+                }
+            } else {
+                // 通常の数値
+                base = parseFloat(num) || 0;
+            }
+            return base + offset;
+        }
+
+        // カスタムルール用オブジェクト生成
+        function createObjectsFromCustomRule(rule, w, h) {
+            return rule.objects.map(def => {
+                const obj = { ...def };
+                obj.x = parseCoord(def.x, w);
+                obj.y = parseCoord(def.y, h);
+                return obj;
+            });
+        }
+
         function generateDiagramFromText() {
             const desc = document.getElementById('field-env-text').innerText; 
             const canvas = document.getElementById('env-canvas');
@@ -1874,35 +2241,57 @@
             const has = (keywords) => keywords.some(k => desc.includes(k));
             let layoutSet = false;
 
-            // 1. Static
-            DIAGRAM_RULES.static.forEach(rule => {
-                if (has(rule.keys)) {
+            // 1. Static Rules
+            DIAGRAM_RULES.static.forEach((rule, idx) => {
+                // ユーザー設定のキーワードがあればそちらを優先
+                const ruleId = `static_${idx}`;
+                const userKeysStr = userRules.defaults[ruleId];
+                const keys = userKeysStr ? userKeysStr.split(',').map(s=>s.trim()).filter(s=>s) : rule.keys;
+                
+                if (has(keys)) {
                     canvasObjects.push(...rule.create(width, height));
                 }
             });
 
             // 2. Layouts (Exclusive)
-            for (const rule of DIAGRAM_RULES.layouts) {
-                if (!layoutSet && has(rule.keys)) {
-                    // create関数に現在のオブジェクト一覧を渡して判定に使う
+            for (let idx = 0; idx < DIAGRAM_RULES.layouts.length; idx++) {
+                if (layoutSet) break;
+                const rule = DIAGRAM_RULES.layouts[idx];
+                const ruleId = `layouts_${idx}`;
+                const userKeysStr = userRules.defaults[ruleId];
+                const keys = userKeysStr ? userKeysStr.split(',').map(s=>s.trim()).filter(s=>s) : rule.keys;
+
+                if (has(keys)) {
                     const newObjs = rule.create(width, height, has, canvasObjects);
                     if (newObjs.length > 0) {
                         canvasObjects.push(...newObjs);
                         layoutSet = true;
-                        // layoutSetがtrueになったら他のレイアウトは適用しない
-                        break; 
                     }
                 }
             }
 
             // 3. Props
-            DIAGRAM_RULES.props.forEach(rule => {
-                if (has(rule.keys)) {
+            DIAGRAM_RULES.props.forEach((rule, idx) => {
+                const ruleId = `props_${idx}`;
+                const userKeysStr = userRules.defaults[ruleId];
+                const keys = userKeysStr ? userKeysStr.split(',').map(s=>s.trim()).filter(s=>s) : rule.keys;
+
+                if (has(keys)) {
                     canvasObjects.push(...rule.create(width, height, has, canvasObjects));
                 }
             });
 
-            // 4. Defaults
+            // 4. Custom Rules (User Defined)
+            userRules.custom.forEach(rule => {
+                if (has(rule.keys)) {
+                    const newObjs = createObjectsFromCustomRule(rule, width, height);
+                    if (newObjs.length > 0) {
+                        canvasObjects.push(...newObjs);
+                    }
+                }
+            });
+
+            // 5. Defaults
             DIAGRAM_RULES.defaults.forEach(rule => {
                 if (rule.condition(canvasObjects, has)) {
                     canvasObjects.push(...rule.create(width, height, has, canvasObjects, layoutSet));
