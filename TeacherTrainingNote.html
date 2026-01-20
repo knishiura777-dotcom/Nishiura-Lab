@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（Award-Winning Design）v38-alpha.1</title>
+    <title>教育実習日誌（Award-Winning Design）v38-alpha.2</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -390,6 +390,17 @@
         .env-section { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 30px; background-color: #fff; border-radius: 8px; }
         .env-drawing-area { border: 2px dashed #e5e7eb; height: 300px; display: flex; align-items: center; justify-content: center; background-color: #fafafa; position: relative; overflow: hidden; border-radius: 8px; }
         
+        #manual-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            pointer-events: none; /* クリック透過 */
+        }
+
         .drawing-toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -654,7 +665,7 @@
 
         <!-- バージョン情報表示 -->
         <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #d1d5db; margin-top: 20px;">
-            App Version: v38-alpha.1 (UI Redesigned)
+            App Version: v38-alpha.2 (UI Redesigned)
         </div>
 
     </div>
@@ -838,7 +849,9 @@
 
         function initApp() {
             document.getElementById('btn-print').addEventListener('click', printDocument);
+            // 保存ボタンで確認モーダルを開く
             document.getElementById('btn-export').addEventListener('click', openSaveConfirm);
+            
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
 
@@ -1645,7 +1658,7 @@
             if (has(["コの字"])) {
                  for(let x = 80; x < width - 80; x += 40) canvasObjects.push({type: 'child', x: x, y: 80, label: '子'});
                  for(let y = 80; y < height - 80; y += 40) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
-                 for(let y = 80; y < height - 80; y += 40) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
+                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
             }
 
             // 9. ホワイトボード
