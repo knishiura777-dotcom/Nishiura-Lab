@@ -1,3 +1,8 @@
+<!--
+© 2026 西浦研究室 / Kazuki Nishiura Lab
+本プログラムは教育目的での使用に限り利用を許可します。
+無断での再配布・改変・商用利用を禁止します。
+-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -5,26 +10,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- 4) CSP（Content Security Policy）導入 -->
-    <!-- 
-       A1対応: base-uri 'none', form-action 'none' を設定。
-       script-src には 'unsafe-inline' を残していますが、HTML内のインラインイベント(onclick等)は全廃し、
-       JS側でaddEventListenerを行う形にリファクタリングすることでリスクを低減しています。
-    -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（セキュリティ強化・動作安定版）v27</title>
+    <title>教育実習日誌（完全クリア版）v33-alpha.3</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
-    <!-- 
-        【セキュリティ強化（A2対応）推奨】
-        現在は動作確認用にCDNを使用していますが、本番運用では以下の手順でローカルファイルを使用することを強く推奨します。
-        1. https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js をダウンロード
-        2. HTMLと同じ階層（または vendor/ フォルダ等）に保存
-        3. 以下のscriptタグを書き換え:
-           <script src="./mammoth.browser.min.js"></script>
-        
-        これにより、外部CDNへの依存リスク（可用性・改ざん・プライバシー）を完全に排除できます。
-    -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
@@ -47,7 +37,82 @@
             border-radius: 4px;
         }
 
-        /* タイトルヘッダーエリア */
+        /* --- モーダル（同意画面）スタイル --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #d32f2f;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .modal-body {
+            text-align: left;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.8;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .check-container {
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            border: 2px dashed #999;
+            border-radius: 4px;
+            background: #fff;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .check-container:hover {
+            background: #f0f8ff;
+            border-color: #007bff;
+        }
+        .check-container input[type="checkbox"] {
+            transform: scale(1.5);
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            font-size: 12px;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        /* --- メインコンテンツ等のスタイル --- */
         .title-header {
             display: flex;
             justify-content: space-between;
@@ -294,6 +359,12 @@
         .btn-blue:hover { background-color: #004494; }
         .btn-purple { background-color: #6f42c1; }
         .btn-purple:hover { background-color: #5a32a3; }
+        
+        /* ボタン無効化スタイル */
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
 
         #docx-input, #manual-img-input {
             display: none;
@@ -307,6 +378,7 @@
             color: #d32f2f;
             font-weight: bold;
         }
+        /* note-msg クラス自体は残しますが、HTML本文からは削除しました */
         .note-msg {
             width: 100%;
             text-align: center;
@@ -315,11 +387,23 @@
             margin-top: 5px;
         }
 
+        /* 著作権表示スタイル */
+        .copyright {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            padding-bottom: 20px;
+        }
+
         /* 印刷設定 */
         @media print {
             body { background-color: #fff; padding: 0; }
             .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; }
             .no-print { display: none !important; }
+            /* 印刷時には著作権表示も隠す */
+            .copyright { display: none !important; }
+            .modal-overlay { display: none !important; } /* モーダルも印刷しない */
             .editable { background-color: transparent !important; padding: 0; }
             .editable:empty::before { content: ""; }
             .env-drawing-area { border: 1px solid #333; }
@@ -329,9 +413,38 @@
 </head>
 <body>
 
+    <!-- 同意モーダル (起動時に表示) -->
+    <div id="agreement-modal" class="modal-overlay no-print">
+        <div class="modal-content">
+            <div class="modal-title">利用上の注意</div>
+            <div class="modal-body">
+                <p>本ツールは<strong>「教育実習支援」</strong>を目的として開発されています。</p>
+                <p>個人情報保護および著作権遵守のため、以下の行為を固く禁じます。</p>
+                <ul style="text-align:left; margin: 10px 0 10px 20px;">
+                    <li>本ツールの無断での再配布・改変</li>
+                    <li>商用目的での利用</li>
+                    <li>GitHub等へのソースコードの無断公開</li>
+                </ul>
+                <p class="copyright-info" style="font-size:12px; color:#666; margin-top:10px; border-top:1px dashed #ccc; padding-top:5px;">
+                    © 2026 西浦研究室 / Kazuki Nishiura Lab
+                </p>
+            </div>
+            
+            <label class="check-container">
+                <input type="checkbox" id="agree-checkbox">
+                <span>上記の利用条件に同意して使用します</span>
+            </label>
+            
+            <div>
+                <button id="btn-start-app" class="btn btn-blue" disabled style="width:200px; justify-content: center;">
+                    利用を開始する
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="controls no-print">
         <div class="file-upload-wrapper">
-            <!-- onclick削除済み: JSでイベントリスナーを設定 -->
             <label for="docx-input" class="btn btn-success">
                 📂 Word下書きを読込
             </label>
@@ -352,7 +465,7 @@
         <button id="btn-clear" class="btn btn-clear">🗑️ クリア/リセット</button>
         
         <div id="status-msg"></div>
-        <div class="note-msg">※Wordで図が表示されない場合は、「図を画像保存」で保存し、Wordに貼り付けてください。</div>
+        <!-- 注釈メッセージ削除済み -->
     </div>
 
     <div class="container" id="journal-area">
@@ -414,7 +527,6 @@
             <span style="font-weight:bold; border-bottom:1px dashed #999; display:block; margin-bottom:10px;">環境構成・配置図</span>
             <div class="env-content">
                 <div class="env-drawing-container">
-                    <!-- ツールバー: onclickを削除し、data属性を利用してJSでイベント管理 -->
                     <div id="drawing-toolbar" class="drawing-toolbar no-print">
                         <button class="tool-btn" data-action="add" data-type="teacher">＋保育者</button>
                         <button class="tool-btn" data-action="add" data-type="child">＋子供</button>
@@ -431,20 +543,14 @@
                     <div class="env-drawing-area" id="drawing-area">
                         <canvas id="env-canvas" width="400" height="300"></canvas>
                         <img id="manual-image" alt="環境構成図">
-                        <div id="placeholder-text" style="position:absolute; color:#999; pointer-events:none;">
-                            テキストから図を自動生成します<br>
-                            （ドラッグで移動、ツールバーで追加可能）
-                        </div>
+                        <!-- プレースホルダー削除済み -->
                     </div>
                 </div>
                 
                 <div class="env-text-area">
-                    <div class="editable" id="field-env-text" contenteditable="true">
-                        ここに環境構成の記述や図の説明を入力してください。
-                    </div>
+                    <div class="editable" id="field-env-text" contenteditable="true"></div>
                 </div>
             </div>
-             <!-- 隠しフィールド -->
              <div id="diagram-description" style="display:none;"></div>
         </div>
 
@@ -485,12 +591,17 @@
             </div>
         </div>
 
-        <!-- バージョン情報表示 (画面最下部、印刷時には非表示) -->
+        <!-- バージョン情報表示 -->
         <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #999; margin-top: 10px;">
-            App Version: v27
+            App Version: v33-alpha.3 (2026.01.20)
         </div>
 
     </div>
+
+    <!-- 著作権表示 -->
+    <footer class="copyright">
+        © 2026 西浦研究室｜教育目的限定・再配布禁止
+    </footer>
 
     <script>
         // --- 変数定義 ---
@@ -511,7 +622,25 @@
         // --- 初期化 (DOMContentLoaded でイベント設定: インラインJS廃止対応) ---
         window.addEventListener('DOMContentLoaded', function() {
             initApp();
+            initModal(); // モーダルの初期化を追加
         });
+
+        // --- モーダル制御 ---
+        function initModal() {
+            const checkbox = document.getElementById('agree-checkbox');
+            const startBtn = document.getElementById('btn-start-app');
+            const modal = document.getElementById('agreement-modal');
+
+            // チェックボックスの状態変更イベント
+            checkbox.addEventListener('change', function() {
+                startBtn.disabled = !this.checked;
+            });
+
+            // スタートボタンクリックイベント
+            startBtn.addEventListener('click', function() {
+                modal.style.display = 'none'; // モーダルを非表示
+            });
+        }
 
         function initApp() {
             // イベントリスナーの登録 (onclick属性の代替)
@@ -588,7 +717,7 @@
             document.getElementById('docx-input').value = null;
             document.getElementById('manual-img-input').value = null;
 
-            document.getElementById('placeholder-text').style.display = 'block';
+            // プレースホルダー関連処理削除済み
             document.getElementById('diagram-description').innerText = '';
             document.getElementById('status-msg').innerText = '';
         }
@@ -792,7 +921,7 @@
 
             canvasObjects.push(newObj);
             selectedIndex = canvasObjects.length - 1;
-            document.getElementById('placeholder-text').style.display = 'none';
+            // プレースホルダー非表示処理削除済み
             renderCanvas();
         }
 
@@ -949,7 +1078,6 @@
                          if(drawingContainer) drawingContainer.innerHTML = '（図なし）';
                     }
 
-                    clone.querySelectorAll('#placeholder-text, #diagram-description').forEach(el => el.remove());
                     clone.querySelectorAll('.drawing-toolbar').forEach(el => el.remove());
 
                     clone.querySelectorAll('.editable').forEach(el => {
@@ -1099,7 +1227,7 @@
             manualImg.src = currentObjectUrl;
             manualImg.style.display = 'block';
             document.getElementById('env-canvas').style.display = 'none';
-            document.getElementById('placeholder-text').style.display = 'none';
+            // プレースホルダー処理削除済み
             document.getElementById('status-msg').innerText = "図を差し替えました";
         }
 
@@ -1267,11 +1395,7 @@
             canvasObjects = [];
             selectedIndex = -1;
 
-            if (!desc && document.getElementById('field-env-text').innerText.trim() === "") {
-                document.getElementById('placeholder-text').style.display = 'block';
-            } else {
-                document.getElementById('placeholder-text').style.display = 'none';
-            }
+            // プレースホルダー処理削除済み
 
             if (desc.includes("トラック") || desc.includes("楕円")) {
                 canvasObjects.push({type: 'track', x: width/2, y: height/2, w: width*0.7, h: height*0.5});
