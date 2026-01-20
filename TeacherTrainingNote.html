@@ -12,435 +12,418 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（保存前確認機能付）v34-alpha</title>
+    <title>教育実習日誌（Award-Winning Design）v38-alpha.1</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <style>
-        /* システム標準フォントを使用 */
+        /* --- ベーススタイル --- */
+        :root {
+            --primary-color: #111827;
+            --accent-color: #2563eb;
+            --bg-color: #f3f4f6;
+            --surface-color: #ffffff;
+            --text-color: #374151;
+            --border-radius: 12px;
+            --control-radius: 99px; /* ピル型 */
+        }
+
         body {
-            font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
-            background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--bg-color);
             margin: 0;
-            padding: 20px;
-            color: #333;
+            padding: 60px 20px 40px 20px; /* 上部にコントロール用の余白 */
+            color: var(--text-color);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 40px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            border-radius: 4px;
+            max-width: 860px;
+            margin: 20px auto;
+            background-color: var(--surface-color);
+            padding: 60px 80px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); /* 洗練されたシャドウ */
+            border-radius: 16px;
         }
 
-        /* --- モーダル（同意画面・保存確認画面）スタイル --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 600px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-            border-bottom: 2px solid #d32f2f;
-            display: inline-block;
-            padding-bottom: 5px;
-        }
-
-        .modal-body {
-            text-align: left;
-            margin-bottom: 25px;
-            font-size: 14px;
-            line-height: 1.8;
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        /* 起動時同意用の大きなチェックボックス */
-        .check-container {
-            margin-bottom: 20px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 10px;
-            border: 2px dashed #999;
-            border-radius: 4px;
-            background: #fff;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .check-container:hover {
-            background: #f0f8ff;
-            border-color: #007bff;
-        }
-        .check-container input[type="checkbox"] {
-            transform: scale(1.5);
-            cursor: pointer;
-        }
-
-        /* 保存前確認用のリストスタイル */
-        .save-check-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .save-check-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            cursor: pointer;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
-        }
-        .save-check-item:hover {
-            background-color: #f5f5f5;
-        }
-        .save-check-item input[type="checkbox"] {
-            margin-top: 5px;
-            transform: scale(1.2);
-            cursor: pointer;
-        }
-
-        .modal-footer {
-            font-size: 12px;
-            color: #666;
-            margin-top: 15px;
-        }
-
-        /* --- メインコンテンツ等のスタイル --- */
-        .title-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        h1 {
-            margin: 0;
-            padding: 0;
-            border: none;
-            font-size: 24px;
-            line-height: 1.2;
-        }
-
-        .student-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            text-align: right;
-        }
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
-        .info-label {
-            font-size: 14px;
-            font-weight: bold;
-            margin-right: 8px;
-            white-space: nowrap;
-        }
-
-        .info-input {
-            min-width: 160px;
-            border-bottom: 1px solid #ccc;
-        }
-
-        /* 編集可能エリア */
-        .editable {
-            background-color: #fff9c4;
-            cursor: text;
-            min-height: 1.5em;
-            outline: none;
-            padding: 2px 5px;
-            border-radius: 2px;
-            transition: background-color 0.3s;
-            white-space: pre-wrap; /* 改行を維持 */
-        }
-        .editable:focus {
-            background-color: #fff176;
-        }
-        .editable:empty::before {
-            content: "[入力]";
-            color: #999;
-        }
-
-        /* テーブルスタイル */
-        .header-table, .content-table, .reflection-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-
-        .header-table th, .header-table td,
-        .content-table th, .content-table td {
-            border: 1px solid #333;
-            padding: 8px;
-            vertical-align: top;
-        }
-
-        .header-table th {
-            background-color: #e0e0e0;
-            text-align: center;
-            width: 15%;
-            font-weight: bold;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-        }
-
-        /* 印鑑枠エリア */
-        .stamp-area {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            height: 100%;
-        }
-        .stamp-item {
-            display: flex;
-            align-items: center;
-            margin-left: 15px;
-        }
-        .stamp-box {
-            width: 60px;
-            height: 60px;
-            border: 1px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: 5px;
-            font-size: 10px;
-            color: #666;
-        }
-
-        /* 環境構成エリア */
-        .env-section {
-            border: 1px solid #333;
-            padding: 10px;
-            margin-bottom: 20px;
-            background-color: #fafafa;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-        }
-        .env-content {
-            display: flex;
-            gap: 20px;
-        }
-        .env-drawing-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .env-drawing-area {
-            border: 2px dashed #ccc;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-        .env-drawing-area canvas {
-            max-width: 100%;
-            max-height: 100%;
-            cursor: crosshair;
-        }
-        .env-drawing-area canvas.dragging {
-            cursor: grabbing;
-        }
-        .env-drawing-area canvas.hovering {
-            cursor: grab;
-        }
-
-        #manual-image {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            position: absolute;
-            display: none;
-            pointer-events: none; /* クリック透過 */
-        }
-        .env-text-area {
-            flex: 1;
-            font-size: 13px;
-        }
-
-        /* 描画ツールバー */
-        .drawing-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            padding: 5px;
-            background: #eee;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 5px;
-        }
-        .tool-btn {
-            padding: 4px 8px;
-            font-size: 11px;
-            cursor: pointer;
-            background: #fff;
-            border: 1px solid #999;
-            border-radius: 3px;
-        }
-        .tool-btn:hover { background: #e9ecef; }
-        .tool-btn.danger { color: #d32f2f; border-color: #d32f2f; }
-
-        /* 記録・反省エリア */
-        .record-section {
-            border: 1px solid #333;
-            margin-bottom: -1px; /* 重なり用 */
-        }
-        .record-header {
-            background-color: #e0e0e0;
-            padding: 5px;
-            font-weight: bold;
-            border-bottom: 1px solid #333;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-        }
-        .record-body {
-            padding: 10px;
-            min-height: 100px;
-        }
-
-        /* コントロールパネル */
+        /* --- スタイリッシュ・コントロールパネル (Floating Action Bar) --- */
         .controls {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            
             display: flex;
-            justify-content: center;
             align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
+            gap: 8px;
+            padding: 6px 12px;
+            
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: var(--control-radius);
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 10px 15px -3px rgba(0, 0, 0, 0.05),
+                0 0 0 1px rgba(0,0,0,0.03);
+                
+            transition: all 0.3s ease;
         }
+
+        .controls:hover {
+            box-shadow: 
+                0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 0 0 1px rgba(0,0,0,0.05);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background-color: #d1d5db;
+            margin: 0 8px;
+        }
+
+        .spacer {
+            flex-grow: 1;
+            min-width: 20px;
+        }
+
         .file-upload-wrapper {
             position: relative;
             display: inline-block;
-        }
-        .btn {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn:hover { background-color: #0056b3; }
-        .btn-success { background-color: #28a745; }
-        .btn-success:hover { background-color: #218838; }
-        .btn-clear { background-color: #6c757d; }
-        .btn-clear:hover { background-color: #545b62; }
-        .btn-orange { background-color: #ff9800; }
-        .btn-orange:hover { background-color: #f57c00; }
-        .btn-blue { background-color: #0056b3; }
-        .btn-blue:hover { background-color: #004494; }
-        .btn-purple { background-color: #6f42c1; }
-        .btn-purple:hover { background-color: #5a32a3; }
-        
-        /* ボタン無効化スタイル */
-        .btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
         }
 
         #docx-input, #manual-img-input {
             display: none;
         }
 
-        #status-msg {
-            width: 100%;
-            text-align: center;
-            font-size: 14px;
-            margin-top: 8px;
-            color: #d32f2f;
-            font-weight: bold;
-        }
-        .note-msg {
-            width: 100%;
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
+        /* ボタンデザイン (Ghost Style) */
+        .btn {
+            appearance: none;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: var(--control-radius);
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
         }
 
-        /* 著作権表示スタイル */
+        .btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: #111;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn .icon {
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        /* 危険なアクション（リセット） */
+        .btn-danger {
+            color: #ef4444;
+            padding: 8px 12px; /* アイコンのみなので少し狭く */
+        }
+        .btn-danger:hover {
+            background-color: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* --- ステータスインジケーター (Toast Style) --- */
+        #status-msg-container {
+            position: fixed;
+            top: 80px; /* コントロールパネルの下 */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .status-pill {
+            pointer-events: auto;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+            color: #333;
+        }
+        
+        .status-pill.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        
+        .status-pill.success .status-icon { color: #10b981; }
+        .status-pill.error .status-icon { color: #ef4444; }
+        .status-pill.loading .status-icon { color: #3b82f6; }
+
+        .status-icon { margin-right: 8px; font-size: 14px; }
+        
+        /* --- モーダルスタイル --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        /* 表示用クラス */
+        .modal-overlay[style*="display: flex"] {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 48px;
+            border-radius: 24px;
+            max-width: 520px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid #f3f4f6;
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay[style*="display: flex"] .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: #111;
+            letter-spacing: -0.02em;
+        }
+
+        .modal-body {
+            text-align: left;
+            margin-bottom: 32px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #4b5563;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* 強いボタン (Solid) */
+        .btn-solid {
+            background-color: #111;
+            color: #fff;
+            padding: 10px 24px;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-solid:hover {
+            background-color: #333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .btn-solid:disabled {
+            background-color: #e5e7eb;
+            color: #9ca3af;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 弱いボタン (Outline) */
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 10px 24px;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-outline:hover {
+            border-color: #9ca3af;
+            background-color: #f9fafb;
+        }
+
+        .check-container {
+            margin-bottom: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .check-container:hover {
+            border-color: #111;
+            background-color: #fafafa;
+        }
+        .check-container input[type="checkbox"] {
+            transform: scale(1.2);
+            cursor: pointer;
+            accent-color: #111;
+        }
+
+        .save-check-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+        .save-check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .save-check-item input { margin-top: 3px; accent-color: #111; }
+
+        /* --- 著作権 --- */
         .copyright {
             text-align: center;
-            margin-top: 20px;
-            font-size: 12px;
-            color: #666;
-            padding-bottom: 20px;
+            margin-top: 60px;
+            font-size: 11px;
+            color: #9ca3af;
+            font-family: monospace;
+            letter-spacing: 0.05em;
         }
+        
+        .copyright-info {
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f3f4f6;
+            text-align: center;
+        }
+
+        /* --- ドキュメントスタイル --- */
+        .title-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-bottom: 4px solid #111;
+            padding-bottom: 12px;
+            margin-bottom: 40px;
+        }
+        h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+        .student-info { text-align: right; }
+        .info-row { display: flex; align-items: center; justify-content: flex-end; margin-top: 4px; }
+        .info-label { font-size: 12px; font-weight: 700; color: #6b7280; margin-right: 8px; text-transform: uppercase; }
+        .info-input { min-width: 180px; border-bottom: 1px solid #d1d5db; font-size: 15px; padding: 0 4px; }
+
+        .header-table, .content-table, .reflection-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; }
+        .header-table th, .header-table td, .content-table th, .content-table td { border: 1px solid #e5e7eb; padding: 12px; vertical-align: top; }
+        .header-table th { background-color: #f9fafb; text-align: center; width: 15%; font-weight: 700; color: #374151; }
+        
+        .editable { background-color: #fffbeb; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; min-height: 1.5em; outline: none; }
+        .editable:focus { background-color: #fef3c7; box-shadow: 0 0 0 2px #fcd34d; }
+        .editable:empty::before { content: "[入力]"; color: #d1d5db; }
+
+        .env-section { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 30px; background-color: #fff; border-radius: 8px; }
+        .env-drawing-area { border: 2px dashed #e5e7eb; height: 300px; display: flex; align-items: center; justify-content: center; background-color: #fafafa; position: relative; overflow: hidden; border-radius: 8px; }
+        
+        .drawing-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .tool-btn {
+            background: #fff; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.15s; color: #4b5563;
+        }
+        .tool-btn:hover { border-color: #9ca3af; color: #111; }
+        .tool-btn.danger { color: #ef4444; border-color: #fecaca; }
+        .tool-btn.danger:hover { background-color: #fef2f2; border-color: #ef4444; }
 
         /* 印刷設定 */
         @media print {
-            body { background-color: #fff; padding: 0; }
-            .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; }
-            .no-print { display: none !important; }
-            /* 印刷時には著作権表示も隠す */
-            .copyright { display: none !important; }
-            .modal-overlay { display: none !important; } /* モーダルも印刷しない */
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; border-radius: 0; }
+            .no-print, .controls, .copyright, .modal-overlay { display: none !important; }
             .editable { background-color: transparent !important; padding: 0; }
             .editable:empty::before { content: ""; }
-            .env-drawing-area { border: 1px solid #333; }
+            .env-drawing-area { border: 1px solid #111; }
             .drawing-toolbar { display: none; }
+            .controls { display: none; } /* コントロールパネル非表示 */
         }
     </style>
 </head>
 <body>
 
     <!-- 1. 起動時同意モーダル -->
-    <div id="agreement-modal" class="modal-overlay no-print">
+    <div id="agreement-modal" class="modal-overlay no-print" role="dialog" aria-modal="true" aria-labelledby="agreement-title">
         <div class="modal-content">
-            <div class="modal-title">利用上の注意</div>
+            <div id="agreement-title" class="modal-title">利用上の注意</div>
             <div class="modal-body">
                 <p>本ツールは<strong>「教育実習支援」</strong>を目的として開発されています。</p>
                 <p>個人情報保護および著作権遵守のため、以下の行為を固く禁じます。</p>
@@ -449,7 +432,7 @@
                     <li>商用目的での利用</li>
                     <li>GitHub等へのソースコードの無断公開</li>
                 </ul>
-                <p class="copyright-info" style="font-size:12px; color:#666; margin-top:10px; border-top:1px dashed #ccc; padding-top:5px;">
+                <p class="copyright-info">
                     © 2026 西浦研究室 / Kazuki Nishiura Lab
                 </p>
             </div>
@@ -459,19 +442,19 @@
                 <span>上記の利用条件に同意して使用します</span>
             </label>
             
-            <div>
-                <button id="btn-start-app" class="btn btn-blue" disabled style="width:200px; justify-content: center;">
+            <div class="modal-actions">
+                <button id="btn-start-app" class="btn-solid" disabled>
                     利用を開始する
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 2. 保存前確認モーダル (新規追加) -->
-    <div id="save-confirm-modal" class="modal-overlay no-print" style="display: none;">
+    <!-- 2. 保存前確認モーダル -->
+    <div id="save-confirm-modal" class="modal-overlay no-print" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="save-title">
         <div class="modal-content">
-            <div class="modal-title" style="border-bottom-color: #ff9800; color: #e65100;">【保存前の確認】</div>
-            <div class="modal-body" style="text-align: left;">
+            <div id="save-title" class="modal-title">保存前の確認</div>
+            <div class="modal-body">
                 <p>実習日誌を保存する前に、以下の点を確認してください。</p>
                 
                 <div class="save-check-list">
@@ -489,38 +472,62 @@
                     </label>
                 </div>
             </div>
-            <div style="display:flex; justify-content:center; gap:10px;">
-                <button id="btn-cancel-save" class="btn btn-clear">キャンセル</button>
-                <button id="btn-execute-save" class="btn btn-blue" disabled>同意して保存</button>
+            <div class="modal-actions">
+                <button id="btn-cancel-save" class="btn-outline">キャンセル</button>
+                <button id="btn-execute-save" class="btn-solid" disabled>同意して保存</button>
             </div>
         </div>
     </div>
 
 
+    <!-- モダンUI コントロールパネル (Floating Action Bar) -->
     <div class="controls no-print">
-        <div class="file-upload-wrapper">
-            <label for="docx-input" class="btn btn-success">
-                📂 Word下書きを読込
-            </label>
-            <input type="file" id="docx-input" accept=".docx,.doc">
-        </div>
         
-        <button id="btn-print" class="btn">🖨️ 印刷 / PDF保存</button>
-        <button id="btn-export" class="btn btn-blue">💾 Word保存(.doc)</button>
-        
-        <div class="file-upload-wrapper">
-            <label for="manual-img-input" class="btn btn-orange">
-                🖼️ 図の差し替え
-            </label>
-            <input type="file" id="manual-img-input" accept="image/png, image/jpeg, image/gif, image/webp">
+        <!-- グループ1: 文書操作 -->
+        <div class="control-group">
+            <div class="file-upload-wrapper">
+                <label for="docx-input" class="btn" title="Word下書きを読み込む">
+                    <span class="icon">📂</span> <span class="label">読込</span>
+                </label>
+                <input type="file" id="docx-input" accept=".docx,.doc">
+            </div>
+            <button id="btn-export" class="btn" title="Word形式で保存">
+                <span class="icon">💾</span> <span class="label">保存</span>
+            </button>
+            <button id="btn-print" class="btn" title="印刷またはPDF保存">
+                <span class="icon">🖨️</span> <span class="label">印刷</span>
+            </button>
         </div>
 
-        <button id="btn-save-img" class="btn btn-purple">🖼️ 図を画像保存</button>
-        <button id="btn-clear" class="btn btn-clear">🗑️ クリア/リセット</button>
-        
-        <div id="status-msg"></div>
-        <!-- 注釈メッセージ削除済み -->
+        <div class="divider"></div>
+
+        <!-- グループ2: 作図操作 -->
+        <div class="control-group">
+            <div class="file-upload-wrapper">
+                <label for="manual-img-input" class="btn" title="画像をアップロードして差し替え">
+                    <span class="icon">🖼️</span> <span class="label">図の差替</span>
+                </label>
+                <input type="file" id="manual-img-input" accept="image/png, image/jpeg, image/gif, image/webp">
+            </div>
+            <button id="btn-save-img" class="btn" title="現在の図を画像として保存">
+                <span class="icon">⬇️</span> <span class="label">図をDL</span>
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- グループ3: ユーティリティ -->
+        <div class="control-group">
+            <button id="btn-clear" class="btn btn-danger" title="すべての内容をリセット">
+                <span class="icon">🗑️</span>
+            </button>
+        </div>
+
     </div>
+    
+    <!-- ステータスインジケーター（フローティング） -->
+    <div id="status-msg-container"></div>
+
 
     <div class="container" id="journal-area">
         
@@ -578,9 +585,10 @@
 
         <!-- 環境構成 -->
         <div class="env-section">
-            <span style="font-weight:bold; border-bottom:1px dashed #999; display:block; margin-bottom:10px;">環境構成・配置図</span>
+            <span style="font-weight:bold; display:block; margin-bottom:15px; font-size:14px; color:#6b7280; letter-spacing:0.05em;">環境構成・配置図</span>
             <div class="env-content">
                 <div class="env-drawing-container">
+                    <!-- 作図ツールバー（CSSでボタンのデザインも微調整） -->
                     <div id="drawing-toolbar" class="drawing-toolbar no-print">
                         <button class="tool-btn" data-action="add" data-type="teacher">＋保育者</button>
                         <button class="tool-btn" data-action="add" data-type="child">＋子供</button>
@@ -645,8 +653,8 @@
         </div>
 
         <!-- バージョン情報表示 -->
-        <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #999; margin-top: 10px;">
-            App Version: v34-alpha (2026.01.20)
+        <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #d1d5db; margin-top: 20px;">
+            App Version: v38-alpha.1 (UI Redesigned)
         </div>
 
     </div>
@@ -667,17 +675,80 @@
         let dragOffsetY = 0;
         
         let currentObjectUrl = null;
+        let currentFileName = "";
 
         const MAX_FILE_SIZE = 10 * 1024 * 1024;
         const ALLOWED_DOC_EXT = ['.doc', '.docx'];
         const ALLOWED_IMG_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
 
+        const focusableElementsSelector = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, [tabindex="0"], [contenteditable]';
+
         // --- 初期化 ---
         window.addEventListener('DOMContentLoaded', function() {
             initApp();
-            initModal();        // 起動時同意モーダル
-            initSaveConfirmModal(); // 保存前確認モーダル
+            initModal();        
+            initSaveConfirmModal(); 
         });
+
+        // --- ステータス表示更新用関数 ---
+        function updateStatus(type, text, fileName) {
+            const container = document.getElementById('status-msg-container');
+            container.innerHTML = ''; 
+            
+            if (!type) return;
+
+            const pill = document.createElement('div');
+            pill.className = `status-pill ${type}`;
+            
+            let icon = '';
+            if (type === 'success') icon = '<span class="status-icon">✓</span>';
+            if (type === 'error') icon = '<span class="status-icon">!</span>';
+            if (type === 'loading') icon = '<span class="status-icon">...</span>';
+            
+            let htmlContent = `${icon}<span>${text}</span>`;
+            if (fileName) {
+                htmlContent += `<span class="status-filename">${fileName}</span>`;
+            }
+            
+            pill.innerHTML = htmlContent;
+            container.appendChild(pill);
+
+            requestAnimationFrame(() => {
+                pill.classList.add('show');
+            });
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    pill.classList.remove('show');
+                    setTimeout(() => pill.remove(), 500);
+                }, 4000);
+            }
+        }
+
+        // --- 共通: フォーカストラップ ---
+        function trapFocus(e, modal) {
+            const focusableElements = modal.querySelectorAll(focusableElementsSelector);
+            if (focusableElements.length === 0) {
+                e.preventDefault();
+                return;
+            }
+            const firstTabStop = focusableElements[0];
+            const lastTabStop = focusableElements[focusableElements.length - 1];
+
+            if (e.key === 'Tab') {
+                if (e.shiftKey) { // Shift + Tab
+                    if (document.activeElement === firstTabStop) {
+                        e.preventDefault();
+                        lastTabStop.focus();
+                    }
+                } else { // Tab
+                    if (document.activeElement === lastTabStop) {
+                        e.preventDefault();
+                        firstTabStop.focus();
+                    }
+                }
+            }
+        }
 
         // --- 1. 起動時同意モーダル制御 ---
         function initModal() {
@@ -685,23 +756,33 @@
             const startBtn = document.getElementById('btn-start-app');
             const modal = document.getElementById('agreement-modal');
 
+            setTimeout(() => { checkbox.focus(); }, 100);
+
             checkbox.addEventListener('change', function() {
                 startBtn.disabled = !this.checked;
             });
 
             startBtn.addEventListener('click', function() {
                 modal.style.display = 'none';
+                // 閉じた後は最初のボタンにフォーカス
+                const firstBtn = document.querySelector('.controls label');
+                if(firstBtn) firstBtn.focus();
+            });
+
+            modal.addEventListener('keydown', function(e) {
+                trapFocus(e, modal);
             });
         }
 
         // --- 2. 保存前確認モーダル制御 ---
+        let lastFocusedElement = null;
+
         function initSaveConfirmModal() {
             const modal = document.getElementById('save-confirm-modal');
             const checkboxes = modal.querySelectorAll('.save-check');
             const executeBtn = document.getElementById('btn-execute-save');
             const cancelBtn = document.getElementById('btn-cancel-save');
 
-            // チェック状態の監視
             function updateBtnState() {
                 const allChecked = Array.from(checkboxes).every(cb => cb.checked);
                 executeBtn.disabled = !allChecked;
@@ -711,39 +792,53 @@
                 cb.addEventListener('change', updateBtnState);
             });
 
-            // 保存実行
             executeBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
-                // 実際の保存処理を呼び出し
-                exportToWord();
+                closeSaveModal();
+                exportToWord(); 
             });
 
-            // キャンセル
             cancelBtn.addEventListener('click', function() {
-                modal.style.display = 'none';
-                // チェックをリセット
-                checkboxes.forEach(cb => cb.checked = false);
-                updateBtnState();
+                closeSaveModal();
+            });
+
+            modal.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeSaveModal();
+                } else {
+                    trapFocus(e, modal);
+                }
             });
         }
 
-        // 保存ボタンクリック時にモーダルを開く処理
         function openSaveConfirm() {
+             lastFocusedElement = document.activeElement; 
              const modal = document.getElementById('save-confirm-modal');
-             // チェックをリセットして表示
+             
              const checkboxes = modal.querySelectorAll('.save-check');
              const executeBtn = document.getElementById('btn-execute-save');
              checkboxes.forEach(cb => cb.checked = false);
              executeBtn.disabled = true;
              
              modal.style.display = 'flex';
+             
+             setTimeout(() => {
+                 const firstInput = modal.querySelector('input');
+                 if(firstInput) firstInput.focus();
+             }, 100);
         }
+
+        function closeSaveModal() {
+            const modal = document.getElementById('save-confirm-modal');
+            modal.style.display = 'none';
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+            }
+        }
+
 
         function initApp() {
             document.getElementById('btn-print').addEventListener('click', printDocument);
-            // Word保存ボタンは、直接保存ではなく「確認モーダルを開く」処理に変更
             document.getElementById('btn-export').addEventListener('click', openSaveConfirm);
-            
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
 
@@ -805,8 +900,11 @@
             document.getElementById('docx-input').value = null;
             document.getElementById('manual-img-input').value = null;
 
-            document.getElementById('diagram-description').innerText = '';
-            document.getElementById('status-msg').innerText = '';
+            const desc = document.getElementById('diagram-description');
+            if(desc) desc.innerText = '';
+            
+            updateStatus(null); 
+            currentFileName = "";
         }
 
         function addTimelineRow(time='', child='', teacher='', student='') {
@@ -1114,7 +1212,8 @@
         }
 
         function exportToWord() {
-            document.getElementById('status-msg').innerText = "ファイルを生成中...";
+            updateStatus('loading', 'ファイルを生成中...');
+            
             selectedIndex = -1;
             renderCanvas();
 
@@ -1283,11 +1382,11 @@
                     // 少し待ってからURL解放
                     setTimeout(() => URL.revokeObjectURL(tempUrl), 1000);
                     
-                    document.getElementById('status-msg').innerText = "ダウンロードを開始しました。";
+                    updateStatus('success', 'ダウンロードを開始しました');
 
                 } catch (e) {
                     console.error(e);
-                    document.getElementById('status-msg').innerText = "エラー: " + e.message;
+                    updateStatus('error', e.message);
                     alert("保存中にエラーが発生しました。\n" + e.message);
                 }
             }, 100);
@@ -1307,7 +1406,7 @@
             manualImg.style.display = 'block';
             document.getElementById('env-canvas').style.display = 'none';
             // プレースホルダー処理削除済み
-            document.getElementById('status-msg').innerText = "図を差し替えました";
+            updateStatus('success', '画像を差し替えました', file.name);
         }
 
         // --- Word読み込み（サニタイズ処理追加） ---
@@ -1317,7 +1416,9 @@
             if (file.size === 0) { alert("ファイルが空のようです。"); return; }
             if (!validateFile(file, ALLOWED_DOC_EXT)) { this.value = null; return; }
 
-            document.getElementById('status-msg').innerText = "ファイルを解析中...";
+            currentFileName = file.name;
+            updateStatus('loading', 'ファイルを解析中...', currentFileName);
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const arrayBuffer = e.target.result;
@@ -1330,7 +1431,7 @@
         }
 
         function displayResult(result) {
-            document.getElementById('status-msg').innerText = "";
+            updateStatus('success', '読み込み完了', currentFileName);
             
             // 重要: Wordから生成されたHTMLをサニタイズ (A3対応)
             const safeHtml = sanitizeHtml(result.value);
@@ -1462,14 +1563,13 @@
 
         function handleError(err) {
             console.error(err);
+            updateStatus('error', err.message);
             alert("読み込みエラー: " + err.message);
         }
 
         function generateDiagramFromText() {
-            // テキスト解析による作図ロジックは残しますが、
-            // プレースホルダー除去に伴い、desc変数の元となる要素はWord読込時のみ利用される想定です。
-            // ここでは簡易的に空にしておきます（手動追加がメインのため）
-            const desc = ""; 
+            // テキスト解析による自動作図ロジック（強化版）
+            const desc = document.getElementById('field-env-text').innerText; 
             const canvas = document.getElementById('env-canvas');
             const width = canvas.width;
             const height = canvas.height;
@@ -1477,42 +1577,98 @@
             canvasObjects = [];
             selectedIndex = -1;
 
-            // プレースホルダー処理削除済み
+            // ユーティリティ: キーワードのいずれかが含まれていればtrue
+            const has = (keywords) => keywords.some(k => desc.includes(k));
 
-            if (desc.includes("トラック") || desc.includes("楕円")) {
+            // 1. トラック・運動場 (Outdoor / Active)
+            if (has(["トラック", "楕円", "運動", "リレー", "走", "マラソン", "周回", "鬼ごっこ"])) {
                 canvasObjects.push({type: 'track', x: width/2, y: height/2, w: width*0.7, h: height*0.5});
             }
-            if (desc.includes("コーン") || desc.includes("待機")) {
+
+            // 2. コーン (Markers)
+            if (has(["コーン", "マーカー", "目印", "４隅", "四隅", "スタート", "ゴール"])) {
                 canvasObjects.push({type: 'cone', x: width/2 - 40, y: height/2 + 30, color: 'red'});
                 canvasObjects.push({type: 'cone', x: width/2 - 15, y: height/2 + 30, color: 'white'});
                 canvasObjects.push({type: 'cone', x: width/2 + 15, y: height/2 + 30, color: 'blue'});
                 canvasObjects.push({type: 'cone', x: width/2 + 40, y: height/2 + 30, color: 'yellow'});
             }
-            if (desc.includes("ゴール") || desc.includes("旗") || desc.includes("得点板")) {
+
+            // 3. ゴール・旗 (Goal)
+            if (has(["ゴール", "旗", "得点", "サッカー", "シュート"])) {
                 canvasObjects.push({type: 'goal', x: width - 50, y: height/2 - 20});
                 canvasObjects.push({type: 'text', x: width - 40, y: height/2 - 40, text: "得点板"});
             }
-            if (desc.includes("保育者") || desc.includes("×") || desc.includes("読み手")) {
-                canvasObjects.push({type: 'teacher', x: 60, y: 60, label: 'T1', color: 'red'});
-                canvasObjects.push({type: 'teacher', x: width - 60, y: height - 60, label: 'T2', color: 'red'});
-                canvasObjects.push({type: 'teacher', x: width/2, y: height - 40, label: 'T3', color: 'red'});
-            }
-            if (desc.includes("かるた") || desc.includes("円形")) {
-                for(let i=0; i<8; i++) {
-                    const angle = (i / 8) * Math.PI * 2;
-                    const r = 60;
-                    canvasObjects.push({type: 'child', x: width/2 + r * Math.cos(angle), y: height/2 + r * Math.sin(angle), label: '子'});
+
+            // 4. ピアノ・音楽 (Music)
+            if (has(["ピアノ", "歌", "音楽", "リトミック", "合唱", "伴奏", "朝の会"])) {
+                canvasObjects.push({type: 'piano', x: width/2, y: 50, w: 40, h: 50, color: '#333'});
+                // ピアノがある場合は通常、奏者（先生）も配置
+                if (!canvasObjects.some(o => o.type === 'teacher')) {
+                    canvasObjects.push({type: 'teacher', x: width/2 + 30, y: 50, label: 'T', color: 'red'});
                 }
             }
-            if (desc.includes("コの字")) {
-                 for(let x = 80; x < width - 80; x += 30) canvasObjects.push({type: 'child', x: x, y: 50, label: '子'});
-                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
-                 for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
+
+            // 5. マット・体操 (Mat)
+            if (has(["マット", "体操", "前転", "ゴロゴロ", "寝転"])) {
+                canvasObjects.push({type: 'mat', x: width/2, y: height/2, w: 60, h: 40, color: '#81c784'});
             }
-            if (desc.includes("ホワイトボード") || desc.includes("50音")) {
-                canvasObjects.push({type: 'desk', x: width/2, y: 30, w: 80, h: 20, color: '#eee'});
-                canvasObjects.push({type: 'text', x: width/2, y: 34, text: 'WB'});
+
+            // 6. 机・椅子 (Classroom / Production)
+            if (has(["机", "テーブル", "椅子", "イス", "座", "製作", "給食", "ランチ", "お弁当", "描画", "お絵かき"])) {
+                // 対面形式の配置例
+                canvasObjects.push({type: 'desk', x: width/2 - 40, y: height/2, w: 60, h: 30});
+                canvasObjects.push({type: 'desk', x: width/2 + 40, y: height/2, w: 60, h: 30});
+                canvasObjects.push({type: 'chair', x: width/2 - 40, y: height/2 - 25});
+                canvasObjects.push({type: 'chair', x: width/2 + 40, y: height/2 - 25});
+                canvasObjects.push({type: 'child', x: width/2 - 40, y: height/2 - 35, label: '子'});
+                canvasObjects.push({type: 'child', x: width/2 + 40, y: height/2 - 35, label: '子'});
             }
+
+            // 7. 円形配置 (Circle / Gathering)
+            if (has(["円", "輪", "サークル", "集まる", "集合", "読み聞かせ", "手遊び", "カルタ", "かるた", "札", "取り札"])) {
+                // トラックがない場合のみ円形配置を行う（トラックと被らないように）
+                const isTrack = canvasObjects.some(o => o.type === 'track');
+                if (!isTrack) {
+                    for(let i=0; i<8; i++) {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const r = 60;
+                        canvasObjects.push({type: 'child', x: width/2 + r * Math.cos(angle), y: height/2 + r * Math.sin(angle), label: '子'});
+                    }
+                    // 中心に先生
+                    if (!canvasObjects.some(o => o.type === 'teacher')) {
+                        canvasObjects.push({type: 'teacher', x: width/2, y: height/2, label: 'T', color: 'red'});
+                    }
+                }
+            }
+
+            // 8. コの字型配置
+            if (has(["コの字"])) {
+                 for(let x = 80; x < width - 80; x += 40) canvasObjects.push({type: 'child', x: x, y: 80, label: '子'});
+                 for(let y = 80; y < height - 80; y += 40) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
+                 for(let y = 80; y < height - 80; y += 40) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
+            }
+
+            // 9. ホワイトボード
+            if (has(["ホワイトボード", "黒板", "掲示", "板書", "文字", "50音"])) {
+                canvasObjects.push({type: 'desk', x: width/2, y: 30, w: 80, h: 10, color: '#eee'}); // ボード表現
+                canvasObjects.push({type: 'text', x: width/2, y: 45, text: 'WB'});
+            }
+
+            // 10. 汎用的な先生・子供の配置 (もし他の条件で配置されていなければ)
+            // 先生
+            if (canvasObjects.filter(o => o.type === 'teacher').length === 0) {
+                if (has(["保育者", "先生", "T1", "T2", "指導", "見守り", "×", "実習生"])) {
+                    canvasObjects.push({type: 'teacher', x: width/2, y: 80, label: 'T', color: 'red'});
+                }
+            }
+            // 子供
+            if (canvasObjects.filter(o => o.type === 'child').length === 0) {
+                if (has(["子供", "子ども", "園児", "幼児", "自由遊び"])) {
+                    canvasObjects.push({type: 'child', x: width/3, y: height/2, label: '子'});
+                    canvasObjects.push({type: 'child', x: width*2/3, y: height/2, label: '子'});
+                }
+            }
+
             renderCanvas();
         }
     </script>
