@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.4</title>
+    <title>教育実習日誌（修正完全版）v43-beta.6</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -608,7 +608,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.4</span>
+            <span>App Version: v43-beta.6</span>
         </div>
 
     </div>
@@ -1597,6 +1597,272 @@
             generateDiagramFromText();
         }
 
+        // --- 作図ルール定義 (データ化) ---
+        const DIAGRAM_RULES = {
+            // 静的設備 (併存可能)
+            static: [
+                {
+                    keys: ["ドア", "扉", "入り口"],
+                    create: (w, h) => [
+                        {type: 'desk', x: 20, y: h - 40, w: 10, h: 50, color: '#8d6e63'},
+                        {type: 'text', x: 45, y: h - 40, text: 'ドア'}
+                    ]
+                },
+                {
+                    keys: ["窓", "カーテン", "逆光", "採光"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w - 10, y: h/2, w: 10, h: 120, color: '#81d4fa'},
+                        {type: 'text', x: w - 30, y: h/2, text: '窓'}
+                    ]
+                },
+                {
+                    keys: ["ホワイトボード", "黒板", "掲示", "板書", "文字", "50音", "表"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w/2, y: 30, w: 100, h: 10, color: '#eee'},
+                        {type: 'text', x: w/2, y: 45, text: 'WB/黒板'}
+                    ]
+                },
+                {
+                    keys: ["ピアノ", "歌", "音楽", "リトミック", "合唱", "伴奏"],
+                    create: (w, h) => [
+                        {type: 'piano', x: w - 50, y: 50, w: 40, h: 50, color: '#333'}
+                    ]
+                },
+                {
+                    keys: ["掲示", "ルール", "約束", "貼る", "ポスター", "イラスト", "壁"],
+                    create: (w, h) => [
+                        {type: 'desk', x: w/2 + 80, y: 20, w: 40, h: 5, color: '#ffecb3'},
+                        {type: 'text', x: w/2 + 80, y: 35, text: '掲示'}
+                    ]
+                }
+            ],
+            // レイアウト (排他制御: どれか一つ適用)
+            layouts: [
+                {
+                    keys: ["散歩", "探索", "自然", "どんぐり", "落ち葉", "拾う", "茂み", "植物図鑑"],
+                    create: (w, h, has) => {
+                        const objs = [
+                            {type: 'child', x: 40, y: 40, r: 35, color: '#4caf50', label: '木'},
+                            {type: 'child', x: w-40, y: 40, r: 35, color: '#4caf50', label: '木'},
+                            {type: 'child', x: 100, y: 30, r: 25, color: '#81c784', label: '茂み'},
+                            {type: 'child', x: w-100, y: 30, r: 25, color: '#81c784', label: '茂み'},
+                            {type: 'desk', x: w/2, y: 80, w: w-40, h: 4, color: '#795548'},
+                            {type: 'text', x: w/2, y: 95, text: '立入禁止(ロープ)'}
+                        ];
+                        if (has(["散歩車", "カート", "救急"])) {
+                            objs.push({type: 'desk', x: 60, y: h-60, w: 50, h: 60, color: '#90caf9'});
+                            objs.push({type: 'text', x: 60, y: h-60, text: '散歩車'});
+                        }
+                        if (has(["分類", "仕切り", "箱", "並べる", "牛乳パック"])) {
+                            const cx = w - 80, cy = h - 60;
+                            objs.push(
+                                {type: 'desk', x: cx, y: cy, w: 100, h: 60, color: '#fff3e0'},
+                                {type: 'desk', x: cx-20, y: cy, w: 30, h: 20, color: '#fff'},
+                                {type: 'desk', x: cx+20, y: cy, w: 30, h: 20, color: '#fff'},
+                                {type: 'text', x: cx, y: cy+40, text: '分類コーナー'}
+                            );
+                        }
+                        for(let i=0; i<5; i++) {
+                            const rx = 100 + Math.random() * (w - 200);
+                            const ry = 150 + Math.random() * (h - 200);
+                            objs.push({type: 'child', x: rx, y: ry, label: '子'});
+                            if (has(["バッグ", "袋"])) { objs.push({type: 'desk', x: rx+10, y: ry+10, w: 8, h: 8, color: '#ffcc80'}); }
+                        }
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["トラック", "楕円", "運動", "リレー", "走", "マラソン", "鬼ごっこ"],
+                    create: (w, h, has) => {
+                        const objs = [
+                            {type: 'track', x: w/2, y: h/2, w: w*0.7, h: h*0.5}
+                        ];
+                        if (has(["ブルーシート", "シート", "待機"])) {
+                            objs.push({type: 'mat', x: w/2, y: h - 50, w: 200, h: 40, color: '#29b6f6'}); 
+                            objs.push({type: 'text', x: w/2, y: h - 50, text: '待機場所(シート)'});
+                        }
+                        if (has(["バトン"])) {
+                            const tableY = h/2;
+                            objs.push({type: 'desk', x: w/2, y: tableY, w: 80, h: 40, color: '#f5f5f5'});
+                            const batonColors = ['red', 'white', 'blue', '#ffeb3b'];
+                            batonColors.forEach((col, idx) => {
+                                objs.push({type: 'desk', x: w/2 - 20 + idx*15, y: tableY, w: 8, h: 25, color: col});
+                            });
+                            objs.push({type: 'text', x: w/2, y: tableY + 30, text: 'バトン'});
+                        }
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["材料", "素材", "廃材", "ハサミ", "のり", "セロハンテープ", "ゴミ入れ", "製作コーナー"],
+                    create: (w, h, has) => {
+                        const objs = [
+                            {type: 'desk', x: w/2, y: 50, w: 200, h: 30, color: '#d7ccc8'},
+                            {type: 'text', x: w/2, y: 30, text: '材料コーナー'}
+                        ];
+                        for(let i=-3; i<=3; i+=2) {
+                            objs.push({type: 'desk', x: w/2 + i*20, y: 50, w: 15, h: 15, color: '#fff'});
+                        }
+                        const groups = [{x: w/3, y: h/2 + 40}, {x: w*2/3, y: h/2 + 40}];
+                        groups.forEach(g => {
+                            objs.push({type: 'desk', x: g.x, y: g.y, w: 100, h: 60, color: '#f5f5f5'});
+                            if (has(["ゴミ", "ごみ", "小箱", "廃材"])) {
+                                objs.push({type: 'desk', x: g.x, y: g.y, w: 20, h: 20, color: '#bdbdbd'});
+                            }
+                            objs.push(
+                                {type: 'chair', x: g.x, y: g.y - 40}, {type: 'child', x: g.x, y: g.y - 50, label: '子'},
+                                {type: 'chair', x: g.x, y: g.y + 40}, {type: 'child', x: g.x, y: g.y + 50, label: '子'},
+                                {type: 'chair', x: g.x - 60, y: g.y}, {type: 'child', x: g.x - 70, y: g.y, label: '子'},
+                                {type: 'chair', x: g.x + 60, y: g.y}, {type: 'child', x: g.x + 70, y: g.y, label: '子'}
+                            );
+                        });
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["積み木", "つみき", "カプラ", "ブロック", "ウレタン", "構成"],
+                    create: (w, h, has) => {
+                        const objs = [
+                            {type: 'mat', x: w/2, y: h/2, w: w*0.6, h: h*0.6, color: '#fff9c4'}
+                        ];
+                        const colors = ['#8d6e63', '#d7ccc8', '#ffcc80']; 
+                        for(let i=0; i<6; i++) {
+                            const bx = w/2 + (Math.random() - 0.5) * 100;
+                            const by = h/2 + (Math.random() - 0.5) * 80;
+                            const bw = 20 + Math.random() * 20;
+                            const bh = 10 + Math.random() * 10;
+                            const col = colors[Math.floor(Math.random() * colors.length)];
+                            objs.push({type: 'desk', x: bx, y: by, w: bw, h: bh, color: col});
+                        }
+                        if (has(["人形", "パペット", "ぬいぐるみ"])) {
+                            objs.push(
+                                {type: 'child', x: w/2 - 40, y: h/2 - 40, label: '人形', color: '#e91e63'},
+                                {type: 'child', x: w/2 + 40, y: h/2 + 40, label: '人形', color: '#e91e63'}
+                            );
+                        }
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["絵本", "読み聞かせ", "紙芝居", "前列", "後列", "正座", "体育座り", "２列", "2列"],
+                    create: (w, h, has) => {
+                        const objs = [];
+                        if (has(["絵本", "台", "パペット", "人形"])) {
+                            objs.push(
+                                {type: 'desk', x: w/2, y: 90, w: 60, h: 20, color: '#f5deb3'},
+                                {type: 'text', x: w/2, y: 95, text: '絵本'}
+                            );
+                        }
+                        const frontRowY = 140; const backRowY = 190; const centerX = w / 2;
+                        [-50, 0, 50].forEach(ox => {
+                            objs.push({type: 'child', x: centerX + ox, y: frontRowY, label: '子'});
+                        });
+                        const useChair = has(["椅子", "イス"]);
+                        [-75, -25, 25, 75].forEach(ox => {
+                            if (useChair) { objs.push({type: 'chair', x: centerX + ox, y: backRowY}); }
+                            objs.push({type: 'child', x: centerX + ox, y: backRowY, label: '子'});
+                        });
+                        // このレイアウトはTeacherを明示的に返すことでFallbackを回避できるが、
+                        // 汎用的にTを配置するためここでは返さずFallbackに任せるか、独自に追加する
+                        objs.push({type: 'teacher', x: w/2, y: 60, label: 'T', color: 'red'});
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["机", "テーブル", "座", "製作", "給食", "ランチ", "お弁当", "描画", "お絵かき"],
+                    create: (w, h) => {
+                        const objs = [];
+                        const groups = [{x: w/2 - 60, y: h/2}, {x: w/2 + 60, y: h/2}];
+                        groups.forEach(g => {
+                            objs.push(
+                                {type: 'desk', x: g.x, y: g.y, w: 60, h: 40},
+                                {type: 'chair', x: g.x, y: g.y - 30}, {type: 'child', x: g.x, y: g.y - 40, label: '子'},
+                                {type: 'chair', x: g.x, y: g.y + 30}, {type: 'child', x: g.x, y: g.y + 40, label: '子'}
+                            );
+                        });
+                        return objs;
+                    }
+                },
+                // Fallback Layouts
+                {
+                    keys: ["円", "輪", "サークル", "集まる", "集合", "朝の会", "帰りの会", "カルタ", "かるた", "札", "取り札"],
+                    create: (w, h, has, existingObjects) => {
+                        const objs = [];
+                        // トラックがある場合は適用しない（既存チェック）
+                        const isTrack = existingObjects.some(o => o.type === 'track');
+                        if (!isTrack) {
+                            for(let i=0; i<8; i++) {
+                                const angle = (i / 8) * Math.PI * 2;
+                                const r = 70;
+                                objs.push({type: 'child', x: w/2 + r * Math.cos(angle), y: h/2 + 20 + r * Math.sin(angle), label: '子'});
+                            }
+                            if (has(["カルタ", "かるた", "札"])) {
+                                objs.push({type: 'desk', x: w/2, y: h/2 + 20, w: 40, h: 30, color: '#fff3e0'});
+                            }
+                        }
+                        return objs;
+                    }
+                },
+                {
+                    keys: ["コの字"],
+                    create: (w, h) => {
+                        const objs = [];
+                        const baseY = 100;
+                        for(let x = 60; x < w - 60; x += 40) objs.push({type: 'child', x: x, y: baseY, label: '子'});
+                        for(let y = baseY; y < h - 60; y += 40) objs.push({type: 'child', x: 60, y: y, label: '子'});
+                        for(let y = baseY; y < h - 60; y += 40) objs.push({type: 'child', x: w - 60, y: y, label: '子'});
+                        return objs;
+                    }
+                }
+            ],
+            // 小物 (Props)
+            props: [
+                {
+                    keys: ["コーン", "マーカー", "目印", "スタート", "ゴール"],
+                    create: (w, h, has, existingObjects) => {
+                        const isTrack = existingObjects.some(o => o.type === 'track');
+                        const cy = isTrack ? h/2 : h - 50;
+                        return [
+                            {type: 'cone', x: w/2 - 60, y: cy, color: 'red'},
+                            {type: 'cone', x: w/2 + 60, y: cy, color: 'blue'}
+                        ];
+                    }
+                },
+                {
+                    keys: ["ゴール", "旗", "得点", "サッカー"],
+                    create: (w, h) => [
+                        {type: 'goal', x: w - 50, y: h/2 - 20}
+                    ]
+                },
+                {
+                    keys: ["マット", "体操", "ゴロゴロ", "前転"],
+                    create: (w, h, has, existingObjects) => {
+                         if (!existingObjects.some(o => o.type === 'mat')) {
+                            return [{type: 'mat', x: w/2, y: h/2, w: 60, h: 40, color: '#81c784'}];
+                         }
+                         return [];
+                    }
+                }
+            ],
+            // デフォルト要素 (Fallback)
+            defaults: [
+                {
+                    condition: (objs, has) => !objs.some(o => o.type === 'teacher') && (objs.length > 0 || has(["保育者", "先生", "T1", "T2", "指導", "見守り", "×", "実習生"])),
+                    create: (w, h, has, objs, layoutSet) => {
+                         const tx = w/2; const ty = layoutSet ? 50 : 80;
+                         return [{type: 'teacher', x: tx, y: ty, label: 'T', color: 'red'}];
+                    }
+                },
+                {
+                    condition: (objs, has) => !objs.some(o => o.type === 'child') && has(["子供", "子ども", "園児", "幼児", "自由遊び"]),
+                    create: (w, h) => [
+                        {type: 'child', x: w/3, y: h/2 + 20, label: '子'},
+                        {type: 'child', x: w*2/3, y: h/2 + 20, label: '子'}
+                    ]
+                }
+            ]
+        };
+
         function generateDiagramFromText() {
             const desc = document.getElementById('field-env-text').innerText; 
             const canvas = document.getElementById('env-canvas');
@@ -1608,211 +1874,40 @@
             const has = (keywords) => keywords.some(k => desc.includes(k));
             let layoutSet = false;
 
-            // 1. 環境
-            if (has(["ドア", "扉", "入り口"])) {
-                canvasObjects.push({type: 'desk', x: 20, y: height - 40, w: 10, h: 50, color: '#8d6e63'});
-                canvasObjects.push({type: 'text', x: 45, y: height - 40, text: 'ドア'});
-            }
-            if (has(["窓", "カーテン", "逆光", "採光"])) {
-                canvasObjects.push({type: 'desk', x: width - 10, y: height/2, w: 10, h: 120, color: '#81d4fa'});
-                canvasObjects.push({type: 'text', x: width - 30, y: height/2, text: '窓'});
-            }
-            if (has(["ホワイトボード", "黒板", "掲示", "板書", "文字", "50音", "表"])) {
-                canvasObjects.push({type: 'desk', x: width/2, y: 30, w: 100, h: 10, color: '#eee'});
-                canvasObjects.push({type: 'text', x: width/2, y: 45, text: 'WB/黒板'});
-            }
-            if (has(["ピアノ", "歌", "音楽", "リトミック", "合唱", "伴奏"])) {
-                canvasObjects.push({type: 'piano', x: width - 50, y: 50, w: 40, h: 50, color: '#333'});
-            }
-            if (has(["掲示", "ルール", "約束", "貼る", "ポスター", "イラスト", "壁"])) {
-                 canvasObjects.push({type: 'desk', x: width/2 + 80, y: 20, w: 40, h: 5, color: '#ffecb3'});
-                 canvasObjects.push({type: 'text', x: width/2 + 80, y: 35, text: '掲示'});
-            }
+            // 1. Static
+            DIAGRAM_RULES.static.forEach(rule => {
+                if (has(rule.keys)) {
+                    canvasObjects.push(...rule.create(width, height));
+                }
+            });
 
-            // 2. レイアウト
-            if (!layoutSet && has(["散歩", "探索", "自然", "どんぐり", "落ち葉", "拾う", "茂み", "植物図鑑"])) {
-                canvasObjects.push({type: 'child', x: 40, y: 40, r: 35, color: '#4caf50', label: '木'});
-                canvasObjects.push({type: 'child', x: width-40, y: 40, r: 35, color: '#4caf50', label: '木'});
-                canvasObjects.push({type: 'child', x: 100, y: 30, r: 25, color: '#81c784', label: '茂み'});
-                canvasObjects.push({type: 'child', x: width-100, y: 30, r: 25, color: '#81c784', label: '茂み'});
-                canvasObjects.push({type: 'desk', x: width/2, y: 80, w: width-40, h: 4, color: '#795548'}); // ロープ
-                canvasObjects.push({type: 'text', x: width/2, y: 95, text: '立入禁止(ロープ)'});
-
-                if (has(["散歩車", "カート", "救急"])) {
-                     canvasObjects.push({type: 'desk', x: 60, y: height-60, w: 50, h: 60, color: '#90caf9'});
-                     canvasObjects.push({type: 'text', x: 60, y: height-60, text: '散歩車'});
-                }
-                if (has(["分類", "仕切り", "箱", "並べる", "牛乳パック"])) {
-                    const cx = width - 80; const cy = height - 60;
-                    canvasObjects.push({type: 'desk', x: cx, y: cy, w: 100, h: 60, color: '#fff3e0'});
-                    canvasObjects.push({type: 'desk', x: cx-20, y: cy, w: 30, h: 20, color: '#fff'});
-                    canvasObjects.push({type: 'desk', x: cx+20, y: cy, w: 30, h: 20, color: '#fff'});
-                    canvasObjects.push({type: 'text', x: cx, y: cy+40, text: '分類コーナー'});
-                }
-                for(let i=0; i<5; i++) {
-                    const rx = 100 + Math.random() * (width - 200);
-                    const ry = 150 + Math.random() * (height - 200);
-                    canvasObjects.push({type: 'child', x: rx, y: ry, label: '子'});
-                    if (has(["バッグ", "袋"])) { canvasObjects.push({type: 'desk', x: rx+10, y: ry+10, w: 8, h: 8, color: '#ffcc80'}); }
-                }
-                if (!canvasObjects.some(o => o.type === 'teacher')) {
-                    canvasObjects.push({type: 'teacher', x: width/2, y: height-40, label: 'T', color: 'red'});
-                }
-                layoutSet = true;
-            }
-
-            if (!layoutSet && has(["トラック", "楕円", "運動", "リレー", "走", "マラソン", "鬼ごっこ"])) {
-                canvasObjects.push({type: 'track', x: width/2, y: height/2, w: width*0.7, h: height*0.5});
-                if (has(["ブルーシート", "シート", "待機"])) {
-                    canvasObjects.push({type: 'mat', x: width/2, y: height - 50, w: 200, h: 40, color: '#29b6f6'}); 
-                    canvasObjects.push({type: 'text', x: width/2, y: height - 50, text: '待機場所(シート)'});
-                }
-                if (has(["バトン"])) {
-                    const tableY = height/2;
-                    canvasObjects.push({type: 'desk', x: width/2, y: tableY, w: 80, h: 40, color: '#f5f5f5'});
-                    const batonColors = ['red', 'white', 'blue', '#ffeb3b'];
-                    batonColors.forEach((col, idx) => {
-                        canvasObjects.push({type: 'desk', x: width/2 - 20 + idx*15, y: tableY, w: 8, h: 25, color: col});
-                    });
-                     canvasObjects.push({type: 'text', x: width/2, y: tableY + 30, text: 'バトン'});
-                }
-                layoutSet = true;
-            }
-            
-            if (!layoutSet && has(["材料", "素材", "廃材", "ハサミ", "のり", "セロハンテープ", "ゴミ入れ", "製作コーナー"])) {
-                canvasObjects.push({type: 'desk', x: width/2, y: 50, w: 200, h: 30, color: '#d7ccc8'});
-                canvasObjects.push({type: 'text', x: width/2, y: 30, text: '材料コーナー'});
-                for(let i=-3; i<=3; i+=2) {
-                    canvasObjects.push({type: 'desk', x: width/2 + i*20, y: 50, w: 15, h: 15, color: '#fff'});
-                }
-                const groups = [{x: width/3, y: height/2 + 40}, {x: width*2/3, y: height/2 + 40}];
-                groups.forEach(g => {
-                    canvasObjects.push({type: 'desk', x: g.x, y: g.y, w: 100, h: 60, color: '#f5f5f5'});
-                    if (has(["ゴミ", "ごみ", "小箱", "廃材"])) {
-                         canvasObjects.push({type: 'desk', x: g.x, y: g.y, w: 20, h: 20, color: '#bdbdbd'});
-                    }
-                    canvasObjects.push({type: 'chair', x: g.x, y: g.y - 40});
-                    canvasObjects.push({type: 'child', x: g.x, y: g.y - 50, label: '子'});
-                    canvasObjects.push({type: 'chair', x: g.x, y: g.y + 40});
-                    canvasObjects.push({type: 'child', x: g.x, y: g.y + 50, label: '子'});
-                    canvasObjects.push({type: 'chair', x: g.x - 60, y: g.y});
-                    canvasObjects.push({type: 'child', x: g.x - 70, y: g.y, label: '子'});
-                    canvasObjects.push({type: 'chair', x: g.x + 60, y: g.y});
-                    canvasObjects.push({type: 'child', x: g.x + 70, y: g.y, label: '子'});
-                });
-                if (!canvasObjects.some(o => o.type === 'teacher')) {
-                    canvasObjects.push({type: 'teacher', x: width/2, y: height - 50, label: 'T', color: 'red'});
-                }
-                layoutSet = true;
-            }
-            
-            if (!layoutSet && has(["積み木", "つみき", "カプラ", "ブロック", "ウレタン", "構成"])) {
-                canvasObjects.push({type: 'mat', x: width/2, y: height/2, w: width*0.6, h: height*0.6, color: '#fff9c4'});
-                const colors = ['#8d6e63', '#d7ccc8', '#ffcc80']; 
-                for(let i=0; i<6; i++) {
-                    const bx = width/2 + (Math.random() - 0.5) * 100;
-                    const by = height/2 + (Math.random() - 0.5) * 80;
-                    const bw = 20 + Math.random() * 20;
-                    const bh = 10 + Math.random() * 10;
-                    const col = colors[Math.floor(Math.random() * colors.length)];
-                    canvasObjects.push({type: 'desk', x: bx, y: by, w: bw, h: bh, color: col});
-                }
-                if (has(["人形", "パペット", "ぬいぐるみ"])) {
-                     canvasObjects.push({type: 'child', x: width/2 - 40, y: height/2 - 40, label: '人形', color: '#e91e63'});
-                     canvasObjects.push({type: 'child', x: width/2 + 40, y: height/2 + 40, label: '人形', color: '#e91e63'});
-                }
-                if (!canvasObjects.some(o => o.type === 'teacher')) {
-                    canvasObjects.push({type: 'teacher', x: width/2, y: height - 60, label: 'T', color: 'red'});
-                }
-                layoutSet = true;
-            }
-
-            if (!layoutSet && has(["絵本", "読み聞かせ", "紙芝居", "前列", "後列", "正座", "体育座り", "２列", "2列"])) {
-                if (!canvasObjects.some(o => o.type === 'teacher')) {
-                    canvasObjects.push({type: 'teacher', x: width/2, y: 60, label: 'T', color: 'red'});
-                }
-                if (has(["絵本", "台", "パペット", "人形"])) {
-                     canvasObjects.push({type: 'desk', x: width/2, y: 90, w: 60, h: 20, color: '#f5deb3'});
-                     canvasObjects.push({type: 'text', x: width/2, y: 95, text: '絵本'});
-                }
-                const frontRowY = 140; const backRowY = 190; const centerX = width / 2;
-                [-50, 0, 50].forEach(ox => {
-                    canvasObjects.push({type: 'child', x: centerX + ox, y: frontRowY, label: '子'});
-                });
-                const useChair = has(["椅子", "イス"]);
-                [-75, -25, 25, 75].forEach(ox => {
-                    if (useChair) { canvasObjects.push({type: 'chair', x: centerX + ox, y: backRowY}); }
-                    canvasObjects.push({type: 'child', x: centerX + ox, y: backRowY, label: '子'});
-                });
-                layoutSet = true;
-            }
-
-            if (!layoutSet && has(["机", "テーブル", "座", "製作", "給食", "ランチ", "お弁当", "描画", "お絵かき"])) {
-                const groups = [{x: width/2 - 60, y: height/2}, {x: width/2 + 60, y: height/2}];
-                groups.forEach(g => {
-                    canvasObjects.push({type: 'desk', x: g.x, y: g.y, w: 60, h: 40});
-                    canvasObjects.push({type: 'chair', x: g.x, y: g.y - 30});
-                    canvasObjects.push({type: 'child', x: g.x, y: g.y - 40, label: '子'});
-                    canvasObjects.push({type: 'chair', x: g.x, y: g.y + 30});
-                    canvasObjects.push({type: 'child', x: g.x, y: g.y + 40, label: '子'});
-                });
-                layoutSet = true;
-            }
-
-            if (!layoutSet) {
-                if (has(["円", "輪", "サークル", "集まる", "集合", "朝の会", "帰りの会", "カルタ", "かるた", "札", "取り札"])) {
-                    const isTrack = canvasObjects.some(o => o.type === 'track');
-                    if (!isTrack) {
-                        for(let i=0; i<8; i++) {
-                            const angle = (i / 8) * Math.PI * 2;
-                            const r = 70;
-                            canvasObjects.push({type: 'child', x: width/2 + r * Math.cos(angle), y: height/2 + 20 + r * Math.sin(angle), label: '子'});
-                        }
-                        if (has(["カルタ", "かるた", "札"])) {
-                            canvasObjects.push({type: 'desk', x: width/2, y: height/2 + 20, w: 40, h: 30, color: '#fff3e0'});
-                        }
+            // 2. Layouts (Exclusive)
+            for (const rule of DIAGRAM_RULES.layouts) {
+                if (!layoutSet && has(rule.keys)) {
+                    // create関数に現在のオブジェクト一覧を渡して判定に使う
+                    const newObjs = rule.create(width, height, has, canvasObjects);
+                    if (newObjs.length > 0) {
+                        canvasObjects.push(...newObjs);
                         layoutSet = true;
+                        // layoutSetがtrueになったら他のレイアウトは適用しない
+                        break; 
                     }
                 }
-                else if (has(["コの字"])) {
-                     const baseY = 100;
-                     for(let x = 60; x < width - 60; x += 40) canvasObjects.push({type: 'child', x: x, y: baseY, label: '子'});
-                     for(let y = baseY; y < height - 60; y += 40) canvasObjects.push({type: 'child', x: 60, y: y, label: '子'});
-                     for(let y = baseY; y < height - 60; y += 40) canvasObjects.push({type: 'child', x: width - 60, y: y, label: '子'});
-                     layoutSet = true;
-                }
             }
 
-
-            // --- 3. その他の用具 (Props) ---
-            if (has(["コーン", "マーカー", "目印", "スタート", "ゴール"])) {
-                const isTrack = canvasObjects.some(o => o.type === 'track');
-                const cy = isTrack ? height/2 : height - 50;
-                canvasObjects.push({type: 'cone', x: width/2 - 60, y: cy, color: 'red'});
-                canvasObjects.push({type: 'cone', x: width/2 + 60, y: cy, color: 'blue'});
-            }
-            if (has(["ゴール", "旗", "得点", "サッカー"])) {
-                canvasObjects.push({type: 'goal', x: width - 50, y: height/2 - 20});
-            }
-            if (has(["マット", "体操", "ゴロゴロ", "前転"])) {
-                 if (!canvasObjects.some(o => o.type === 'mat')) {
-                    canvasObjects.push({type: 'mat', x: width/2, y: height/2, w: 60, h: 40, color: '#81c784'});
-                 }
-            }
-
-            // --- 4. フォールバック (Fallback) ---
-            if (!canvasObjects.some(o => o.type === 'teacher')) {
-                if (layoutSet || has(["保育者", "先生", "T1", "T2", "指導", "見守り", "×", "実習生"])) {
-                    const tx = width/2; const ty = layoutSet ? 50 : 80;
-                    canvasObjects.push({type: 'teacher', x: tx, y: ty, label: 'T', color: 'red'});
+            // 3. Props
+            DIAGRAM_RULES.props.forEach(rule => {
+                if (has(rule.keys)) {
+                    canvasObjects.push(...rule.create(width, height, has, canvasObjects));
                 }
-            }
-            if (!canvasObjects.some(o => o.type === 'child')) {
-                if (has(["子供", "子ども", "園児", "幼児", "自由遊び"])) {
-                    canvasObjects.push({type: 'child', x: width/3, y: height/2 + 20, label: '子'});
-                    canvasObjects.push({type: 'child', x: width*2/3, y: height/2 + 20, label: '子'});
+            });
+
+            // 4. Defaults
+            DIAGRAM_RULES.defaults.forEach(rule => {
+                if (rule.condition(canvasObjects, has)) {
+                    canvasObjects.push(...rule.create(width, height, has, canvasObjects, layoutSet));
                 }
-            }
+            });
 
             renderCanvas();
         }
