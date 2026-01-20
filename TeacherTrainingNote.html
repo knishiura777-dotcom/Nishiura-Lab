@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（完全クリア版）v33-alpha.3</title>
+    <title>教育実習日誌（保存前確認機能付）v34-alpha</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -37,7 +37,7 @@
             border-radius: 4px;
         }
 
-        /* --- モーダル（同意画面）スタイル --- */
+        /* --- モーダル（同意画面・保存確認画面）スタイル --- */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -82,6 +82,7 @@
             border: 1px solid #ddd;
         }
 
+        /* 起動時同意用の大きなチェックボックス */
         .check-container {
             margin-bottom: 20px;
             font-weight: bold;
@@ -103,6 +104,30 @@
         }
         .check-container input[type="checkbox"] {
             transform: scale(1.5);
+            cursor: pointer;
+        }
+
+        /* 保存前確認用のリストスタイル */
+        .save-check-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .save-check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .save-check-item:hover {
+            background-color: #f5f5f5;
+        }
+        .save-check-item input[type="checkbox"] {
+            margin-top: 5px;
+            transform: scale(1.2);
             cursor: pointer;
         }
 
@@ -378,7 +403,6 @@
             color: #d32f2f;
             font-weight: bold;
         }
-        /* note-msg クラス自体は残しますが、HTML本文からは削除しました */
         .note-msg {
             width: 100%;
             text-align: center;
@@ -413,7 +437,7 @@
 </head>
 <body>
 
-    <!-- 同意モーダル (起動時に表示) -->
+    <!-- 1. 起動時同意モーダル -->
     <div id="agreement-modal" class="modal-overlay no-print">
         <div class="modal-content">
             <div class="modal-title">利用上の注意</div>
@@ -442,6 +466,36 @@
             </div>
         </div>
     </div>
+
+    <!-- 2. 保存前確認モーダル (新規追加) -->
+    <div id="save-confirm-modal" class="modal-overlay no-print" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-title" style="border-bottom-color: #ff9800; color: #e65100;">【保存前の確認】</div>
+            <div class="modal-body" style="text-align: left;">
+                <p>実習日誌を保存する前に、以下の点を確認してください。</p>
+                
+                <div class="save-check-list">
+                    <label class="save-check-item">
+                        <input type="checkbox" class="save-check">
+                        <span>園児・児童の実名や、個人が特定される情報を記載していません</span>
+                    </label>
+                    <label class="save-check-item">
+                        <input type="checkbox" class="save-check">
+                        <span>園名・学校名・教職員名が、外部共有時に特定されない表現になっています</span>
+                    </label>
+                    <label class="save-check-item">
+                        <input type="checkbox" class="save-check">
+                        <span>本日誌を教育実習目的以外で利用・再配布しません</span>
+                    </label>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                <button id="btn-cancel-save" class="btn btn-clear">キャンセル</button>
+                <button id="btn-execute-save" class="btn btn-blue" disabled>同意して保存</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="controls no-print">
         <div class="file-upload-wrapper">
@@ -543,7 +597,6 @@
                     <div class="env-drawing-area" id="drawing-area">
                         <canvas id="env-canvas" width="400" height="300"></canvas>
                         <img id="manual-image" alt="環境構成図">
-                        <!-- プレースホルダー削除済み -->
                     </div>
                 </div>
                 
@@ -593,7 +646,7 @@
 
         <!-- バージョン情報表示 -->
         <div class="version-info no-print" style="text-align: right; font-size: 11px; color: #999; margin-top: 10px;">
-            App Version: v33-alpha.3 (2026.01.20)
+            App Version: v34-alpha (2026.01.20)
         </div>
 
     </div>
@@ -619,37 +672,81 @@
         const ALLOWED_DOC_EXT = ['.doc', '.docx'];
         const ALLOWED_IMG_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
 
-        // --- 初期化 (DOMContentLoaded でイベント設定: インラインJS廃止対応) ---
+        // --- 初期化 ---
         window.addEventListener('DOMContentLoaded', function() {
             initApp();
-            initModal(); // モーダルの初期化を追加
+            initModal();        // 起動時同意モーダル
+            initSaveConfirmModal(); // 保存前確認モーダル
         });
 
-        // --- モーダル制御 ---
+        // --- 1. 起動時同意モーダル制御 ---
         function initModal() {
             const checkbox = document.getElementById('agree-checkbox');
             const startBtn = document.getElementById('btn-start-app');
             const modal = document.getElementById('agreement-modal');
 
-            // チェックボックスの状態変更イベント
             checkbox.addEventListener('change', function() {
                 startBtn.disabled = !this.checked;
             });
 
-            // スタートボタンクリックイベント
             startBtn.addEventListener('click', function() {
-                modal.style.display = 'none'; // モーダルを非表示
+                modal.style.display = 'none';
             });
         }
 
+        // --- 2. 保存前確認モーダル制御 ---
+        function initSaveConfirmModal() {
+            const modal = document.getElementById('save-confirm-modal');
+            const checkboxes = modal.querySelectorAll('.save-check');
+            const executeBtn = document.getElementById('btn-execute-save');
+            const cancelBtn = document.getElementById('btn-cancel-save');
+
+            // チェック状態の監視
+            function updateBtnState() {
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                executeBtn.disabled = !allChecked;
+            }
+
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateBtnState);
+            });
+
+            // 保存実行
+            executeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                // 実際の保存処理を呼び出し
+                exportToWord();
+            });
+
+            // キャンセル
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                // チェックをリセット
+                checkboxes.forEach(cb => cb.checked = false);
+                updateBtnState();
+            });
+        }
+
+        // 保存ボタンクリック時にモーダルを開く処理
+        function openSaveConfirm() {
+             const modal = document.getElementById('save-confirm-modal');
+             // チェックをリセットして表示
+             const checkboxes = modal.querySelectorAll('.save-check');
+             const executeBtn = document.getElementById('btn-execute-save');
+             checkboxes.forEach(cb => cb.checked = false);
+             executeBtn.disabled = true;
+             
+             modal.style.display = 'flex';
+        }
+
         function initApp() {
-            // イベントリスナーの登録 (onclick属性の代替)
             document.getElementById('btn-print').addEventListener('click', printDocument);
-            document.getElementById('btn-export').addEventListener('click', exportToWord);
+            // Word保存ボタンは、直接保存ではなく「確認モーダルを開く」処理に変更
+            document.getElementById('btn-export').addEventListener('click', openSaveConfirm);
+            
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
 
-            // ファイル入力イベント
             const docInput = document.getElementById('docx-input');
             docInput.addEventListener('click', function() { this.value = null; });
             docInput.addEventListener('change', handleDocUpload);
@@ -658,14 +755,12 @@
             imgInput.addEventListener('click', function() { this.value = null; });
             imgInput.addEventListener('change', handleImageUpload);
 
-            // ツールバーイベント (Event Delegation)
             const toolbar = document.getElementById('drawing-toolbar');
             if (toolbar) {
                 toolbar.addEventListener('click', function(e) {
                     if (e.target.tagName === 'BUTTON') {
                         const action = e.target.getAttribute('data-action');
                         const type = e.target.getAttribute('data-type');
-                        
                         if (action === 'add' && type) {
                             addObj(type);
                         } else if (action === 'regen') {
@@ -677,16 +772,12 @@
                 });
             }
 
-            // Canvasイベント
             initCanvasEvents();
-            
-            // 初期表示クリア
             clearAll();
         }
 
         // --- バグ修正: 大学名と氏名は消さない ---
         function clearAll() {
-            // すべての .editable を対象にするが、大学名と氏名は除外する
             document.querySelectorAll('.editable').forEach(el => {
                 if (el.id !== 'field-university' && el.id !== 'field-name') {
                     el.innerText = '';
@@ -697,12 +788,10 @@
             tbody.innerHTML = '';
             for(let i=0; i<6; i++) addTimelineRow();
             
-            // Canvasデータリセット
             canvasObjects = [];
             selectedIndex = -1;
             renderCanvas();
             
-            // 画像リソースの解放
             if (currentObjectUrl) {
                 URL.revokeObjectURL(currentObjectUrl);
                 currentObjectUrl = null;
@@ -713,11 +802,9 @@
             manualImg.style.display = 'none';
             document.getElementById('env-canvas').style.display = 'block';
 
-            // ファイル入力もリセット
             document.getElementById('docx-input').value = null;
             document.getElementById('manual-img-input').value = null;
 
-            // プレースホルダー関連処理削除済み
             document.getElementById('diagram-description').innerText = '';
             document.getElementById('status-msg').innerText = '';
         }
@@ -726,13 +813,12 @@
             const tbody = document.getElementById('timeline-body');
             const tr = document.createElement('tr');
             
-            // XSS対策: DOM操作でセル生成
             const createCell = (text) => {
                 const td = document.createElement('td');
                 const div = document.createElement('div');
                 div.className = 'editable';
                 div.contentEditable = 'true';
-                div.innerText = text; // innerTextを使用
+                div.innerText = text; 
                 td.appendChild(div);
                 return td;
             };
@@ -750,26 +836,21 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlString, 'text/html');
             
-            // 削除対象のタグ
             const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'style', 'link', 'form', 'input', 'button', 'meta', 'base'];
             forbiddenTags.forEach(tag => {
                 const elements = doc.querySelectorAll(tag);
                 elements.forEach(el => el.remove());
             });
 
-            // 全要素の属性チェック
             const allElements = doc.querySelectorAll('*');
             allElements.forEach(el => {
                 const attrsToRemove = [];
                 Array.from(el.attributes).forEach(attr => {
                     const name = attr.name.toLowerCase();
                     const value = attr.value.toLowerCase().trim();
-                    
-                    // on* 属性 (onclick, onload等) の削除
                     if (name.startsWith('on')) {
                         attrsToRemove.push(name);
                     }
-                    // javascript: リンクの削除
                     if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
                         attrsToRemove.push(name);
                     }
@@ -780,7 +861,6 @@
             return doc.body.innerHTML;
         }
 
-        // ファイル検証用ヘルパー関数
         function validateFile(file, allowedExtensions) {
             if (!file) return false;
             
@@ -921,7 +1001,6 @@
 
             canvasObjects.push(newObj);
             selectedIndex = canvasObjects.length - 1;
-            // プレースホルダー非表示処理削除済み
             renderCanvas();
         }
 
@@ -1345,7 +1424,7 @@
             document.getElementById('field-class-goal').innerText = sectionContent.classGoal.join('\n');
             document.getElementById('field-student-goal').innerText = sectionContent.studentGoal.join('\n');
             document.getElementById('field-env-text').innerText = sectionContent.envText.join('\n');
-            document.getElementById('diagram-description').innerText = sectionContent.envImageDesc.join('\n');
+            // diagram-descriptionへの反映は不要なので削除
             document.getElementById('field-record').innerText = sectionContent.record.join('\n');
             
             let reflectionText = "";
@@ -1387,7 +1466,10 @@
         }
 
         function generateDiagramFromText() {
-            const desc = document.getElementById('diagram-description').innerText;
+            // テキスト解析による作図ロジックは残しますが、
+            // プレースホルダー除去に伴い、desc変数の元となる要素はWord読込時のみ利用される想定です。
+            // ここでは簡易的に空にしておきます（手動追加がメインのため）
+            const desc = ""; 
             const canvas = document.getElementById('env-canvas');
             const width = canvas.width;
             const height = canvas.height;
