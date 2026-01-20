@@ -3,19 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <!-- 4) CSP（Content Security Policy）導入 -->
-    <!-- img-src に blob: を追加して URL.createObjectURL に対応 -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <!-- 
+       A1対応: base-uri 'none', form-action 'none' を設定。
+       script-src には 'unsafe-inline' を残していますが、HTML内のインラインイベント(onclick等)は全廃し、
+       JS側でaddEventListenerを行う形にリファクタリングすることでリスクを低減しています。
+    -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（ファイル検証・メモリ最適化版）v25</title>
+    <title>教育実習日誌（セキュリティ強化・動作安定版）v27</title>
     
-    <!-- Wordファイル解析用ライブラリ -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <style>
-        /* Google Fontsを削除し、システムフォントを使用することでCDNリスクを回避 */
+    <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
+    <!-- 
+        【セキュリティ強化（A2対応）推奨】
+        現在は動作確認用にCDNを使用していますが、本番運用では以下の手順でローカルファイルを使用することを強く推奨します。
+        1. https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js をダウンロード
+        2. HTMLと同じ階層（または vendor/ フォルダ等）に保存
+        3. 以下のscriptタグを書き換え:
+           <script src="./mammoth.browser.min.js"></script>
         
+        これにより、外部CDNへの依存リスク（可用性・改ざん・プライバシー）を完全に排除できます。
+    -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        /* システム標準フォントを使用 */
         body {
-            /* システム標準の日本語フォントを優先的に使用 */
             font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
             background-color: #f0f0f0;
             margin: 0;
@@ -317,14 +331,15 @@
 
     <div class="controls no-print">
         <div class="file-upload-wrapper">
+            <!-- onclick削除済み: JSでイベントリスナーを設定 -->
             <label for="docx-input" class="btn btn-success">
                 📂 Word下書きを読込
             </label>
             <input type="file" id="docx-input" accept=".docx,.doc">
         </div>
         
-        <button class="btn" onclick="printDocument()">🖨️ 印刷 / PDF保存</button>
-        <button class="btn btn-blue" onclick="exportToWord()">💾 Word保存(.doc)</button>
+        <button id="btn-print" class="btn">🖨️ 印刷 / PDF保存</button>
+        <button id="btn-export" class="btn btn-blue">💾 Word保存(.doc)</button>
         
         <div class="file-upload-wrapper">
             <label for="manual-img-input" class="btn btn-orange">
@@ -333,8 +348,8 @@
             <input type="file" id="manual-img-input" accept="image/png, image/jpeg, image/gif, image/webp">
         </div>
 
-        <button class="btn btn-purple" onclick="saveDiagramImage()">🖼️ 図を画像保存</button>
-        <button class="btn btn-clear" onclick="clearAll()">🗑️ クリア/リセット</button>
+        <button id="btn-save-img" class="btn btn-purple">🖼️ 図を画像保存</button>
+        <button id="btn-clear" class="btn btn-clear">🗑️ クリア/リセット</button>
         
         <div id="status-msg"></div>
         <div class="note-msg">※Wordで図が表示されない場合は、「図を画像保存」で保存し、Wordに貼り付けてください。</div>
@@ -399,18 +414,18 @@
             <span style="font-weight:bold; border-bottom:1px dashed #999; display:block; margin-bottom:10px;">環境構成・配置図</span>
             <div class="env-content">
                 <div class="env-drawing-container">
-                    <!-- ツールバー -->
-                    <div class="drawing-toolbar no-print">
-                        <button class="tool-btn" onclick="addObj('teacher')">＋保育者</button>
-                        <button class="tool-btn" onclick="addObj('child')">＋子供</button>
-                        <button class="tool-btn" onclick="addObj('desk')">＋机</button>
-                        <button class="tool-btn" onclick="addObj('chair')">＋椅子</button>
-                        <button class="tool-btn" onclick="addObj('piano')">＋ピアノ</button>
-                        <button class="tool-btn" onclick="addObj('mat')">＋マット</button>
-                        <button class="tool-btn" onclick="addObj('cone')">＋コーン</button>
-                        <button class="tool-btn" onclick="addObj('goal')">＋ゴール</button>
-                        <button class="tool-btn" onclick="generateDiagramFromText()">🔄再生成</button>
-                        <button class="tool-btn danger" onclick="deleteSelectedObj()">✖ 削除</button>
+                    <!-- ツールバー: onclickを削除し、data属性を利用してJSでイベント管理 -->
+                    <div id="drawing-toolbar" class="drawing-toolbar no-print">
+                        <button class="tool-btn" data-action="add" data-type="teacher">＋保育者</button>
+                        <button class="tool-btn" data-action="add" data-type="child">＋子供</button>
+                        <button class="tool-btn" data-action="add" data-type="desk">＋机</button>
+                        <button class="tool-btn" data-action="add" data-type="chair">＋椅子</button>
+                        <button class="tool-btn" data-action="add" data-type="piano">＋ピアノ</button>
+                        <button class="tool-btn" data-action="add" data-type="mat">＋マット</button>
+                        <button class="tool-btn" data-action="add" data-type="cone">＋コーン</button>
+                        <button class="tool-btn" data-action="add" data-type="goal">＋ゴール</button>
+                        <button class="tool-btn" data-action="regen">🔄再生成</button>
+                        <button class="tool-btn danger" data-action="delete">✖ 削除</button>
                     </div>
 
                     <div class="env-drawing-area" id="drawing-area">
@@ -474,724 +489,75 @@
 
     <script>
         // --- 変数定義 ---
-        let canvasObjects = []; // 描画オブジェクト配列
-        let selectedIndex = -1; // 選択中のオブジェクトインデックス
+        let canvasObjects = [];
+        let selectedIndex = -1;
         let isDragging = false;
         let dragStartX = 0;
         let dragStartY = 0;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
         
-        let currentObjectUrl = null; // 現在表示中の画像のBlob URLを管理
+        let currentObjectUrl = null;
 
-        // ファイルサイズ上限 (10MB)
         const MAX_FILE_SIZE = 10 * 1024 * 1024;
-
-        // 許可する拡張子リスト
         const ALLOWED_DOC_EXT = ['.doc', '.docx'];
         const ALLOWED_IMG_EXT = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
 
-        // --- 初期化 ---
-        window.onload = function() {
+        // --- 初期化 (DOMContentLoaded でイベント設定: インラインJS廃止対応) ---
+        window.addEventListener('DOMContentLoaded', function() {
+            initApp();
+        });
+
+        function initApp() {
+            // イベントリスナーの登録 (onclick属性の代替)
+            document.getElementById('btn-print').addEventListener('click', printDocument);
+            document.getElementById('btn-export').addEventListener('click', exportToWord);
+            document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
+            document.getElementById('btn-clear').addEventListener('click', clearAll);
+
+            // ファイル入力イベント
+            const docInput = document.getElementById('docx-input');
+            docInput.addEventListener('click', function() { this.value = null; });
+            docInput.addEventListener('change', handleDocUpload);
+
+            const imgInput = document.getElementById('manual-img-input');
+            imgInput.addEventListener('click', function() { this.value = null; });
+            imgInput.addEventListener('change', handleImageUpload);
+
+            // ツールバーイベント (Event Delegation)
+            const toolbar = document.getElementById('drawing-toolbar');
+            if (toolbar) {
+                toolbar.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'BUTTON') {
+                        const action = e.target.getAttribute('data-action');
+                        const type = e.target.getAttribute('data-type');
+                        
+                        if (action === 'add' && type) {
+                            addObj(type);
+                        } else if (action === 'regen') {
+                            generateDiagramFromText();
+                        } else if (action === 'delete') {
+                            deleteSelectedObj();
+                        }
+                    }
+                });
+            }
+
+            // Canvasイベント
             initCanvasEvents();
+            
+            // 初期表示クリア
             clearAll();
-        };
-
-        // ファイル検証用ヘルパー関数
-        function validateFile(file, allowedExtensions) {
-            if (!file) return false;
-            
-            // 1. サイズチェック
-            if (file.size > MAX_FILE_SIZE) {
-                alert(`ファイルサイズが大きすぎます（上限10MB）。\nファイル名: ${file.name}`);
-                return false;
-            }
-
-            // 2. 拡張子チェック
-            const fileName = file.name.toLowerCase();
-            const isValidExt = allowedExtensions.some(ext => fileName.endsWith(ext));
-            if (!isValidExt) {
-                alert(`許可されていないファイル形式です。\n許可されている拡張子: ${allowedExtensions.join(', ')}`);
-                return false;
-            }
-
-            // 3. MIMEタイプ簡易チェック (imageの場合のみ厳密に、docは環境依存が激しいため拡張子優先)
-            if (allowedExtensions === ALLOWED_IMG_EXT) {
-                if (!file.type.startsWith('image/')) {
-                    alert("画像ファイルではありません。");
-                    return false;
-                }
-            }
-
-            return true;
         }
 
-        function getFormattedDate() {
-            const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            const hh = String(now.getHours()).padStart(2, '0');
-            const min = String(now.getMinutes()).padStart(2, '0');
-            return `${yyyy}${mm}${dd}_${hh}${min}`;
-        }
-
-        function printDocument() {
-            // 印刷前に選択状態を解除して描画
-            selectedIndex = -1;
-            renderCanvas();
-            
-            const originalTitle = document.title;
-            document.title = `教育実習日誌_${getFormattedDate()}`;
-            window.focus();
-            window.print();
-            setTimeout(() => {
-                document.title = originalTitle;
-            }, 2000);
-        }
-
-        // --- Canvas イベント処理 (ドラッグ移動・選択) ---
-        function initCanvasEvents() {
-            const canvas = document.getElementById('env-canvas');
-            
-            // マウスイベント
-            canvas.addEventListener('mousedown', handleMouseDown);
-            canvas.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp); // Canvas外で放してもOKなように
-
-            // タッチイベント (スマホ対応)
-            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
-            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
-            window.addEventListener('touchend', handleMouseUp);
-        }
-
-        function getMousePos(evt) {
-            const canvas = document.getElementById('env-canvas');
-            const rect = canvas.getBoundingClientRect();
-            let clientX, clientY;
-            
-            if (evt.changedTouches) {
-                clientX = evt.changedTouches[0].clientX;
-                clientY = evt.changedTouches[0].clientY;
-            } else {
-                clientX = evt.clientX;
-                clientY = evt.clientY;
-            }
-
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
-        }
-
-        function handleMouseDown(e) {
-            e.preventDefault();
-            const pos = getMousePos(e);
-            
-            // 逆順（前面から）ヒットテスト
-            let hitIndex = -1;
-            for (let i = canvasObjects.length - 1; i >= 0; i--) {
-                if (hitTest(canvasObjects[i], pos.x, pos.y)) {
-                    hitIndex = i;
-                    break;
-                }
-            }
-
-            if (hitIndex !== -1) {
-                selectedIndex = hitIndex;
-                isDragging = true;
-                dragStartX = pos.x;
-                dragStartY = pos.y;
-                dragOffsetX = canvasObjects[hitIndex].x - pos.x;
-                dragOffsetY = canvasObjects[hitIndex].y - pos.y;
-            } else {
-                selectedIndex = -1; // 何もないところをクリックで選択解除
-            }
-            renderCanvas();
-        }
-
-        function handleMouseMove(e) {
-            e.preventDefault();
-            const pos = getMousePos(e);
-            const canvas = document.getElementById('env-canvas');
-
-            // ホバー効果
-            let hit = false;
-            for (let i = canvasObjects.length - 1; i >= 0; i--) {
-                if (hitTest(canvasObjects[i], pos.x, pos.y)) {
-                    hit = true; break;
-                }
-            }
-            if (isDragging) {
-                canvas.style.cursor = 'grabbing';
-            } else if (hit) {
-                canvas.style.cursor = 'grab';
-            } else {
-                canvas.style.cursor = 'crosshair';
-            }
-
-            if (isDragging && selectedIndex !== -1) {
-                const obj = canvasObjects[selectedIndex];
-                obj.x = pos.x + dragOffsetX;
-                obj.y = pos.y + dragOffsetY;
-                renderCanvas();
-            }
-        }
-
-        function handleMouseUp(e) {
-            isDragging = false;
-            renderCanvas();
-        }
-
-        // タッチイベント用ラッパー
-        function handleTouchStart(e) { handleMouseDown(e); }
-        function handleTouchMove(e) { handleMouseMove(e); }
-
-        // --- ヒットテスト ---
-        function hitTest(obj, mx, my) {
-            // 背景系オブジェクトなど選択不可にしたい場合はここで弾く
-            // if (obj.locked) return false;
-
-            // 簡易的にタイプ別サイズ定義
-            let w = 20, h = 20;
-            
-            if (obj.type === 'track') {
-                // トラックは楕円の内側かどうか
-                // 簡易判定：矩形
-                return (Math.abs(mx - obj.x) < obj.w/2 && Math.abs(my - obj.y) < obj.h/2);
-            }
-
-            // サイズ決定
-            if (obj.w && obj.h) { w = obj.w; h = obj.h; }
-            else if (obj.type === 'teacher' || obj.type === 'child' || obj.type === 'cone') { w = 30; h = 30; }
-            else if (obj.type === 'desk') { w = 40; h = 25; }
-            else if (obj.type === 'piano') { w = 40; h = 40; }
-
-            // 中心座標(x,y)からの矩形判定
-            return (mx >= obj.x - w/2 && mx <= obj.x + w/2 &&
-                    my >= obj.y - h/2 && my <= obj.y + h/2);
-        }
-
-        // --- オブジェクト追加・削除 ---
-        function addObj(type) {
-            const canvas = document.getElementById('env-canvas');
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            let newObj = { type: type, x: cx + (Math.random()*40-20), y: cy + (Math.random()*40-20) };
-
-            // タイプ別初期設定
-            if (type === 'teacher') { newObj.label = 'T'; newObj.color = 'red'; }
-            if (type === 'child') { newObj.label = '子'; newObj.color = '#333'; }
-            if (type === 'desk') { newObj.w = 50; newObj.h = 30; newObj.color = '#e0e0e0'; }
-            if (type === 'chair') { newObj.w = 15; newObj.h = 15; newObj.color = '#e0e0e0'; }
-            if (type === 'piano') { newObj.w = 40; newObj.h = 50; newObj.color = '#333'; }
-            if (type === 'mat') { newObj.w = 60; newObj.h = 40; newObj.color = '#81c784'; }
-            if (type === 'cone') { newObj.color = 'red'; }
-            if (type === 'goal') { newObj.color = 'blue'; }
-
-            canvasObjects.push(newObj);
-            selectedIndex = canvasObjects.length - 1; // 追加したものを選択状態に
-            document.getElementById('placeholder-text').style.display = 'none';
-            renderCanvas();
-        }
-
-        function deleteSelectedObj() {
-            if (selectedIndex !== -1) {
-                canvasObjects.splice(selectedIndex, 1);
-                selectedIndex = -1;
-                renderCanvas();
-            }
-        }
-
-        // --- 描画ロジック (レンダラー) ---
-        function renderCanvas() {
-            const canvas = document.getElementById('env-canvas');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
-
-            // クリア
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = "#fff";
-            ctx.fillRect(0, 0, width, height);
-
-            // 枠線
-            ctx.strokeStyle = "#ccc";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(0, 0, width, height);
-
-            if (canvasObjects.length === 0) return;
-
-            // 全オブジェクト描画
-            canvasObjects.forEach((obj, index) => {
-                ctx.save();
-                ctx.translate(obj.x, obj.y);
-
-                const isSelected = (index === selectedIndex);
-                if (isSelected) {
-                    ctx.shadowColor = 'rgba(0, 123, 255, 0.8)';
-                    ctx.shadowBlur = 10;
-                }
-
-                // タイプ別描画
-                if (obj.type === 'teacher') {
-                    // ×印
-                    ctx.font = "bold 20px Arial";
-                    ctx.fillStyle = obj.color || "red";
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    ctx.fillText("×", 0, 0);
-                    if (obj.label) {
-                        ctx.font = "12px Arial";
-                        ctx.fillText(obj.label, 15, 5);
-                    }
-                }
-                else if (obj.type === 'child') {
-                    // ○印
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 8, 0, Math.PI * 2);
-                    ctx.strokeStyle = obj.color || "#333";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    if (obj.label) {
-                        ctx.font = "10px Arial";
-                        ctx.fillStyle = "#333";
-                        ctx.textAlign = "center";
-                        ctx.fillText(obj.label, 0, -12);
-                    }
-                }
-                else if (obj.type === 'desk' || obj.type === 'mat') {
-                    // 矩形
-                    const w = obj.w || 40;
-                    const h = obj.h || 25;
-                    ctx.fillStyle = obj.color || "#e0e0e0";
-                    ctx.fillRect(-w/2, -h/2, w, h);
-                    ctx.strokeStyle = "#999";
-                    ctx.strokeRect(-w/2, -h/2, w, h);
-                }
-                else if (obj.type === 'chair') {
-                    // 小さい丸/四角
-                    const w = obj.w || 15;
-                    ctx.fillStyle = obj.color || "#fff";
-                    ctx.fillRect(-w/2, -w/2, w, w);
-                    ctx.strokeStyle = "#666";
-                    ctx.strokeRect(-w/2, -w/2, w, w);
-                    // 背もたれ線
-                    ctx.beginPath();
-                    ctx.moveTo(-w/2, -w/2); ctx.lineTo(w/2, -w/2);
-                    ctx.stroke();
-                }
-                else if (obj.type === 'piano') {
-                    // ピアノ形状
-                    const w = obj.w || 40;
-                    const h = obj.h || 50;
-                    ctx.fillStyle = "#333";
-                    ctx.fillRect(-w/2, -h/2, w, h);
-                    // 鍵盤
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(-w/2, h/4, w, h/4); 
-                }
-                else if (obj.type === 'cone') {
-                    // 三角
-                    ctx.beginPath();
-                    ctx.moveTo(0, -10);
-                    ctx.lineTo(8, 10);
-                    ctx.lineTo(-8, 10);
-                    ctx.closePath();
-                    ctx.fillStyle = obj.color || "red";
-                    ctx.fill();
-                    ctx.strokeStyle = "#333";
-                    ctx.stroke();
-                }
-                else if (obj.type === 'goal') {
-                    // 旗
-                    ctx.beginPath();
-                    ctx.moveTo(0, 10);
-                    ctx.lineTo(0, -20);
-                    ctx.strokeStyle = "#333";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    ctx.fillStyle = obj.color || "blue";
-                    ctx.fillRect(0, -20, 15, 10);
-                }
-                else if (obj.type === 'track') {
-                    // トラック（楕円）
-                    const w = obj.w || width * 0.7;
-                    const h = obj.h || height * 0.5;
-                    ctx.beginPath();
-                    ctx.ellipse(0, 0, w/2, h/2, 0, 0, 2 * Math.PI);
-                    ctx.strokeStyle = "#555";
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                    // 編集用の枠線（選択時）
-                    if (isSelected) {
-                        ctx.strokeStyle = "blue";
-                        ctx.lineWidth = 1;
-                        ctx.setLineDash([5, 5]);
-                        ctx.strokeRect(-w/2, -h/2, w, h);
-                        ctx.setLineDash([]);
-                    }
-                }
-                else if (obj.type === 'text') {
-                    ctx.fillStyle = "#000";
-                    ctx.font = "14px Arial";
-                    ctx.textAlign = "center";
-                    ctx.fillText(obj.text || "Text", 0, 0);
-                }
-
-                // 選択時の強調表示（枠）- トラック以外共通
-                if (isSelected && obj.type !== 'track') {
-                    ctx.strokeStyle = "#007bff";
-                    ctx.lineWidth = 1;
-                    ctx.setLineDash([2, 2]);
-                    ctx.strokeRect(-20, -20, 40, 40); // 簡易枠
-                    ctx.setLineDash([]);
-                    
-                    // 削除ボタン的アイコン（オプション）
-                }
-
-                ctx.restore();
-            });
-        }
-
-
-        // --- 図を画像として保存 ---
-        function saveDiagramImage() {
-            const canvas = document.getElementById('env-canvas');
-            const manualImg = document.getElementById('manual-image');
-            
-            // 描画前に選択解除
-            const prevSelected = selectedIndex;
-            selectedIndex = -1;
-            renderCanvas();
-            
-            let downloadUrl;
-            
-            // manualImgが表示されていて、かつsrcがある場合
-            if (manualImg.style.display !== 'none' && manualImg.src) {
-                downloadUrl = manualImg.src;
-            } else if (canvas && canvas.style.display !== 'none') {
-                try {
-                    downloadUrl = canvas.toDataURL("image/png");
-                } catch(e) {
-                    alert("図の保存に失敗しました。");
-                    selectedIndex = prevSelected;
-                    renderCanvas();
-                    return;
-                }
-            } else {
-                alert("保存する図がありません。");
-                selectedIndex = prevSelected;
-                renderCanvas();
-                return;
-            }
-
-            // 選択状態を戻す
-            selectedIndex = prevSelected;
-            renderCanvas();
-
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = `環境構成図_${getFormattedDate()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // --- Word保存ロジック ---
-        function exportToWord() {
-            document.getElementById('status-msg').innerText = "ファイルを生成中...";
-            
-            // 選択解除して描画を確定
-            selectedIndex = -1;
-            renderCanvas();
-
-            setTimeout(() => {
-                try {
-                    const journal = document.getElementById('journal-area');
-                    if (!journal) throw new Error("journal-areaが見つかりません");
-                    const clone = journal.cloneNode(true);
-
-                    // 1. 画像の処理 (Blob URL対策を含む)
-                    const originalCanvas = document.getElementById('env-canvas');
-                    const originalImg = document.getElementById('manual-image');
-                    
-                    let imgBase64 = null;
-
-                    // manual-image（差し替え画像）が表示されている場合
-                    if (originalImg.style.display !== 'none' && originalImg.src) {
-                        // Blob URLの場合は、一度Canvasに描画してBase64化する必要がある
-                        // 保存されたWordファイル内で表示させるため
-                        const tempCanvas = document.createElement('canvas');
-                        // 画像のナチュラルサイズを使用
-                        tempCanvas.width = originalImg.naturalWidth || 400;
-                        tempCanvas.height = originalImg.naturalHeight || 300;
-                        const tCtx = tempCanvas.getContext('2d');
-                        tCtx.drawImage(originalImg, 0, 0);
-                        try {
-                            imgBase64 = tempCanvas.toDataURL("image/png");
-                        } catch(e) {
-                            console.error("Image conversion error", e);
-                        }
-                    } 
-                    // Canvas（自動作図）が表示されている場合
-                    else if (originalCanvas && originalCanvas.style.display !== 'none') {
-                        try {
-                            imgBase64 = originalCanvas.toDataURL("image/png");
-                        } catch(e) { console.error("Canvas error", e); }
-                    }
-
-                    if (imgBase64) {
-                        const img = document.createElement('img');
-                        img.src = imgBase64;
-                        img.setAttribute('width', '300'); // 属性で指定
-                        img.style.width = '300px';        // スタイルでも指定
-                        img.style.border = "1px solid #ccc";
-                        
-                        // ツールバーとCanvasを削除し、画像を配置
-                        const drawingContainer = clone.querySelector('.env-drawing-container');
-                        if (drawingContainer) {
-                            drawingContainer.innerHTML = '';
-                            drawingContainer.appendChild(img);
-                        }
-                    } else {
-                         const drawingContainer = clone.querySelector('.env-drawing-container');
-                         if(drawingContainer) drawingContainer.innerHTML = '（図なし）';
-                    }
-
-                    // 2. 不要要素の削除
-                    clone.querySelectorAll('#placeholder-text, #diagram-description').forEach(el => el.remove());
-                    // ツールバー削除
-                    clone.querySelectorAll('.drawing-toolbar').forEach(el => el.remove());
-
-                    // 3. 入力エリアの調整
-                    clone.querySelectorAll('.editable').forEach(el => {
-                        el.removeAttribute('contenteditable');
-                        el.style.backgroundColor = 'transparent';
-                        el.style.border = 'none';
-                        
-                        // XSS対策: innerHTMLを使わずに改行処理を行う
-                        const text = el.innerText;
-                        el.innerHTML = ''; // クリア
-                        const lines = text.split('\n');
-                        lines.forEach((line, i) => {
-                            el.appendChild(document.createTextNode(line));
-                            if (i < lines.length - 1) {
-                                el.appendChild(document.createElement('br'));
-                            }
-                        });
-                    });
-
-                    // 4. 印鑑枠の構造変換（Table化）
-                    const stampArea = clone.querySelector('.stamp-area');
-                    if (stampArea && stampArea.parentNode) {
-                        const stampParent = stampArea.parentNode; 
-                        const table = document.createElement('table');
-                        table.setAttribute("width", "100%");
-                        table.style.borderCollapse = "collapse";
-                        table.style.border = "none";
-                        const tr = document.createElement('tr');
-                        
-                        const td1 = document.createElement('td');
-                        td1.style.border = "none";
-                        td1.align = "right";
-                        td1.innerHTML = `<table style="display:inline-table; border-collapse:collapse;"><tr><td style="border:none; padding-right:5px;">園長印</td><td style="border:1px solid #000; width:60px; height:60px; text-align:center; vertical-align:middle;">印</td></tr></table>`;
-                        tr.appendChild(td1);
-
-                        const td2 = document.createElement('td');
-                        td2.style.border = "none";
-                        td2.align = "right";
-                        td2.innerHTML = `<table style="display:inline-table; border-collapse:collapse; margin-left:10px;"><tr><td style="border:none; padding-right:5px;">指導者印</td><td style="border:1px solid #000; width:60px; height:60px; text-align:center; vertical-align:middle;">印</td></tr></table>`;
-                        tr.appendChild(td2);
-
-                        table.appendChild(tr);
-                        stampParent.innerHTML = "";
-                        stampParent.appendChild(table);
-                    }
-
-                    // 5. 環境構成エリアの構造変換（Table化）
-                    const envContent = clone.querySelector('.env-content');
-                    if(envContent && envContent.parentNode) {
-                        const envParent = envContent.parentNode;
-                        const table = document.createElement('table');
-                        table.setAttribute("width", "100%");
-                        table.style.borderCollapse = "collapse";
-                        const tr = document.createElement('tr');
-                        
-                        const tdImg = document.createElement('td');
-                        tdImg.setAttribute("width", "50%");
-                        tdImg.setAttribute("valign", "top");
-                        tdImg.style.border = "none";
-                        
-                        // env-drawing-containerの中身（画像）を移植
-                        const drawingContainer = envContent.querySelector('.env-drawing-container');
-                        if(drawingContainer) {
-                             tdImg.innerHTML = drawingContainer.innerHTML;
-                        }
-                        tr.appendChild(tdImg);
-
-                        const tdText = document.createElement('td');
-                        tdText.setAttribute("width", "50%");
-                        tdText.setAttribute("valign", "top");
-                        tdText.style.border = "none";
-                        const textArea = envContent.querySelector('.env-text-area');
-                        if(textArea) {
-                            tdText.innerHTML = textArea.innerHTML;
-                        }
-                        tr.appendChild(tdText);
-
-                        table.appendChild(tr);
-                        envParent.replaceChild(table, envContent);
-                    }
-
-                    // 6. 記録・反省エリアの構造変換
-                    const recordSections = clone.querySelectorAll('.record-section');
-                    recordSections.forEach(section => {
-                        if (!section.parentNode) return;
-                        const sectionParent = section.parentNode;
-                        const headerText = section.querySelector('.record-header').innerText;
-                        const bodyHtml = section.querySelector('.record-body').innerHTML;
-
-                        const table = document.createElement('table');
-                        table.setAttribute("width", "100%");
-                        table.style.borderCollapse = "collapse";
-                        table.style.marginBottom = "-1px"; 
-
-                        const trHead = document.createElement('tr');
-                        const th = document.createElement('th');
-                        th.style.border = "1px solid #000";
-                        th.style.backgroundColor = "#e0e0e0";
-                        th.align = "left";
-                        th.style.padding = "5px";
-                        th.innerText = headerText;
-                        trHead.appendChild(th);
-                        table.appendChild(trHead);
-
-                        const trBody = document.createElement('tr');
-                        const td = document.createElement('td');
-                        td.style.border = "1px solid #000";
-                        td.style.padding = "10px";
-                        td.setAttribute("valign", "top");
-                        td.style.height = "100px";
-                        td.innerHTML = bodyHtml;
-                        trBody.appendChild(td);
-                        table.appendChild(trBody);
-
-                        sectionParent.replaceChild(table, section);
-                    });
-
-                    // 7. タイトルヘッダーの構造変換（Word用にTable化）
-                    const titleHeader = clone.querySelector('.title-header');
-                    if (titleHeader) {
-                        const table = document.createElement('table');
-                        table.setAttribute("width", "100%");
-                        table.style.border = "none";
-                        table.style.borderBottom = "2px solid #333"; 
-                        table.style.marginBottom = "20px";
-                        
-                        const tr = document.createElement('tr');
-                        
-                        // タイトルセル
-                        const tdTitle = document.createElement('td');
-                        tdTitle.style.border = "none";
-                        tdTitle.style.verticalAlign = "bottom";
-                        const h1 = document.createElement('h1');
-                        h1.style.margin = '0';
-                        h1.style.fontSize = '24px';
-                        h1.innerText = '教育実習日誌';
-                        tdTitle.appendChild(h1);
-                        
-                        // 情報セル
-                        const tdInfo = document.createElement('td');
-                        tdInfo.style.border = "none";
-                        tdInfo.style.textAlign = "right";
-                        tdInfo.style.verticalAlign = "bottom";
-                        
-                        // XSS対策: DOM操作による安全な構築に変更
-                        const uniText = clone.querySelector('#field-university').innerText;
-                        const nameText = clone.querySelector('#field-name').innerText;
-                        
-                        // 大学名の行
-                        const divUni = document.createElement('div');
-                        divUni.style.marginBottom = '5px';
-                        divUni.appendChild(document.createTextNode('大学名：'));
-                        const spanUni = document.createElement('span');
-                        spanUni.style.textDecoration = 'underline';
-                        spanUni.innerText = uniText;
-                        divUni.appendChild(spanUni);
-                        tdInfo.appendChild(divUni);
-
-                        // 氏名の行
-                        const divName = document.createElement('div');
-                        divName.appendChild(document.createTextNode('氏名：'));
-                        const spanName = document.createElement('span');
-                        spanName.style.textDecoration = 'underline';
-                        spanName.innerText = nameText;
-                        divName.appendChild(spanName);
-                        tdInfo.appendChild(divName);
-                        
-                        tr.appendChild(tdTitle);
-                        tr.appendChild(tdInfo);
-                        table.appendChild(tr);
-                        
-                        titleHeader.parentNode.replaceChild(table, titleHeader);
-                    }
-
-                    // 8. HTML生成とダウンロード
-                    const css = `
-                        <style>
-                            body { font-family: 'MS Mincho', 'Hiragino Mincho ProN', serif; font-size: 10.5pt; }
-                            table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-                            th, td { border: 1px solid #000; padding: 5px; vertical-align: top; }
-                            th { background-color: #f0f0f0; text-align: center; font-weight: bold; }
-                        </style>
-                    `;
-                    
-                    const htmlContent = `
-                        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-                        <head><meta charset='UTF-8'>${css}</head>
-                        <body>${clone.innerHTML}</body>
-                        </html>
-                    `;
-
-                    const blob = new Blob(['\ufeff', htmlContent], {
-                        type: 'application/msword'
-                    });
-                    
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = `教育実習日誌_${getFormattedDate()}.doc`;
-                    
-                    if (document.body) {
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        document.getElementById('status-msg').innerText = "ダウンロードを開始しました。";
-                    } else {
-                        throw new Error("document.body is null");
-                    }
-
-                } catch (e) {
-                    console.error(e);
-                    document.getElementById('status-msg').innerText = "エラー: " + e.message;
-                    alert("保存中にエラーが発生しました。\n" + e.message + "\n\nページをリロードしてもう一度お試しください。");
-                }
-            }, 100);
-        }
-
-        // --- 同じファイルでも再読み込みできるようにする処理 ---
-        document.getElementById('docx-input').addEventListener('click', function() {
-            this.value = null;
-        });
-        
-        document.getElementById('manual-img-input').addEventListener('click', function() {
-            this.value = null;
-        });
-
+        // --- バグ修正: 大学名と氏名は消さない ---
         function clearAll() {
-            document.querySelectorAll('.editable').forEach(el => el.innerText = '');
-            document.getElementById('field-university').innerText = ''; 
-            document.getElementById('field-name').innerText = '';       
+            // すべての .editable を対象にするが、大学名と氏名は除外する
+            document.querySelectorAll('.editable').forEach(el => {
+                if (el.id !== 'field-university' && el.id !== 'field-name') {
+                    el.innerText = '';
+                }
+            });
             
             const tbody = document.getElementById('timeline-body');
             tbody.innerHTML = '';
@@ -1232,7 +598,7 @@
                 const div = document.createElement('div');
                 div.className = 'editable';
                 div.contentEditable = 'true';
-                div.innerText = text; 
+                div.innerText = text; // innerTextを使用
                 td.appendChild(div);
                 return td;
             };
@@ -1245,59 +611,501 @@
             tbody.appendChild(tr);
         }
 
-        // --- 図の差し替え処理 ---
-        document.getElementById('manual-img-input').addEventListener('change', function(event) {
+        // --- A3対応: HTMLサニタイズ関数 ---
+        function sanitizeHtml(htmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+            
+            // 削除対象のタグ
+            const forbiddenTags = ['script', 'iframe', 'object', 'embed', 'style', 'link', 'form', 'input', 'button', 'meta', 'base'];
+            forbiddenTags.forEach(tag => {
+                const elements = doc.querySelectorAll(tag);
+                elements.forEach(el => el.remove());
+            });
+
+            // 全要素の属性チェック
+            const allElements = doc.querySelectorAll('*');
+            allElements.forEach(el => {
+                const attrsToRemove = [];
+                Array.from(el.attributes).forEach(attr => {
+                    const name = attr.name.toLowerCase();
+                    const value = attr.value.toLowerCase().trim();
+                    
+                    // on* 属性 (onclick, onload等) の削除
+                    if (name.startsWith('on')) {
+                        attrsToRemove.push(name);
+                    }
+                    // javascript: リンクの削除
+                    if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
+                        attrsToRemove.push(name);
+                    }
+                });
+                attrsToRemove.forEach(attrName => el.removeAttribute(attrName));
+            });
+
+            return doc.body.innerHTML;
+        }
+
+        // ファイル検証用ヘルパー関数
+        function validateFile(file, allowedExtensions) {
+            if (!file) return false;
+            
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`ファイルサイズが大きすぎます（上限10MB）。\nファイル名: ${file.name}`);
+                return false;
+            }
+
+            const fileName = file.name.toLowerCase();
+            const isValidExt = allowedExtensions.some(ext => fileName.endsWith(ext));
+            if (!isValidExt) {
+                alert(`許可されていないファイル形式です。\n許可されている拡張子: ${allowedExtensions.join(', ')}`);
+                return false;
+            }
+
+            if (allowedExtensions === ALLOWED_IMG_EXT) {
+                if (!file.type.startsWith('image/')) {
+                    alert("画像ファイルではありません。");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function getFormattedDate() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            return `${yyyy}${mm}${dd}_${hh}${min}`;
+        }
+
+        function printDocument() {
+            selectedIndex = -1;
+            renderCanvas();
+            const originalTitle = document.title;
+            document.title = `教育実習日誌_${getFormattedDate()}`;
+            window.focus();
+            window.print();
+            setTimeout(() => { document.title = originalTitle; }, 2000);
+        }
+
+        // --- Canvas イベント処理 ---
+        function initCanvasEvents() {
+            const canvas = document.getElementById('env-canvas');
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
+            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
+            window.addEventListener('touchend', handleMouseUp);
+        }
+
+        function getMousePos(evt) {
+            const canvas = document.getElementById('env-canvas');
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+            if (evt.changedTouches) {
+                clientX = evt.changedTouches[0].clientX;
+                clientY = evt.changedTouches[0].clientY;
+            } else {
+                clientX = evt.clientX;
+                clientY = evt.clientY;
+            }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            let hitIndex = -1;
+            for (let i = canvasObjects.length - 1; i >= 0; i--) {
+                if (hitTest(canvasObjects[i], pos.x, pos.y)) { hitIndex = i; break; }
+            }
+            if (hitIndex !== -1) {
+                selectedIndex = hitIndex;
+                isDragging = true;
+                dragStartX = pos.x;
+                dragStartY = pos.y;
+                dragOffsetX = canvasObjects[hitIndex].x - pos.x;
+                dragOffsetY = canvasObjects[hitIndex].y - pos.y;
+            } else {
+                selectedIndex = -1;
+            }
+            renderCanvas();
+        }
+
+        function handleMouseMove(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            const canvas = document.getElementById('env-canvas');
+            let hit = false;
+            for (let i = canvasObjects.length - 1; i >= 0; i--) {
+                if (hitTest(canvasObjects[i], pos.x, pos.y)) { hit = true; break; }
+            }
+            canvas.style.cursor = isDragging ? 'grabbing' : (hit ? 'grab' : 'crosshair');
+
+            if (isDragging && selectedIndex !== -1) {
+                const obj = canvasObjects[selectedIndex];
+                obj.x = pos.x + dragOffsetX;
+                obj.y = pos.y + dragOffsetY;
+                renderCanvas();
+            }
+        }
+
+        function handleMouseUp(e) { isDragging = false; renderCanvas(); }
+        function handleTouchStart(e) { handleMouseDown(e); }
+        function handleTouchMove(e) { handleMouseMove(e); }
+
+        function hitTest(obj, mx, my) {
+            let w = 20, h = 20;
+            if (obj.type === 'track') {
+                return (Math.abs(mx - obj.x) < obj.w/2 && Math.abs(my - obj.y) < obj.h/2);
+            }
+            if (obj.w && obj.h) { w = obj.w; h = obj.h; }
+            else if (['teacher','child','cone'].includes(obj.type)) { w = 30; h = 30; }
+            else if (obj.type === 'desk') { w = 40; h = 25; }
+            else if (obj.type === 'piano') { w = 40; h = 40; }
+            return (mx >= obj.x - w/2 && mx <= obj.x + w/2 && my >= obj.y - h/2 && my <= obj.y + h/2);
+        }
+
+        function addObj(type) {
+            const canvas = document.getElementById('env-canvas');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            let newObj = { type: type, x: cx + (Math.random()*40-20), y: cy + (Math.random()*40-20) };
+
+            if (type === 'teacher') { newObj.label = 'T'; newObj.color = 'red'; }
+            if (type === 'child') { newObj.label = '子'; newObj.color = '#333'; }
+            if (type === 'desk') { newObj.w = 50; newObj.h = 30; newObj.color = '#e0e0e0'; }
+            if (type === 'chair') { newObj.w = 15; newObj.h = 15; newObj.color = '#e0e0e0'; }
+            if (type === 'piano') { newObj.w = 40; newObj.h = 50; newObj.color = '#333'; }
+            if (type === 'mat') { newObj.w = 60; newObj.h = 40; newObj.color = '#81c784'; }
+            if (type === 'cone') { newObj.color = 'red'; }
+            if (type === 'goal') { newObj.color = 'blue'; }
+
+            canvasObjects.push(newObj);
+            selectedIndex = canvasObjects.length - 1;
+            document.getElementById('placeholder-text').style.display = 'none';
+            renderCanvas();
+        }
+
+        function deleteSelectedObj() {
+            if (selectedIndex !== -1) {
+                canvasObjects.splice(selectedIndex, 1);
+                selectedIndex = -1;
+                renderCanvas();
+            }
+        }
+
+        function renderCanvas() {
+            const canvas = document.getElementById('env-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(0, 0, width, height);
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(0, 0, width, height);
+
+            if (canvasObjects.length === 0) return;
+
+            canvasObjects.forEach((obj, index) => {
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+                if (index === selectedIndex) {
+                    ctx.shadowColor = 'rgba(0, 123, 255, 0.8)';
+                    ctx.shadowBlur = 10;
+                }
+
+                if (obj.type === 'teacher') {
+                    ctx.font = "bold 20px Arial"; ctx.fillStyle = obj.color || "red";
+                    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText("×", 0, 0);
+                    if (obj.label) { ctx.font = "12px Arial"; ctx.fillText(obj.label, 15, 5); }
+                } else if (obj.type === 'child') {
+                    ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = obj.color || "#333"; ctx.lineWidth = 2; ctx.stroke();
+                    if (obj.label) { ctx.font = "10px Arial"; ctx.fillStyle = "#333"; ctx.textAlign = "center"; ctx.fillText(obj.label, 0, -12); }
+                } else if (obj.type === 'desk' || obj.type === 'mat') {
+                    const w = obj.w || 40; const h = obj.h || 25;
+                    ctx.fillStyle = obj.color || "#e0e0e0"; ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.strokeStyle = "#999"; ctx.strokeRect(-w/2, -h/2, w, h);
+                } else if (obj.type === 'chair') {
+                    const w = obj.w || 15;
+                    ctx.fillStyle = obj.color || "#fff"; ctx.fillRect(-w/2, -w/2, w, w);
+                    ctx.strokeStyle = "#666"; ctx.strokeRect(-w/2, -w/2, w, w);
+                    ctx.beginPath(); ctx.moveTo(-w/2, -w/2); ctx.lineTo(w/2, -w/2); ctx.stroke();
+                } else if (obj.type === 'piano') {
+                    const w = obj.w || 40; const h = obj.h || 50;
+                    ctx.fillStyle = "#333"; ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.fillStyle = "#fff"; ctx.fillRect(-w/2, h/4, w, h/4);
+                } else if (obj.type === 'cone') {
+                    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(8, 10); ctx.lineTo(-8, 10); ctx.closePath();
+                    ctx.fillStyle = obj.color || "red"; ctx.fill(); ctx.strokeStyle = "#333"; ctx.stroke();
+                } else if (obj.type === 'goal') {
+                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(0, -20);
+                    ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.fillStyle = obj.color || "blue"; ctx.fillRect(0, -20, 15, 10);
+                } else if (obj.type === 'track') {
+                    const w = obj.w || width * 0.7; const h = obj.h || height * 0.5;
+                    ctx.beginPath(); ctx.ellipse(0, 0, w/2, h/2, 0, 0, 2 * Math.PI);
+                    ctx.strokeStyle = "#555"; ctx.lineWidth = 3; ctx.stroke();
+                    if (index === selectedIndex) {
+                        ctx.strokeStyle = "blue"; ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+                        ctx.strokeRect(-w/2, -h/2, w, h); ctx.setLineDash([]);
+                    }
+                } else if (obj.type === 'text') {
+                    ctx.fillStyle = "#000"; ctx.font = "14px Arial"; ctx.textAlign = "center";
+                    ctx.fillText(obj.text || "Text", 0, 0);
+                }
+
+                if (index === selectedIndex && obj.type !== 'track') {
+                    ctx.strokeStyle = "#007bff"; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+                    ctx.strokeRect(-20, -20, 40, 40); ctx.setLineDash([]);
+                }
+                ctx.restore();
+            });
+        }
+
+        function saveDiagramImage() {
+            const canvas = document.getElementById('env-canvas');
+            const manualImg = document.getElementById('manual-image');
+            const prevSelected = selectedIndex;
+            selectedIndex = -1;
+            renderCanvas();
+            
+            let downloadUrl;
+            if (manualImg.style.display !== 'none' && manualImg.src) {
+                downloadUrl = manualImg.src;
+            } else if (canvas && canvas.style.display !== 'none') {
+                try { downloadUrl = canvas.toDataURL("image/png"); } 
+                catch(e) { alert("図の保存に失敗しました。"); selectedIndex = prevSelected; renderCanvas(); return; }
+            } else {
+                alert("保存する図がありません。"); selectedIndex = prevSelected; renderCanvas(); return;
+            }
+
+            selectedIndex = prevSelected;
+            renderCanvas();
+
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `環境構成図_${getFormattedDate()}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportToWord() {
+            document.getElementById('status-msg').innerText = "ファイルを生成中...";
+            selectedIndex = -1;
+            renderCanvas();
+
+            setTimeout(() => {
+                try {
+                    const journal = document.getElementById('journal-area');
+                    if (!journal) throw new Error("journal-areaが見つかりません");
+                    const clone = journal.cloneNode(true);
+
+                    const originalCanvas = document.getElementById('env-canvas');
+                    const originalImg = document.getElementById('manual-image');
+                    let imgBase64 = null;
+
+                    if (originalImg.style.display !== 'none' && originalImg.src) {
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = originalImg.naturalWidth || 400;
+                        tempCanvas.height = originalImg.naturalHeight || 300;
+                        const tCtx = tempCanvas.getContext('2d');
+                        tCtx.drawImage(originalImg, 0, 0);
+                        try { imgBase64 = tempCanvas.toDataURL("image/png"); } 
+                        catch(e) { console.error("Image conversion error", e); }
+                    } else if (originalCanvas && originalCanvas.style.display !== 'none') {
+                        try { imgBase64 = originalCanvas.toDataURL("image/png"); } 
+                        catch(e) { console.error("Canvas error", e); }
+                    }
+
+                    if (imgBase64) {
+                        const img = document.createElement('img');
+                        img.src = imgBase64;
+                        img.setAttribute('width', '300');
+                        img.style.width = '300px';
+                        img.style.border = "1px solid #ccc";
+                        const drawingContainer = clone.querySelector('.env-drawing-container');
+                        if (drawingContainer) {
+                            drawingContainer.innerHTML = '';
+                            drawingContainer.appendChild(img);
+                        }
+                    } else {
+                         const drawingContainer = clone.querySelector('.env-drawing-container');
+                         if(drawingContainer) drawingContainer.innerHTML = '（図なし）';
+                    }
+
+                    clone.querySelectorAll('#placeholder-text, #diagram-description').forEach(el => el.remove());
+                    clone.querySelectorAll('.drawing-toolbar').forEach(el => el.remove());
+
+                    clone.querySelectorAll('.editable').forEach(el => {
+                        el.removeAttribute('contenteditable');
+                        el.style.backgroundColor = 'transparent';
+                        el.style.border = 'none';
+                        const text = el.innerText;
+                        el.innerHTML = '';
+                        const lines = text.split('\n');
+                        lines.forEach((line, i) => {
+                            el.appendChild(document.createTextNode(line));
+                            if (i < lines.length - 1) el.appendChild(document.createElement('br'));
+                        });
+                    });
+
+                    // 印鑑枠変換
+                    const stampArea = clone.querySelector('.stamp-area');
+                    if (stampArea && stampArea.parentNode) {
+                        const stampParent = stampArea.parentNode; 
+                        const table = document.createElement('table');
+                        table.setAttribute("width", "100%");
+                        table.style.borderCollapse = "collapse";
+                        table.style.border = "none";
+                        const tr = document.createElement('tr');
+                        
+                        const td1 = document.createElement('td');
+                        td1.style.border = "none";
+                        td1.align = "right";
+                        td1.innerHTML = `<table style="display:inline-table; border-collapse:collapse;"><tr><td style="border:none; padding-right:5px;">園長印</td><td style="border:1px solid #000; width:60px; height:60px; text-align:center; vertical-align:middle;">印</td></tr></table>`;
+                        tr.appendChild(td1);
+
+                        const td2 = document.createElement('td');
+                        td2.style.border = "none";
+                        td2.align = "right";
+                        td2.innerHTML = `<table style="display:inline-table; border-collapse:collapse; margin-left:10px;"><tr><td style="border:none; padding-right:5px;">指導者印</td><td style="border:1px solid #000; width:60px; height:60px; text-align:center; vertical-align:middle;">印</td></tr></table>`;
+                        tr.appendChild(td2);
+
+                        table.appendChild(tr);
+                        stampParent.innerHTML = "";
+                        stampParent.appendChild(table);
+                    }
+
+                    // 環境構成変換
+                    const envContent = clone.querySelector('.env-content');
+                    if(envContent && envContent.parentNode) {
+                        const envParent = envContent.parentNode;
+                        const table = document.createElement('table');
+                        table.setAttribute("width", "100%");
+                        table.style.borderCollapse = "collapse";
+                        const tr = document.createElement('tr');
+                        const tdImg = document.createElement('td');
+                        tdImg.setAttribute("width", "50%"); tdImg.setAttribute("valign", "top"); tdImg.style.border = "none";
+                        const drawingContainer = envContent.querySelector('.env-drawing-container');
+                        if(drawingContainer) tdImg.innerHTML = drawingContainer.innerHTML;
+                        tr.appendChild(tdImg);
+                        const tdText = document.createElement('td');
+                        tdText.setAttribute("width", "50%"); tdText.setAttribute("valign", "top"); tdText.style.border = "none";
+                        const textArea = envContent.querySelector('.env-text-area');
+                        if(textArea) tdText.innerHTML = textArea.innerHTML;
+                        tr.appendChild(tdText);
+                        table.appendChild(tr);
+                        envParent.replaceChild(table, envContent);
+                    }
+
+                    // 記録・反省変換
+                    clone.querySelectorAll('.record-section').forEach(section => {
+                        if (!section.parentNode) return;
+                        const headerText = section.querySelector('.record-header').innerText;
+                        const bodyHtml = section.querySelector('.record-body').innerHTML;
+                        const table = document.createElement('table');
+                        table.setAttribute("width", "100%"); table.style.borderCollapse = "collapse"; table.style.marginBottom = "-1px"; 
+                        const trHead = document.createElement('tr');
+                        const th = document.createElement('th');
+                        th.style.border = "1px solid #000"; th.style.backgroundColor = "#e0e0e0"; th.align = "left"; th.style.padding = "5px"; th.innerText = headerText;
+                        trHead.appendChild(th); table.appendChild(trHead);
+                        const trBody = document.createElement('tr');
+                        const td = document.createElement('td');
+                        td.style.border = "1px solid #000"; td.style.padding = "10px"; td.setAttribute("valign", "top"); td.style.height = "100px"; td.innerHTML = bodyHtml;
+                        trBody.appendChild(td); table.appendChild(trBody);
+                        section.parentNode.replaceChild(table, section);
+                    });
+
+                    // タイトルヘッダー変換
+                    const titleHeader = clone.querySelector('.title-header');
+                    if (titleHeader) {
+                        const table = document.createElement('table');
+                        table.setAttribute("width", "100%"); table.style.border = "none"; table.style.borderBottom = "2px solid #333"; table.style.marginBottom = "20px";
+                        const tr = document.createElement('tr');
+                        const tdTitle = document.createElement('td');
+                        tdTitle.style.border = "none"; tdTitle.style.verticalAlign = "bottom";
+                        const h1 = document.createElement('h1'); h1.style.margin = '0'; h1.style.fontSize = '24px'; h1.innerText = '教育実習日誌';
+                        tdTitle.appendChild(h1);
+                        
+                        const tdInfo = document.createElement('td');
+                        tdInfo.style.border = "none"; tdInfo.style.textAlign = "right"; tdInfo.style.verticalAlign = "bottom";
+                        const uniText = clone.querySelector('#field-university').innerText;
+                        const nameText = clone.querySelector('#field-name').innerText;
+                        const divUni = document.createElement('div'); divUni.style.marginBottom = '5px';
+                        divUni.appendChild(document.createTextNode('大学名：'));
+                        const spanUni = document.createElement('span'); spanUni.style.textDecoration = 'underline'; spanUni.innerText = uniText;
+                        divUni.appendChild(spanUni); tdInfo.appendChild(divUni);
+                        const divName = document.createElement('div');
+                        divName.appendChild(document.createTextNode('氏名：'));
+                        const spanName = document.createElement('span'); spanName.style.textDecoration = 'underline'; spanName.innerText = nameText;
+                        divName.appendChild(spanName); tdInfo.appendChild(divName);
+                        
+                        tr.appendChild(tdTitle); tr.appendChild(tdInfo); table.appendChild(tr);
+                        titleHeader.parentNode.replaceChild(table, titleHeader);
+                    }
+
+                    const css = `<style>body { font-family: 'MS Mincho', 'Hiragino Mincho ProN', serif; font-size: 10.5pt; } table { width: 100%; border-collapse: collapse; margin-bottom: 10px; } th, td { border: 1px solid #000; padding: 5px; vertical-align: top; } th { background-color: #f0f0f0; text-align: center; font-weight: bold; }</style>`;
+                    const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='UTF-8'>${css}</head><body>${clone.innerHTML}</body></html>`;
+                    const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+                    
+                    // URL生成と解放の管理
+                    const tempUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = tempUrl;
+                    link.download = `教育実習日誌_${getFormattedDate()}.doc`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // 少し待ってからURL解放
+                    setTimeout(() => URL.revokeObjectURL(tempUrl), 1000);
+                    
+                    document.getElementById('status-msg').innerText = "ダウンロードを開始しました。";
+
+                } catch (e) {
+                    console.error(e);
+                    document.getElementById('status-msg').innerText = "エラー: " + e.message;
+                    alert("保存中にエラーが発生しました。\n" + e.message);
+                }
+            }, 100);
+        }
+
+        // --- 図の差し替え（Blob URL処理） ---
+        function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+            if (!validateFile(file, ALLOWED_IMG_EXT)) { this.value = null; return; }
 
-            // 1. ファイル検証（サイズ・拡張子・MIME）
-            if (!validateFile(file, ALLOWED_IMG_EXT)) {
-                this.value = null;
-                return;
-            }
-
-            // 2. メモリ最適化（DataURL廃止 → ObjectURL利用）
-            // 以前のURLがあれば解放
-            if (currentObjectUrl) {
-                URL.revokeObjectURL(currentObjectUrl);
-            }
-            
-            // Blob URL生成
+            if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
             currentObjectUrl = URL.createObjectURL(file);
             
             const manualImg = document.getElementById('manual-image');
-            manualImg.onload = function() {
-                // ロード完了後の処理があればここに
-                // 今回は特にないが、メモリ解放のタイミング制御などに使える
-            };
             manualImg.src = currentObjectUrl;
             manualImg.style.display = 'block';
-            
-            // Canvasとプレースホルダーを隠す
             document.getElementById('env-canvas').style.display = 'none';
             document.getElementById('placeholder-text').style.display = 'none';
-            
             document.getElementById('status-msg').innerText = "図を差し替えました";
-        });
+        }
 
-
-        // --- Word読み込みロジック (Mammoth.js使用) ---
-        document.getElementById('docx-input').addEventListener('change', function(event) {
+        // --- Word読み込み（サニタイズ処理追加） ---
+        function handleDocUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            if (file.size === 0) {
-                alert("ファイルが空のようです。"); return;
-            }
-
-            // 1. ファイル検証（サイズ・拡張子・MIME）
-            if (!validateFile(file, ALLOWED_DOC_EXT)) {
-                this.value = null;
-                return;
-            }
+            if (file.size === 0) { alert("ファイルが空のようです。"); return; }
+            if (!validateFile(file, ALLOWED_DOC_EXT)) { this.value = null; return; }
 
             document.getElementById('status-msg').innerText = "ファイルを解析中...";
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const arrayBuffer = e.target.result;
@@ -1307,24 +1115,26 @@
             };
             reader.onerror = function() { handleError(new Error("読込エラー")); };
             reader.readAsArrayBuffer(file);
-        });
+        }
 
         function displayResult(result) {
             document.getElementById('status-msg').innerText = "";
-            const html = result.value;
+            
+            // 重要: Wordから生成されたHTMLをサニタイズ (A3対応)
+            const safeHtml = sanitizeHtml(result.value);
+            
             const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = html;
+            tempDiv.innerHTML = safeHtml; // サニタイズ済みHTMLを挿入
 
             document.getElementById('env-canvas').style.display = 'block';
             document.getElementById('manual-image').style.display = 'none';
-            // 読み込み時に古い画像URLがあれば解放
             if (currentObjectUrl) {
                 URL.revokeObjectURL(currentObjectUrl);
                 currentObjectUrl = null;
                 document.getElementById('manual-image').src = "";
             }
 
-            // --- 1. 基本情報の抽出 ---
+            // 基本情報の抽出
             const elements = tempDiv.querySelectorAll('p, tr, h1, h2, h3, h4, h5, h6, li');
             
             // 修正: 大学名(uniVal)と氏名(nameVal)の変数を削除し、読み込み対象外としました
@@ -1344,7 +1154,7 @@
             if(attendVal) document.getElementById('field-attendance').innerText = attendVal;
             // 大学名・氏名の反映処理を削除（手入力を維持）
 
-            // --- 2. セクションごとのテキスト抽出 ---
+            // セクションごとのテキスト抽出
             let currentMode = "none"; let subMode = "none"; 
             let sectionContent = {
                 classGoal: [], studentGoal: [], envText: [], envImageDesc: [],
@@ -1372,8 +1182,7 @@
                         if (subMode === "class") sectionContent.classGoal.push(text);
                         if (subMode === "student") sectionContent.studentGoal.push(text);
                     }
-                }
-                else if (currentMode === "env") {
+                } else if (currentMode === "env") {
                     if (text.includes("図のイメージ")) {
                         subMode = "image"; text = text.replace(/.*図のイメージ(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     } else if (text.includes("テキスト記述")) {
@@ -1383,11 +1192,9 @@
                         if (subMode === "image") sectionContent.envImageDesc.push(text);
                         if (subMode === "text") sectionContent.envText.push(text);
                     }
-                }
-                else if (currentMode === "record") {
+                } else if (currentMode === "record") {
                     if (!text.match(/^[5-9５-９][.．]/)) sectionContent.record.push(text);
-                }
-                else if (currentMode === "reflection") {
+                } else if (currentMode === "reflection") {
                     if (text.includes("本日の振り返り")) {
                         subMode = "today"; text = text.replace(/.*本日の振り返り(?:[】\]\)])?\s*[:：]?\s*/, "").trim();
                     } else if (text.includes("翌日への課題")) {
@@ -1397,8 +1204,7 @@
                         if (subMode === "today") sectionContent.reflectionToday.push(text);
                         if (subMode === "tomorrow") sectionContent.reflectionTomorrow.push(text);
                     }
-                }
-                else if (currentMode === "feedback") {
+                } else if (currentMode === "feedback") {
                     if (!text.match(/^[7-9７-９][.．]/)) sectionContent.feedback.push(text);
                 }
             });
@@ -1415,7 +1221,7 @@
             document.getElementById('field-reflection').innerText = reflectionText;
             document.getElementById('field-feedback').innerText = sectionContent.feedback.join('\n');
 
-            // --- 3. 時系列テーブル ---
+            // 時系列テーブル解析
             const tables = tempDiv.querySelectorAll('table');
             tables.forEach(table => {
                 const rows = table.querySelectorAll('tr');
@@ -1439,7 +1245,6 @@
                 }
             });
 
-            // --- 4. 図の自動生成（オブジェクト生成） ---
             generateDiagramFromText();
         }
 
@@ -1448,14 +1253,12 @@
             alert("読み込みエラー: " + err.message);
         }
 
-        // --- テキストからオブジェクト生成 ---
         function generateDiagramFromText() {
             const desc = document.getElementById('diagram-description').innerText;
             const canvas = document.getElementById('env-canvas');
             const width = canvas.width;
             const height = canvas.height;
 
-            // リセット
             canvasObjects = [];
             selectedIndex = -1;
 
@@ -1465,59 +1268,40 @@
                 document.getElementById('placeholder-text').style.display = 'none';
             }
 
-            // 1. トラック
             if (desc.includes("トラック") || desc.includes("楕円")) {
                 canvasObjects.push({type: 'track', x: width/2, y: height/2, w: width*0.7, h: height*0.5});
             }
-
-            // 2. コーン
             if (desc.includes("コーン") || desc.includes("待機")) {
                 canvasObjects.push({type: 'cone', x: width/2 - 40, y: height/2 + 30, color: 'red'});
                 canvasObjects.push({type: 'cone', x: width/2 - 15, y: height/2 + 30, color: 'white'});
                 canvasObjects.push({type: 'cone', x: width/2 + 15, y: height/2 + 30, color: 'blue'});
                 canvasObjects.push({type: 'cone', x: width/2 + 40, y: height/2 + 30, color: 'yellow'});
             }
-
-            // 3. ゴール
             if (desc.includes("ゴール") || desc.includes("旗") || desc.includes("得点板")) {
                 canvasObjects.push({type: 'goal', x: width - 50, y: height/2 - 20});
                 canvasObjects.push({type: 'text', x: width - 40, y: height/2 - 40, text: "得点板"});
             }
-
-            // 4. 保育者
             if (desc.includes("保育者") || desc.includes("×") || desc.includes("読み手")) {
                 canvasObjects.push({type: 'teacher', x: 60, y: 60, label: 'T1', color: 'red'});
                 canvasObjects.push({type: 'teacher', x: width - 60, y: height - 60, label: 'T2', color: 'red'});
                 canvasObjects.push({type: 'teacher', x: width/2, y: height - 40, label: 'T3', color: 'red'});
             }
-
-            // 5. かるた (円形配置の子供など)
             if (desc.includes("かるた") || desc.includes("円形")) {
                 for(let i=0; i<8; i++) {
                     const angle = (i / 8) * Math.PI * 2;
                     const r = 60;
-                    canvasObjects.push({
-                        type: 'child', 
-                        x: width/2 + r * Math.cos(angle), 
-                        y: height/2 + r * Math.sin(angle),
-                        label: '子'
-                    });
+                    canvasObjects.push({type: 'child', x: width/2 + r * Math.cos(angle), y: height/2 + r * Math.sin(angle), label: '子'});
                 }
             }
-
-            // 6. コの字
             if (desc.includes("コの字")) {
                  for(let x = 80; x < width - 80; x += 30) canvasObjects.push({type: 'child', x: x, y: 50, label: '子'});
                  for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: 80, y: y, label: '子'});
                  for(let y = 80; y < height - 50; y += 30) canvasObjects.push({type: 'child', x: width - 80, y: y, label: '子'});
             }
-
-            // 7. ホワイトボード
             if (desc.includes("ホワイトボード") || desc.includes("50音")) {
                 canvasObjects.push({type: 'desk', x: width/2, y: 30, w: 80, h: 20, color: '#eee'});
                 canvasObjects.push({type: 'text', x: width/2, y: 34, text: 'WB'});
             }
-
             renderCanvas();
         }
     </script>
