@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>高密度戦略シミュレータ: 解説付き版</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-dark:#0f172a;
+      --primary:#06b6d4; --secondary:#ec4899; --accent:#eab308; --danger:#f43f5e;
+      --grid-line:rgba(255,255,255,.05);
+    }
+    body{
+      font-family:'Noto Sans JP',sans-serif;
+      background-color:var(--bg-dark);
+      color:#f8fafc;
+      background-image:
+        linear-gradient(var(--grid-line) 1px,transparent 1px),
+        linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);
+      background-size:20px 20px;
+      overflow-y:auto;
+      touch-action:manipulation;
+      padding-bottom:140px; /* 下部ボタン用の余白を少し拡大 */
+    }
+    .font-mono{font-family:'JetBrains Mono',monospace;}
+    .glass-panel{
+      background:rgba(15,23,42,.95);
+      backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.15);
+      box-shadow:0 8px 32px rgba(0,0,0,.5);
+    }
+
+    @keyframes pulse-soft{0%,100%{opacity:1}50%{opacity:.7}}
+    .animate-pulse-soft{animation:pulse-soft 2s infinite}
+    @keyframes slide-in{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .slide-in{animation:slide-in .3s ease-out forwards}
+    @keyframes fade-in{from{opacity:0}to{opacity:1}}
+    .fade-in{animation:fade-in .5s ease-out forwards}
+    @keyframes level-up{0%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.2);filter:brightness(1.5)}100%{transform:scale(1);filter:brightness(1)}}
+    .animate-levelup{animation:level-up 0.5s ease-out}
+
+    .status-connected{background-color:#06b6d4;box-shadow:0 0 6px #06b6d4}
+    .status-critical{background-color:#f43f5e;box-shadow:0 0 6px #f43f5e;animation:pulse-soft 0.8s infinite}
+    .status-at-risk{background-color:#eab308}
+    .status-normal{background-color:#334155}
+
+    .modal-overlay{background-color:rgba(0,0,0,.8);z-index:100}
+    .wb-bar{transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+
+    .cursor-blink{animation:blink 1s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    /* 独自スクロールバー */
+    ::-webkit-scrollbar {width: 6px;}
+    ::-webkit-scrollbar-track {background: #0f172a;}
+    ::-webkit-scrollbar-thumb {background: #334155; border-radius: 3px;}
+    ::-webkit-scrollbar-thumb:hover {background: #475569;}
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+    // ---------------------------
+    // Utils
+    // ---------------------------
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const RANKING_KEY = "ssg_ranking_v1";
+
+    // ---------------------------
+    // Icons Component
+    // ---------------------------
+    const Icon = React.memo(({ name, size = 18, className = "" }) => {
+      const icons = {
+        Activity: <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />,
+        DollarSign: <g><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></g>,
+        Heart: <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />,
+        Users: <g><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M16 3.13a4 4 0 0 1 0 7.75M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></g>,
+        Zap: <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />,
+        Shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
+        Clock: <g><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></g>,
+        Target: <g><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></g>,
+        Help: <g><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>,
+        Book: <g><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></g>,
+        Alert: <g><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>,
+        AlertTriangle: <g><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></g>,
+        Truck: <g><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></g>,
+        Smile: <g><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></g>,
+        Frown: <g><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></g>,
+        Sun: <g><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></g>,
+        WifiOff: <g><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></g>,
+        Printer: <g><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></g>,
+        Search: <g><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></g>,
+        ArrowRight: <g><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></g>,
+        Box: <g><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></g>,
+        Flame: <g><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.115.385-2.256 1.034-3.222"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></g>,
+        Trophy: <g><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></g>,
+        X: <g><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></g>,
+        Medal: <g><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></g>,
+        ChevronsUp: <g><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></g>,
+        Scale: <g><path d="M12 2v20"/><path d="M2 12h20"/><path d="M2 12l5-5"/><path d="M22 12l-5-5"/><path d="M12 2l-5 5"/><path d="M12 2l5 5"/></g>, // Placeholder for scale/balance
+        Lock: <g><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></g>,
+      };
+
+      return (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={className}
+          aria-hidden="true"
+        >
+          {icons[name] || <circle cx="12" cy="12" r="10" />}
+        </svg>
+      );
+    });
+
+    // ---------------------------
+    // Game Data
+    // ---------------------------
+    const INITIAL_BUDGET = 5000;
+    const MAX_TURNS = 24;
+
+    const STATUS = {
+      NORMAL: "normal",
+      AT_RISK: "at_risk",
+      CRITICAL: "critical",
+      CONNECTED: "connected",
+    };
+
+    const WB_FACTORS = [
+      { id: "connection", label: "絆(つながり)", icon: "Users", color: "text-cyan-400", bg: "bg-cyan-500", desc: "地域の人間関係。低いと孤立が発生しやすい。" },
+      { id: "autonomy",   label: "余白(ゆとり)", icon: "Clock", color: "text-emerald-400", bg: "bg-emerald-500", desc: "時間的・精神的な余裕。低いとトラブルへの耐性が下がる。" },
+      { id: "meaning",    label: "意義(誇り)", icon: "Target", color: "text-purple-400", bg: "bg-purple-500", desc: "活動への納得感。低いと現場の士気に関わる。" },
+      { id: "vitality",   label: "活力(元気)", icon: "Activity", color: "text-yellow-400", bg: "bg-yellow-500", desc: "地域のエネルギー。高いとポジティブなイベントが起きやすい。" },
+    ];
+
+    const STRATEGY_DETAILS = {
+      delivery_sensing: {
+        title: "見守り配送 (Sensing)",
+        subtitle: "物流網をセーフティネットへ",
+        desc: "配送員が「ソーシャルワーカー」的な役割を兼務し、異変を早期発見します。",
+        pros: "地域の孤立リスクを劇的に低減（絆・意義UP）",
+        cons: "現場の負担増、配送効率の低下",
+        theory: "孤立は最大の健康リスクです。生活動線に入り込める生協の強みを活かし、行政が拾えないSOSを拾う「センサー」となります。",
+        eff: { b: -300, bo: 5, c: 5, wb: { connection: 15, meaning: 10 } },
+      },
+      product_social: {
+        title: "時短Kit開発 (Social Product)",
+        subtitle: "時間を売る商品戦略",
+        desc: "単なる手抜きではなく「親が子供と向き合う時間」を作るためのミールキット等を開発・普及させます。",
+        pros: "子育て世帯の精神的余白を創出（余白・活力UP）",
+        cons: "開発・広報コストがかかり、利益率は下がる可能性",
+        theory: "時間的貧困（Time Poverty）は家庭のウェルビーイングを損ないます。家事を外部化する罪悪感を減らし、余白（Autonomy）を提供します。",
+        eff: { b: -200, bo: -2, c: 2, wb: { autonomy: 15, vitality: 5 } },
+      },
+      hub_commons: {
+        title: "拠点開放 (Commons)",
+        subtitle: "店舗を地域の居場所へ",
+        desc: "店舗や配送センターの一角を、高齢者や子供が無料で過ごせる「コモンズ」として開放します。",
+        pros: "多世代交流の促進、スタッフの誇り向上（絆・活力UP）",
+        cons: "場所代・維持管理コストの発生、回転率の低下",
+        theory: "商品を買う場所から「人と会える場所」へ。サードプレイスとしての機能を持たせることで、地域の回復力（Resilience）を高めます。",
+        eff: { b: -150, bo: 2, c: 3, wb: { connection: 10, vitality: 10 } },
+      },
+      default: {
+        title: "通常業務 (Business as Usual)",
+        subtitle: "効率と利益の追求",
+        desc: "従来の小売・物流業務に専念し、収益性を最大化します。",
+        pros: "予算の確保、現場の混乱回避",
+        cons: "地域課題は解決せず、徐々にリスクが高まる",
+        theory: "経済的基盤は重要ですが、それだけでは人口減少社会のインフラ維持は困難です。リスク（孤立など）が見過ごされる恐れがあります。",
+        eff: { b: 150, bo: -5, c: 0, wb: { connection: -2, meaning: -2 } },
+      },
+    };
+
+    const CRITICAL_EVENTS = [
+      { id: "ev1", title: "【行政】仁義なき縦割り", icon: "Alert", desc: "福祉課「移動販売車を入れて」道路課「駐禁です」。板挟みで車が出せません。",
+        choices: [
+          { t: "強行突破", eff: { b: -20, bo: 5, c: 10, wb: { connection: 5, autonomy: 5 }, t: -10 }, msg: "住民は歓喜！しかし道路交通法違反で信用低下。", good: true },
+          { t: "調整会議", eff: { b: -50, bo: 10, c: 0, wb: { meaning: -5 } }, msg: "会議は踊る。結論「検討を加速する」。", good: false },
+          { t: "「これは家です」", eff: { b: 0, bo: 0, c: 5, wb: { vitality: 10 }, t: -5 }, msg: "タイヤを隠して強弁。道路課が混乱しています。", good: false },
+        ]
+      },
+      { id: "ev2", title: "【行政】ハイテク・ハンコ地獄", icon: "WifiOff", desc: "DX推進を頼まれましたが、完了画面のスクショを「印刷して実印」が必要らしいです。",
+        choices: [
+          { t: "矛盾を指摘", eff: { b: 0, bo: 5, c: 0, wb: { meaning: -5 } }, msg: "「規則ですので」の一点張り。徒労感。", good: false },
+          { t: "独自アプリ開発", eff: { b: -100, bo: 5, c: 5, wb: { autonomy: 10 } }, msg: "面倒な部分をシステムで隠蔽！感謝されました。", good: true },
+          { t: "判子付きケース配布", eff: { b: -30, bo: 0, c: 2, wb: { vitality: 5 } }, msg: "「画面を叩くと印影が出る」ギミックが大ウケ。", good: false },
+        ]
+      },
+      { id: "ev3", title: "【行政】ポエムな成果指標", icon: "Target", desc: "報告書に対し、「定量的データはいいから、『地域の輝き度』や『心のふれあい指数』を数値化して」との修正指示。",
+        choices: [
+          { t: "適当に120%", eff: { b: 0, bo: -5, c: 0, wb: { meaning: -5 }, t: -5 }, msg: "捏造に近い数字で行政評価Aランク。心が痛みます。", good: false },
+          { t: "データで反論", eff: { b: 0, bo: 10, c: 0, t: 5 }, msg: "3時間の説教コース。「ロマンがない」と言われましたが、筋は通しました。", good: false },
+          { t: "笑顔AI導入", eff: { b: -150, bo: 0, c: 0, wb: { vitality: 5 } }, msg: "無駄に高性能なAIで笑顔を計測。予算がつきました。", good: true },
+        ]
+      },
+      { id: "ev4", title: "【行政】ゆるキャラの暴走", icon: "Smile", desc: "深刻な「孤独死防止キャンペーン」のチラシに、満面の笑みでサンバを踊るご当地キャラを掲載するよう指示されました。",
+        choices: [
+          { t: "そのまま掲載", eff: { b: 20, bo: 0, c: -5, t: -5 }, msg: "「不謹慎だ」と炎上。行政は知らんぷり。", good: false },
+          { t: "喪服を着せる", eff: { b: -10, bo: 5, c: 2, wb: { autonomy: 5 } }, msg: "シュールすぎて話題になり、啓発効果が出ました。", good: true },
+          { t: "モザイク処理", eff: { b: 0, bo: 0, c: 0 }, msg: "「ヤバいものが写っている」と都市伝説化しました。", good: false },
+        ]
+      },
+
+      { id: "ev_op1", title: "【現場】最強パート「お局様」", icon: "Zap", desc: "勤続30年の鈴木さんが「店長のやり方はぬるい！」と実権を掌握しかけています。",
+        choices: [
+          { t: "全権委任", eff: { b: 100, bo: 20, c: 0, wb: { vitality: -10 } }, msg: "効率爆上がり、若手は震え上がっています。", good: false },
+          { t: "名誉理事に祭り上げ", eff: { b: -50, bo: -5, c: 5, wb: { meaning: 5, connection: 5 } }, msg: "承認欲求が満たされ、仏の鈴木になりました。", good: true },
+          { t: "店長vsお局", eff: { b: -50, bo: 30, c: 0 }, msg: "店舗が戦場と化しました。", good: false },
+        ]
+      },
+      { id: "ev_op2", title: "【物流】誤発注：豆腐1000丁", icon: "Truck", desc: "新人が0を1つ多く入力。トラック一杯の木綿豆腐が届きました。",
+        choices: [
+          { t: "全廃棄", eff: { b: -100, bo: -5, c: 0, wb: { meaning: -10 } }, msg: "豆腐と共に心も砕け散りました。", good: false },
+          { t: "緊急「豆腐祭り」", eff: { b: -20, bo: 10, c: 10, wb: { vitality: 15 } }, msg: "「持ってけドロボウ！」完売し、なぜか地域が団結。", good: true },
+          { t: "「豆腐風呂」設置", eff: { b: -50, bo: 0, c: -10, t: -20 }, msg: "保健所が飛んできました。食品衛生法違反です。", good: false },
+        ]
+      },
+      { id: "ev_op3", title: "【業務】FAXの呪縛", icon: "Printer", desc: "最新タブレット導入も、ベテラン勢は「FAXの方が早い！」と譲りません。",
+        choices: [
+          { t: "FAX廃止強行", eff: { b: 0, bo: 15, c: 0 }, msg: "発注漏れ多発。現場は大混乱。", good: false },
+          { t: "両方維持", eff: { b: -50, bo: 10, c: 0 }, msg: "二重管理で事務作業が倍増しました。", good: false },
+          { t: "タブレットをゲーム化", eff: { b: -20, bo: -5, c: 0, wb: { vitality: 10 } }, msg: "「発注RTA」を開催したらベテランが最高記録。", good: true },
+        ]
+      },
+      { id: "ev_op4", title: "【商品】ステルス値上げ", icon: "DollarSign", desc: "メーカー提案「価格そのままで中身20%減らしませんか？バレませんよ」",
+        choices: [
+          { t: "導入", eff: { b: 200, bo: 0, c: -10, wb: { meaning: -5 }, t: -10 }, msg: "利益は出ましたがSNSで「生協も落ちたな」と書かれています。", good: false },
+          { t: "正直に値上げ", eff: { b: 50, bo: 0, c: 5, t: 5 }, msg: "「正直でよろしい」と評価されましたが売上は減。", good: false },
+          { t: "「空気」20%増量", eff: { b: 0, bo: 0, c: -5, t: -5 }, msg: "パッケージがパンパンに。開けた時の虚無感が増しました。", good: false },
+        ]
+      },
+
+      { id: "ev_soc1", title: "【教育】部活の地域移行", icon: "Users", desc: "「練習場所がない」と子供たちが生協駐車場でサッカーを始めました。",
+        choices: [
+          { t: "追い返す", eff: { b: 0, bo: 0, c: -5 }, msg: "安全管理上は正解ですが、子供たちは路頭に迷いました。", good: false },
+          { t: "場所を開放する", eff: { b: -50, bo: 5, c: 20, wb: { vitality: 10 } }, msg: "ガラスが割れましたが、親からの感謝が凄いです。", good: true },
+          { t: "店長がGK参戦", eff: { b: 0, bo: 10, c: 10, wb: { vitality: 15 } }, msg: "仕事そっちのけでPK対決。子供のヒーローに。", good: true },
+        ]
+      },
+      { id: "ev_soc2", title: "【癒し】猫の侵入", icon: "Heart", desc: "配送トラックの荷台で猫が寝ています。動きません。",
+        choices: [
+          { t: "猫ごと配送", eff: { b: 0, bo: -20, c: 15, wb: { vitality: 10 }, t: -10 }, msg: "「猫付き配送」が大ウケしましたが、保健所から指導が入りました。", good: true },
+          { t: "つまみ出す", eff: { b: 0, bo: 0, c: 0 }, msg: "猫は不服そうに去っていきました。日常に戻りました。", good: false },
+          { t: "保健所に通報", eff: { b: 0, bo: 5, c: -10 }, msg: "正解ですが、現場の空気は重いです。", good: false },
+        ]
+      },
+      { id: "ev_soc3", title: "【地域】共同購入の仁義", icon: "Users", desc: "班長同士の「キノコ派 vs タケノコ派」抗争が激化。班解散の危機です。",
+        choices: [
+          { t: "両方販売停止", eff: { b: -50, bo: 0, c: -10 }, msg: "喧嘩両成敗。しかし売上も激減。", good: false },
+          { t: "「すぎのこ」を投入", eff: { b: -20, bo: 0, c: 5, wb: { vitality: 5 } }, msg: "第三勢力の登場で共通の敵ができ、休戦しました。", good: true },
+          { t: "多数決をとる", eff: { b: 0, bo: 5, c: -5 }, msg: "敗れた派閥が脱退しました。", good: false },
+        ]
+      },
+      { id: "ev_soc4", title: "【治安】闇バイトの魔の手", icon: "AlertTriangle", desc: "「配送員なら家の様子わかるだろ」と名簿を高値で買う電話が。",
+        choices: [
+          { t: "囮捜査に協力", eff: { b: 0, bo: 5, c: 15, wb: { meaning: 20 }, t: 10 }, msg: "犯人逮捕に貢献！警察から表彰されました。", good: true },
+          { t: "無視する", eff: { b: 0, bo: 0, c: -5 }, msg: "数日後、近隣で被害が。「生協は知ってたのでは？」", good: false },
+          { t: "名簿を売る", eff: { b: 500, bo: 0, c: -30, t: -50 }, msg: "大金が入りましたが、翌日ニュースで大騒ぎに。終わりが始まりました。", good: false },
+        ]
+      },
+      { id: "ev_soc5", title: "【謎】限界集落VTuber", icon: "Activity", desc: "配送先の90歳のお婆ちゃんがVTuberデビューし、生協商品を宣伝しています。",
+        choices: [
+          { t: "公認アンバサダーに", eff: { b: -50, bo: 0, c: 20, wb: { vitality: 20 } }, msg: "スパチャで農機具を購入したそうです。地域が元気になりました。", good: true },
+          { t: "静観する", eff: { b: 0, bo: 0, c: 5 }, msg: "自然な口コミとして広がっています。", good: false },
+          { t: "「中の人」に会う", eff: { b: 0, bo: 10, c: 0, wb: { meaning: -10 } }, msg: "見てはいけないものを見てしまいました……。", good: false },
+        ]
+      },
+      { id: "ev_soc6", title: "【設備】段ボール要塞", icon: "Box", desc: "回収した段ボールで子供たちが店内に巨大迷路を構築。撤去すべき？",
+        choices: [
+          { t: "即時撤去", eff: { b: 0, bo: 0, c: -5 }, msg: "子供たちは泣きながら帰りました。大人は残酷です。", good: false },
+          { t: "観光資源にする", eff: { b: -10, bo: 5, c: 15, wb: { autonomy: 10 } }, msg: "「迷宮店舗」として話題に。買い物客が迷子になっています。", good: true },
+          { t: "さらに増築", eff: { b: -30, bo: 10, c: 10, t: -10 }, msg: "消防法違反で厳重注意を受けましたが、伝説になりました。", good: false },
+        ]
+      },
+    ];
+
+    // ---------------------------
+    // Components
+    // ---------------------------
+    const useEscToClose = (onClose, enabled = true) => {
+      useEffect(() => {
+        if (!enabled) return;
+        const handler = (e) => {
+          if (e.key === "Escape") onClose?.();
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+      }, [onClose, enabled]);
+    };
+
+    const HelpModal = React.memo(({ onClose }) => {
+      useEscToClose(onClose);
+      return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-overlay fade-in" onClick={onClose}>
+          <div className="glass-panel w-full max-w-md p-0 rounded-xl overflow-hidden slide-in" onClick={e => e.stopPropagation()}>
+            <div className="bg-slate-800 p-4 border-b border-slate-700 flex justify-between items-center">
+              <h3 className="font-bold text-white flex items-center gap-2">
+                <Icon name="Book" className="text-cyan-400"/> ルールブック
+              </h3>
+              <button onClick={onClose} className="p-1 hover:bg-slate-700 rounded"><Icon name="X" size={20}/></button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
+              
+              <div className="space-y-2">
+                <h4 className="font-bold text-cyan-400 text-sm border-b border-slate-700 pb-1">勝利条件とゲームオーバー</h4>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  24ヶ月（24ターン）生き残り、地域を守り抜くことが目的です。<br/>
+                  <span className="text-rose-400">■ 資金(予算)が0になる</span><br/>
+                  <span className="text-rose-400">■ 現場疲弊度が100%になる</span><br/>
+                  <span className="text-rose-400">■ 信頼が0になる (法令違反・炎上)</span><br/>
+                  とゲームオーバーです。
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-bold text-yellow-400 text-sm border-b border-slate-700 pb-1">信頼 (Trust)</h4>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  法令遵守や倫理的な行動を示す指標です。<br/>
+                  違反する選択肢を選ぶと低下し、<span className="text-yellow-400">客離れ（収入減）</span>が発生します。<br/>
+                  0になると社会的信用を失い、即座にゲームオーバーとなります。
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-bold text-emerald-400 text-sm border-b border-slate-700 pb-1">4つの幸福因子 (Resources)</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {WB_FACTORS.map(f => (
+                    <div key={f.id} className="flex gap-2 items-start bg-slate-900/50 p-2 rounded">
+                      <div className={`mt-0.5 ${f.color}`}><Icon name={f.icon} size={16}/></div>
+                      <div>
+                        <div className={`text-xs font-bold ${f.color}`}>{f.label}</div>
+                        <div className="text-[10px] text-slate-400">{f.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 bg-slate-900 border-t border-slate-700 text-center">
+              <button onClick={onClose} className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded text-white text-sm font-bold">閉じる</button>
+            </div>
+          </div>
+        </div>
+      );
+    });
+
+    const EventModal = React.memo(({ event, onResolve, onClose }) => {
+      useEscToClose(onClose, !!event);
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={event.title} onClick={onClose}>
+          <div className="glass-panel w-full max-w-sm p-0 rounded-xl overflow-hidden slide-in border-l-4 border-rose-500 shadow-2xl" onClick={(e)=>e.stopPropagation()}>
+            <div className="bg-rose-950/90 p-4 flex items-center gap-2 text-white font-bold border-b border-rose-900">
+              <Icon name={event.icon} className="text-rose-400"/> {event.title}
+            </div>
+            <div className="p-6 bg-slate-900/95">
+              <p className="text-slate-200 text-sm mb-6 leading-relaxed bg-slate-950/50 p-3 rounded border border-white/5">{event.desc}</p>
+              <div className="space-y-3">
+                {event.choices.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onResolve(c)}
+                    className="w-full text-left bg-slate-800 hover:bg-slate-700 p-3 rounded border border-slate-600 hover:border-cyan-400 transition-colors group relative overflow-hidden"
+                  >
+                    <div className="font-bold text-white text-sm mb-1 group-hover:text-cyan-300 relative z-10">{c.t}</div>
+                    <div className="text-xs text-slate-400 font-mono flex flex-wrap gap-2 relative z-10">
+                      {c.eff.b !== 0 && <span className={c.eff.b > 0 ? "text-emerald-400" : "text-rose-400"}>予算{c.eff.b > 0 ? "+" : ""}{c.eff.b}</span>}
+                      {c.eff.bo !== 0 && <span className={c.eff.bo < 0 ? "text-emerald-400" : "text-rose-400"}>疲弊{c.eff.bo > 0 ? "+" : ""}{c.eff.bo}</span>}
+                      {c.eff.t && <span className={c.eff.t > 0 ? "text-yellow-400" : "text-rose-500 font-bold"}>信頼{c.eff.t > 0 ? "+" : ""}{c.eff.t}</span>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    });
+
+    const StrategyConfirmModal = React.memo(({ strategyId, currentStats, level, onConfirm, onCancel }) => {
+      useEscToClose(onCancel, !!strategyId);
+      const data = STRATEGY_DETAILS[strategyId];
+      
+      // Calculate effect based on Level
+      const getLevelEffect = (baseEff, lv) => {
+        if (!baseEff) return {};
+        const mult = lv === 3 ? 1.5 : lv === 2 ? 1.2 : 1.0;
+        const discount = lv === 3 ? 50 : 0; // Discount cost at max level
+        
+        const newEff = { ...baseEff };
+        // Apply multiplier to wb stats and connection chance
+        if (newEff.wb) {
+           newEff.wb = {};
+           for (let k in baseEff.wb) {
+             newEff.wb[k] = baseEff.wb[k] * mult;
+           }
+        }
+        if (newEff.c) newEff.c = baseEff.c * mult;
+        
+        // Adjust budget cost (if negative)
+        if (newEff.b < 0) newEff.b = Math.min(0, newEff.b + discount);
+        
+        return newEff;
+      };
+
+      const eff = getLevelEffect(data.eff, level);
+
+      const DiffBar = ({ current, diff, baseClass }) => {
+        const isPositive = diff > 0;
+        return (
+          <div className="flex items-center gap-2 text-xs mb-1.5">
+            <div className="w-16 text-right font-mono text-slate-400">{Math.floor(current)}</div>
+            <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden flex relative">
+              <div className={`h-full ${baseClass} opacity-50`} style={{ width: `${clamp(current, 0, 100)}%` }} />
+              {diff !== 0 && (
+                <div
+                  className={`absolute h-full ${isPositive ? "bg-emerald-400" : "bg-rose-500"}`}
+                  style={{ 
+                    left: `${clamp(current, 0, 100)}%`, 
+                    width: `${clamp(Math.abs(diff), 0, 100 - current)}%`,
+                    transform: diff < 0 ? `translateX(-100%)` : 'none'
+                  }} 
+                />
+              )}
+            </div>
+            <div className={`w-10 font-bold text-right ${isPositive ? "text-emerald-400" : diff < 0 ? "text-rose-400" : "text-slate-600"}`}>
+              {diff > 0 ? `+${diff.toFixed(0)}` : diff === 0 ? "-" : diff.toFixed(0)}
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={`${data.title}の確認`} onClick={onCancel}>
+          <div className="glass-panel w-full max-w-md p-0 rounded-xl overflow-hidden slide-in border border-cyan-500/30 shadow-2xl" onClick={e=>e.stopPropagation()}>
+            <div className="bg-slate-900 p-4 border-b border-white/10 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span className="text-cyan-400">>></span> {data.title} 
+                  {level > 1 && <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded border border-yellow-500/50">Lv.{level}</span>}
+                </h3>
+                <p className="text-xs text-slate-400 font-mono mt-1">{data.subtitle}</p>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+              <p className="text-sm text-slate-200 leading-relaxed font-bold border-l-2 border-cyan-500 pl-3">
+                {data.desc}
+              </p>
+              
+              {level > 1 && (
+                <div className="text-xs text-yellow-400 bg-yellow-900/20 p-2 rounded border border-yellow-500/30 flex items-center gap-2">
+                  <Icon name="ChevronsUp" size={14}/> 
+                  {level === 3 ? "熟練度MAX：効果1.5倍 & 予算効率UP" : "熟練度UP：効果1.2倍"}
+                </div>
+              )}
+
+              <div className="bg-slate-950 p-3 rounded-lg border border-white/5 space-y-3">
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">予測変動 (FORECAST)</div>
+
+                <div className="flex justify-between text-xs font-mono mb-2 border-b border-white/5 pb-2">
+                  <span className={eff.b >= 0 ? "text-emerald-400" : "text-rose-400"}>予算: {eff.b > 0 ? "+" : ""}{eff.b}k</span>
+                  <span className={eff.bo <= 0 ? "text-emerald-400" : "text-rose-400"}>疲弊: {eff.bo > 0 ? "+" : ""}{eff.bo}</span>
+                </div>
+
+                {WB_FACTORS.map(f => {
+                  const diff = eff.wb?.[f.id] || 0;
+                  return (
+                    <div key={f.id}>
+                      <div className="text-[10px] text-slate-500 mb-0.5 flex items-center gap-1"><Icon name={f.icon} size={10}/> {f.label}</div>
+                      <DiffBar current={currentStats.wb[f.id]} diff={diff} baseClass={f.bg} />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="bg-emerald-950/30 p-2 rounded border border-emerald-500/20">
+                  <div className="font-bold text-emerald-400 mb-1 flex items-center gap-1"><Icon name="Shield" size={12}/> メリット</div>
+                  <div className="text-slate-300 text-[10px] leading-tight">{data.pros}</div>
+                </div>
+                <div className="bg-rose-950/30 p-2 rounded border border-rose-500/20">
+                  <div className="font-bold text-rose-400 mb-1 flex items-center gap-1"><Icon name="Zap" size={12}/> デメリット</div>
+                  <div className="text-slate-300 text-[10px] leading-tight">{data.cons}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 bg-slate-900/80 flex gap-3 border-t border-white/10">
+              <button onClick={onCancel} className="flex-1 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-colors text-sm">
+                やめる
+              </button>
+              <button onClick={onConfirm} className="flex-[2] py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all active:scale-95 text-sm flex justify-center items-center gap-2">
+                決定・実行 <Icon name="ArrowRight" size={16}/>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    });
+
+    // ---------------------------
+    // Intro Screen
+    // ---------------------------
+    const IntroScreen = ({ onComplete }) => {
+      const [text, setText] = useState("");
+      const fullText = `西暦2035年。
+日本の人口減少は「危険水域」を突破した。
+
+行政サービスは撤退し、
+「買い物難民」「独居老人の孤立」「子育ての孤立」……
+社会の隙間に、音もなく人々が落ちていく。
+
+あなたに課せられた使命は、
+地域に根ざした物流網を持つ「生協」を
+次世代の『社会的共通資本』へとハックすること。
+
+地域の資源（Resource）を最大化し、
+社会的負荷（Risk）を最小化せよ。
+
+これは、単なる経営シミュレーションではない。
+この国の「生存戦略」だ。
+
+Project: The Bridge
+System Initializing...`;
+
+      const idx = useRef(0);
+      const [done, setDone] = useState(false);
+
+      useEffect(() => {
+        const timer = setInterval(() => {
+          if (idx.current < fullText.length) {
+            setText(prev => prev + fullText.charAt(idx.current));
+            idx.current++;
+          } else {
+            clearInterval(timer);
+            setDone(true);
+          }
+        }, 25);
+        return () => clearInterval(timer);
+      }, []);
+
+      const handleClick = () => {
+        if (!done) {
+          setText(fullText);
+          idx.current = fullText.length;
+          setDone(true);
+        } else {
+          onComplete();
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-950 text-emerald-400 font-mono p-8 flex flex-col justify-center items-start cursor-pointer relative z-50 select-none" onClick={handleClick}>
+          <div className="whitespace-pre-wrap leading-relaxed text-sm md:text-base max-w-lg mb-8">
+            {text}<span className="inline-block w-2 h-4 bg-emerald-400 ml-1 cursor-blink" />
+          </div>
+          <div className={`mt-4 text-xs text-slate-500 animate-pulse font-sans w-full text-center transition-opacity duration-500 ${done ? "opacity-100" : "opacity-50"}`}>
+            {done ? ">> TAP TO START MISSION <<" : "[ TAP TO SKIP ]"}
+          </div>
+        </div>
+      );
+    };
+
+    // ---------------------------
+    // Household factory
+    // ---------------------------
+    const makeHouseholds = () =>
+      Array.from({ length: 100 }, (_, i) => ({
+        id: i,
+        status: STATUS.NORMAL,
+        isMember: Math.random() > 0.3,
+      }));
+
+    // ---------------------------
+    // Main App
+    // ---------------------------
+    const App = () => {
+      const [gameState, setGameState] = useState("start");
+      const [turn, setTurn] = useState(1);
+      const [showHelp, setShowHelp] = useState(false);
+
+      const [budget, setBudget] = useState(INITIAL_BUDGET);
+      const [burnout, setBurnout] = useState(20);
+      const [trust, setTrust] = useState(100);
+
+      const [logs, setLogs] = useState([]);
+      const [activeEvent, setActiveEvent] = useState(null);
+      const [confirmingStrategy, setConfirmingStrategy] = useState(null);
+      const [usedEventIds, setUsedEventIds] = useState([]);
+
+      const [wbStats, setWbStats] = useState({ connection: 30, autonomy: 40, meaning: 50, vitality: 40 });
+      const [households, setHouseholds] = useState(() => makeHouseholds());
+      const [finalScore, setFinalScore] = useState(null);
+      const [ranking, setRanking] = useState([]);
+      
+      // Strategy Level System
+      const [strategyExp, setStrategyExp] = useState({ delivery_sensing: 0, product_social: 0, hub_commons: 0 });
+
+      const addLog = useCallback((msg) => {
+        setLogs(prev => [msg, ...prev].slice(0, 4));
+      }, []);
+
+      const getStrategyLevel = useCallback((exp) => {
+        if (exp >= 5) return 3; // Max Level
+        if (exp >= 2) return 2;
+        return 1;
+      }, []);
+      
+      const getStrategyEffect = useCallback((id, exp) => {
+        const baseEff = STRATEGY_DETAILS[id].eff;
+        if (!baseEff) return {};
+        
+        const lv = getStrategyLevel(exp);
+        const mult = lv === 3 ? 1.5 : lv === 2 ? 1.2 : 1.0;
+        const discount = lv === 3 ? 50 : 0;
+        
+        const newEff = { ...baseEff };
+        if (newEff.wb) {
+           newEff.wb = {};
+           for (let k in baseEff.wb) {
+             newEff.wb[k] = baseEff.wb[k] * mult;
+           }
+        }
+        if (newEff.c) newEff.c = baseEff.c * mult;
+        if (newEff.b < 0) newEff.b = Math.min(0, newEff.b + discount);
+        
+        return newEff;
+      }, [getStrategyLevel]);
+
+      const metrics = useMemo(() => {
+        const connected = households.filter(h => h.status === STATUS.CONNECTED).length;
+        const critical = households.filter(h => h.status === STATUS.CRITICAL).length;
+        const percentage = Math.floor((connected / households.length) * 100);
+        
+        let label = "五里霧中";
+        if (percentage >= 90) label = "天下泰平";
+        else if (percentage >= 70) label = "共存共栄";
+        else if (percentage >= 50) label = "一致団結";
+        else if (percentage >= 30) label = "一進一退";
+        else if (percentage >= 15) label = "孤立無援";
+
+        return { 
+          connect: percentage,
+          criticalCount: critical,
+          label
+        };
+      }, [households]);
+
+      const wbBalance = useMemo(() => {
+        const resources = (wbStats.connection + wbStats.autonomy + wbStats.meaning + wbStats.vitality) / 4;
+        return { resources, risks: burnout };
+      }, [wbStats, burnout]);
+
+      const calculateScore = useCallback(() => {
+        const resourceScore = Math.floor(Object.values(wbStats).reduce((a, b) => a + b, 0) * 10);
+        const coverageScore = metrics.connect * 20;
+        const budgetScore = Math.floor(Math.max(0, budget) / 10);
+        const riskPenalty = Math.floor(burnout * 20);
+        const trustBonus = trust * 10;
+        
+        const total = Math.max(0, resourceScore + coverageScore + budgetScore + trustBonus - riskPenalty);
+        
+        return {
+          total,
+          details: {
+            resource: resourceScore,
+            coverage: coverageScore,
+            budget: budgetScore,
+            trust: trustBonus,
+            risk: riskPenalty
+          }
+        };
+      }, [wbStats, metrics.connect, budget, burnout, trust]);
+
+      const saveRanking = useCallback((scoreData) => {
+        try {
+          const stored = localStorage.getItem(RANKING_KEY);
+          let currentRank = stored ? JSON.parse(stored) : [];
+          
+          const newEntry = {
+            date: new Date().toLocaleDateString(),
+            score: scoreData.total,
+            id: Date.now()
+          };
+          
+          currentRank.push(newEntry);
+          currentRank.sort((a, b) => b.score - a.score);
+          currentRank = currentRank.slice(0, 5);
+          
+          localStorage.setItem(RANKING_KEY, JSON.stringify(currentRank));
+          setRanking(currentRank);
+          
+          return newEntry.id;
+        } catch (e) {
+          console.error("Ranking save failed", e);
+          return null;
+        }
+      }, []);
+
+      const endIfNeeded = useCallback((nextBudget, nextBurnout, nextTrust, nextTurn) => {
+        if (nextBudget <= 0 || nextBurnout >= 100 || nextTrust <= 0 || nextTurn > MAX_TURNS) {
+          const score = calculateScore();
+          if (nextBudget <= 0 || nextBurnout >= 100 || nextTrust <= 0) {
+            score.total = Math.floor(score.total * 0.5);
+          }
+          
+          setFinalScore(score);
+          const newId = saveRanking(score);
+          setFinalScore(prev => ({...prev, rankId: newId}));
+          
+          setGameState("result");
+          return true;
+        }
+        return false;
+      }, [calculateScore, saveRanking]);
+
+      const processTurn = useCallback((effect) => {
+        // Trust effect
+        setTrust(prev => {
+          const next = clamp(prev + (effect.t || 0), 0, 100);
+          return next;
+        });
+
+        setBudget(prev => {
+          // Trust affects base income. <50 trust reduces income.
+          let income = 150;
+          if (trust < 50) income = Math.floor(income * (trust / 50));
+          
+          const next = prev + income + (effect.b || 0);
+          return next;
+        });
+
+        setBurnout(prev => clamp(prev - 2 + (effect.bo || 0), 0, 100));
+
+        setWbStats(prev => {
+          const next = { ...prev };
+          if (effect.wb) {
+            for (const k of Object.keys(effect.wb)) {
+              next[k] = clamp(next[k] + effect.wb[k], 0, 100);
+            }
+          }
+          return next;
+        });
+
+        setHouseholds(prevHouseholds => {
+          const assumedWb = { ...wbStats };
+          if (effect.wb) {
+            for (const k of Object.keys(effect.wb)) assumedWb[k] = clamp(assumedWb[k] + effect.wb[k], 0, 100);
+          }
+
+          const resLevel = (assumedWb.connection + assumedWb.autonomy + assumedWb.meaning + assumedWb.vitality) / 4;
+          const riskProb = clamp(0.08 - (resLevel / 2000), 0.01, 0.15);
+
+          const baseConnectChance = (effect.c || 0) / 100;
+
+          return prevHouseholds.map(h => {
+            let nextStatus = h.status;
+
+            if (h.isMember) {
+              if (h.status === STATUS.NORMAL && Math.random() < riskProb) nextStatus = STATUS.AT_RISK;
+              else if (h.status === STATUS.AT_RISK && Math.random() < riskProb * 2.5) nextStatus = STATUS.CRITICAL;
+
+              let connectChance = baseConnectChance;
+              if (h.status === STATUS.CRITICAL) connectChance *= 0.3;
+
+              connectChance += (resLevel / 1000);
+
+              if (h.status !== STATUS.CONNECTED && Math.random() < connectChance) {
+                nextStatus = STATUS.CONNECTED;
+              }
+            }
+            return { ...h, status: nextStatus };
+          });
+        });
+
+        setTurn(prevTurn => {
+          const nextTurn = prevTurn + 1;
+          return nextTurn;
+        });
+      }, [wbStats, trust]);
+
+      const executeTurn = useCallback((strategyId) => {
+        setConfirmingStrategy(null);
+
+        // Update Strategy Experience if not default
+        if (strategyId !== 'default') {
+          setStrategyExp(prev => {
+            const currentExp = prev[strategyId] || 0;
+            const nextExp = currentExp + 1;
+            const prevLevel = getStrategyLevel(currentExp);
+            const nextLevel = getStrategyLevel(nextExp);
+            
+            if (nextLevel > prevLevel) {
+              addLog(`【LvUP】${STRATEGY_DETAILS[strategyId].title} Lv${nextLevel}になりました！`);
+            }
+            return { ...prev, [strategyId]: nextExp };
+          });
+        }
+
+        // 40% event trigger
+        if (Math.random() < 0.4) {
+          const available = CRITICAL_EVENTS.filter(e => !usedEventIds.includes(e.id));
+          const pool = available.length ? available : CRITICAL_EVENTS;
+          const evt = pick(pool);
+          setActiveEvent(evt);
+          setUsedEventIds(prev => [...prev, evt.id]);
+          return;
+        }
+
+        // Apply effect with level boost
+        let eff = STRATEGY_DETAILS[strategyId].eff;
+        if (strategyId !== 'default') {
+          eff = getStrategyEffect(strategyId, strategyExp[strategyId]);
+        }
+        processTurn(eff);
+      }, [processTurn, usedEventIds, strategyExp, getStrategyLevel, getStrategyEffect, addLog]);
+
+      const handleEventResolve = useCallback((choice) => {
+        addLog(choice.msg);
+        setActiveEvent(null);
+        processTurn(choice.eff);
+      }, [addLog, processTurn]);
+
+      useEffect(() => {
+        if (gameState !== "playing") return;
+        endIfNeeded(budget, burnout, trust, turn);
+      }, [budget, burnout, trust, turn, gameState, endIfNeeded]);
+
+      const restart = useCallback(() => {
+        setTurn(1);
+        setBudget(INITIAL_BUDGET);
+        setBurnout(20);
+        setTrust(100);
+        setWbStats({ connection: 30, autonomy: 40, meaning: 50, vitality: 40 });
+        setHouseholds(makeHouseholds());
+        setLogs([]);
+        setActiveEvent(null);
+        setUsedEventIds([]);
+        setConfirmingStrategy(null);
+        setGameState("playing");
+        setStrategyExp({ delivery_sensing: 0, product_social: 0, hub_commons: 0 });
+      }, []);
+
+      // ---------------------------
+      // Views
+      // ---------------------------
+      if (gameState === "start") {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-900 relative overflow-hidden">
+            <div className="absolute inset-0 opacity-20 pointer-events-none" style={{background: 'radial-gradient(circle at 50% 50%, #06b6d4 0%, transparent 50%)'}}></div>
+            <div className="space-y-8 max-w-sm w-full relative z-10 fade-in">
+              <div>
+                <div className="text-cyan-400 font-mono text-xs mb-2 tracking-widest">STRATEGY SIMULATOR</div>
+                <h1 className="text-4xl font-black text-white leading-tight">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">THE BRIDGE</span><br/>
+                  <span className="text-2xl text-slate-400">Co-op Strategy</span>
+                </h1>
+              </div>
+
+              <div className="glass-panel p-6 rounded-xl text-left space-y-4 border-l-4 border-cyan-500">
+                <div className="text-xs font-bold text-slate-400 border-b border-slate-700 pb-2 flex justify-between">
+                  <span>MISSION BRIEFING</span>
+                  <span className="animate-pulse text-cyan-400">● LIVE</span>
+                </div>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  あなたは生協のエリアマネージャー。<br/>
+                  24ヶ月間、破綻（資金尽・現場崩壊）を避けながら、孤立していく地域を物流網で繋ぎ止めろ。
+                </p>
+                <div className="text-xs text-slate-500 mt-2 bg-slate-900 p-2 rounded">
+                  <span className="text-emerald-400 font-bold">Resources:</span> 絆・余白・意義・活力<br/>
+                  <span className="text-rose-400 font-bold">Risks:</span> 資金ショート・現場疲弊・地域孤立・信用失墜
+                </div>
+              </div>
+
+              <button
+                onClick={() => setGameState("intro")}
+                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2 group"
+              >
+                シミュレーション開始 <span className="group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      if (gameState === "intro") {
+        return <IntroScreen onComplete={() => setGameState("playing")} />;
+      }
+
+      if (gameState === "result") {
+        return (
+          <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-900 fade-in pb-20">
+            <div className="glass-panel w-full max-w-sm p-0 rounded-xl overflow-hidden relative shadow-2xl">
+              <div className={`h-2 ${budget <= 0 || burnout >= 100 || trust <= 0 ? "bg-rose-500" : "bg-emerald-500"}`}></div>
+              
+              <div className="p-6 text-center space-y-4">
+                <h2 className="text-2xl font-bold text-white tracking-widest">RESULT</h2>
+
+                <div>
+                   {budget <= 0 ? (
+                      <div className="text-rose-400 font-bold text-lg"><Icon name="AlertTriangle" className="inline mb-1"/> 資金ショート</div>
+                   ) : burnout >= 100 ? (
+                      <div className="text-rose-400 font-bold text-lg"><Icon name="Zap" className="inline mb-1"/> 組織崩壊</div>
+                   ) : trust <= 0 ? (
+                      <div className="text-rose-400 font-bold text-lg"><Icon name="Lock" className="inline mb-1"/> 社会的信用失墜</div>
+                   ) : (
+                      <div className="text-emerald-400 font-bold text-lg"><Icon name="Trophy" className="inline mb-1"/> MISSION ACCOMPLISHED</div>
+                   )}
+                </div>
+
+                {finalScore && (
+                  <div className="bg-slate-950/50 p-4 rounded-lg border border-white/5">
+                    <div className="text-[10px] text-slate-500 font-bold uppercase mb-2">Well-being Management Index</div>
+                    <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-white mb-4">
+                      {finalScore.total.toLocaleString()}
+                    </div>
+                    
+                    <div className="space-y-1 text-xs font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-emerald-400">Resources (地域資源)</span>
+                        <span>+{finalScore.details.resource}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-cyan-400">Coverage (見守り)</span>
+                        <span>+{finalScore.details.coverage}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-400">Budget (財務健全性)</span>
+                        <span>+{finalScore.details.budget}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-yellow-400">Trust (信頼ボーナス)</span>
+                        <span>+{finalScore.details.trust}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-slate-800 pt-1 mt-1">
+                        <span className="text-rose-400">Risk Penalty (疲弊)</span>
+                        <span className="text-rose-400">-{finalScore.details.risk}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Ranking Board */}
+                <div className="bg-slate-800 rounded-lg p-3 text-left">
+                  <div className="text-[10px] font-bold text-slate-400 mb-2 flex items-center gap-1">
+                    <Icon name="Medal" size={12} className="text-yellow-500"/> TOP 5 RANKING
+                  </div>
+                  <div className="space-y-1">
+                    {ranking.map((r, i) => (
+                      <div 
+                        key={i} 
+                        className={`flex justify-between text-xs p-1.5 rounded ${finalScore && finalScore.rankId === r.id ? "bg-cyan-900/50 border border-cyan-500/30 text-cyan-200 font-bold" : "text-slate-400 even:bg-slate-700/30"}`}
+                      >
+                        <span className="flex gap-2">
+                           <span className="w-4 text-center">{i+1}.</span>
+                           <span>{r.date}</span>
+                        </span>
+                        <span className="font-mono">{r.score.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    {ranking.length === 0 && <div className="text-center text-[10px] text-slate-600 py-2">No Records Yet</div>}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-900/80 border-t border-slate-800 flex gap-3">
+                <button onClick={() => setGameState("start")} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg text-sm transition-colors">
+                  タイトル
+                </button>
+                <button onClick={restart} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95">
+                  再挑戦
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // playing
+      return (
+        <div className="min-h-screen max-w-md mx-auto flex flex-col relative pb-32 fade-in">
+          {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
+          
+          {activeEvent && (
+            <EventModal
+              event={activeEvent}
+              onResolve={handleEventResolve}
+              onClose={() => setActiveEvent(null)}
+            />
+          )}
+
+          {confirmingStrategy && (
+            <StrategyConfirmModal
+              strategyId={confirmingStrategy}
+              currentStats={{ wb: wbStats, budget, burnout }}
+              level={strategyExp && confirmingStrategy !== 'default' ? getStrategyLevel(strategyExp[confirmingStrategy]) : 1}
+              onConfirm={() => executeTurn(confirmingStrategy)}
+              onCancel={() => setConfirmingStrategy(null)}
+            />
+          )}
+
+          {/* Header */}
+          <div className="glass-panel p-4 m-4 rounded-xl sticky top-4 z-30 shadow-xl">
+            <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider mb-1">BUDGET (資金)</span>
+                <div className={`text-2xl font-mono font-bold leading-none ${budget < 1000 ? "text-rose-500 animate-pulse" : "text-white"}`}>
+                  ¥{budget.toLocaleString()}k
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                 <div className="flex flex-col items-end mr-2">
+                    <span className="text-[10px] font-bold text-slate-400 tracking-wider">TURN</span>
+                    <span className="text-lg font-bold text-cyan-400 leading-none">{turn}<span className="text-sm text-slate-500">/{MAX_TURNS}</span></span>
+                 </div>
+                 <button onClick={() => setShowHelp(true)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition-colors">
+                   <Icon name="Help" size={20} />
+                 </button>
+              </div>
+            </div>
+
+            {/* WB Balance Bars */}
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-[10px] mb-1">
+                   <span className="text-emerald-400 font-bold flex items-center gap-1"><Icon name="Shield" size={10}/> 地域の豊かさ</span>
+                   <span className="text-white font-mono">{Math.floor(wbBalance.resources)}</span>
+                </div>
+                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                   <div className="h-full bg-emerald-500 wb-bar" style={{ width: `${clamp(wbBalance.resources, 0, 100)}%` }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-[10px] mb-1">
+                   <span className="text-rose-400 font-bold flex items-center gap-1"><Icon name="Zap" size={10}/> 現場の疲弊度</span>
+                   <span className="text-white font-mono">{burnout}%</span>
+                </div>
+                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                   <div className={`h-full wb-bar ${burnout > 80 ? "bg-rose-500 animate-pulse" : "bg-rose-500"}`} style={{ width: `${clamp(burnout, 0, 100)}%` }}></div>
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[10px] mb-1">
+                   <span className="text-yellow-400 font-bold flex items-center gap-1"><Icon name="Scale" size={10}/> 信頼 (Trust)</span>
+                   <span className="text-white font-mono">{trust}%</span>
+                </div>
+                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                   <div className={`h-full wb-bar ${trust < 50 ? "bg-yellow-600 animate-pulse" : "bg-yellow-500"}`} style={{ width: `${clamp(trust, 0, 100)}%` }}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* WB Factors Grid */}
+            <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/5">
+              {WB_FACTORS.map(f => (
+                <div key={f.id} className="flex flex-col items-center p-1.5 rounded bg-slate-800/50 border border-white/5 cursor-help active:scale-95 transition-transform" onClick={() => setShowHelp(true)}>
+                  <Icon name={f.icon} size={14} className={f.color}/>
+                  <div className="text-[10px] font-bold text-slate-300 mt-1">{Math.floor(wbStats[f.id])}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Map */}
+          <div className="px-4 mb-4">
+            <div className="glass-panel p-3 rounded-xl">
+              <div className="text-[10px] text-slate-500 mb-2 font-bold tracking-widest flex justify-between items-center">
+                <span>MONITORING AREA</span>
+                <div className="flex gap-2">
+                  <span className="text-emerald-400 bg-emerald-950/30 px-2 py-0.5 rounded border border-emerald-500/20 font-mono text-[10px]">
+                     {metrics.label}
+                  </span>
+                  <span className="text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded flex items-center gap-1 border border-cyan-500/20">
+                    <Icon name="Target" size={10}/> Coverage: {metrics.connect}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-10 gap-1 aspect-[10/5] bg-slate-900/50 p-1 rounded">
+                {households.slice(0, 50).map(h => {
+                  let colorClass = "status-normal opacity-30"; // Non-member
+                  if (h.isMember) {
+                    if (h.status === STATUS.CONNECTED) colorClass = "status-connected";
+                    else if (h.status === STATUS.CRITICAL) colorClass = "status-critical";
+                    else if (h.status === STATUS.AT_RISK) colorClass = "status-at-risk";
+                    else colorClass = "status-normal";
+                  }
+                  return <div key={h.id} className={`w-full h-full rounded-[1px] ${colorClass} transition-all duration-500`} />;
+                })}
+              </div>
+              <div className="mt-2 text-[10px] text-slate-500 text-right">
+                {metrics.criticalCount > 0 && <span className="text-rose-400 animate-pulse font-bold">⚠ 孤立危機世帯: {metrics.criticalCount}</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Logs */}
+          <div className="px-4 mb-20 flex-1">
+             <div className="text-[10px] font-bold text-slate-500 mb-1 ml-1">SYSTEM LOG</div>
+             <div className="space-y-1.5 min-h-[100px]">
+              {logs.length === 0 && <div className="text-[10px] text-slate-600 pl-2 italic">No events yet...</div>}
+              {logs.map((log, i) => (
+                <div key={i} className="text-[11px] text-slate-300 bg-slate-800/40 p-2 rounded border-l-2 border-cyan-500/50 fade-in">
+                  <span className="text-cyan-500 mr-1">></span> {log}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Controls Footer */}
+          <div className="fixed bottom-0 left-0 right-0 bg-[#0f172a]/95 backdrop-blur-md border-t border-slate-700 z-40 max-w-md mx-auto pb-6 pt-3 px-3 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              <button onClick={() => setConfirmingStrategy("delivery_sensing")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-cyan-400 active:bg-slate-700 transition-all relative">
+                <div className="absolute top-1 right-1 text-[8px] bg-cyan-900 text-cyan-200 px-1 rounded border border-cyan-500/30">
+                  Lv.{getStrategyLevel(strategyExp.delivery_sensing)}
+                </div>
+                <div className="text-cyan-400 mb-1"><Icon name="Truck"/></div>
+                <div className="text-[10px] font-bold text-white">見守り配送</div>
+                <div className="text-[8px] text-slate-500">絆↑ 意義↑</div>
+              </button>
+
+              <button onClick={() => setConfirmingStrategy("product_social")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-emerald-400 active:bg-slate-700 transition-all relative">
+                <div className="absolute top-1 right-1 text-[8px] bg-emerald-900 text-emerald-200 px-1 rounded border border-emerald-500/30">
+                  Lv.{getStrategyLevel(strategyExp.product_social)}
+                </div>
+                <div className="text-emerald-400 mb-1"><Icon name="Clock"/></div>
+                <div className="text-[10px] font-bold text-white">時短Kit</div>
+                <div className="text-[8px] text-slate-500">余白↑ 活力↑</div>
+              </button>
+
+              <button onClick={() => setConfirmingStrategy("hub_commons")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-purple-400 active:bg-slate-700 transition-all relative">
+                <div className="absolute top-1 right-1 text-[8px] bg-purple-900 text-purple-200 px-1 rounded border border-purple-500/30">
+                  Lv.{getStrategyLevel(strategyExp.hub_commons)}
+                </div>
+                <div className="text-purple-400 mb-1"><Icon name="Users"/></div>
+                <div className="text-[10px] font-bold text-white">拠点開放</div>
+                <div className="text-[8px] text-slate-500">絆↑ 活力↑</div>
+              </button>
+            </div>
+
+            <button onClick={() => setConfirmingStrategy("default")} className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs py-2.5 rounded border border-slate-600 font-bold transition-colors">
+              通常業務のみを行う（コストカット・現状維持）
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
