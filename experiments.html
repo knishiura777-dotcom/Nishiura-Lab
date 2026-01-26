@@ -1,109 +1,61 @@
-<meta property="og:site_name" content="Nishiura Lab." />
-<meta name="twitter:card" content="summary_large_image" />
-
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Web心理学実験プラットフォーム",
-      "operatingSystem": "Browser",
-      "applicationCategory": "EducationalApplication",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "JPY"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "宮城学院女子大学 西浦研究室"
-      },
-      "description": "ブラウザで動作する心理学実験プログラム集。ストループ課題、メンタルローテーション等をインストール不要で実施可能。"
-    }
-    </script>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-tailwind.config = {
-@@ -55,10 +31,7 @@
-},
-colors: {
-brand: {
-                            50: '#f0f4f8',
-                            100: '#d9e2ec',
-                            500: '#4f46e5', // Indigo
-                            900: '#102a43', // Deep Navy
+    <title>Web心理学実験プラットフォーム（インストール不要・無料ブラウザ版）｜西浦研究室</title>
+    
+    <meta name="description" content="宮城学院女子大学 西浦研究室が無料公開する「Web心理学実験ライブラリ」。ストループ課題、メンタルローテーション、N-back課題など10種類以上の実験が、インストール不要・ブラウザだけですぐに実施可能です。オンライン授業やレポート課題のデータ収集に最適です。">
+    <meta name="keywords" content="心理学実験,Web実験,オンライン実験,ストループ課題,メンタルローテーション,教育工学,西浦研究室,宮城学院女子大学,ブラウザ実験">
+
+    <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html">
+
+    <meta property="og:title" content="Web心理学実験プラットフォーム（インストール不要）｜西浦研究室" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="ストループ課題、メンタルローテーション、AIカウンセリングなど、ブラウザですぐに試せる10種類以上の心理学実験を無料公開中。" />
+    <meta property="og:url" content="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html" />
+    <meta property="og:image" content="./experiments-ogp.jpg" />
+    <meta property="og:site_name" content="Nishiura Lab." />
+    <meta name="twitter:card" content="summary_large_image" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Inter"', '"Noto Sans JP"', 'sans-serif'],
+                        serif: ['"Cinzel"', '"Noto Serif JP"', 'serif'],
+                        body: ['"Noto Sans JP"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
                             50: '#f0f4f8', 100: '#d9e2ec', 500: '#4f46e5', 900: '#102a43',
-}
-},
-boxShadow: {
-@@ -69,86 +42,41 @@
-}
-}
-</script>
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
     
-<style>
-        body {
-            background-color: #fcfcfc;
-            color: #334155;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+    <style>
         body { background-color: #fcfcfc; color: #334155; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-up {
-            opacity: 0;
-            animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
-        }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .dot-grid {
-            position: absolute; inset: 0;
-            opacity: 0.40; pointer-events: none;
-            background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
-            background-size: 32px 32px;
-        }
-
-        @media print {
-            body * { visibility: hidden; }
-            #manual-modal-content, #manual-modal-content * { visibility: visible; }
-            #manual-modal-content {
-                position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none;
-            }
-            .no-print { display: none !important; }
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { opacity: 0; animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -111,41 +63,47 @@ boxShadow: {
         .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
         .dot-grid { position: absolute; inset: 0; opacity: 0.40; pointer-events: none; background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 32px 32px; }
         @media print { body * { visibility: hidden; } #manual-modal-content, #manual-modal-content * { visibility: visible; } #manual-modal-content { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; } .no-print { display: none !important; } }
-</style>
+    </style>
 </head>
 <body>
-    <div id="root">
-        <noscript>JavaScriptを有効にしてください。</noscript>
-        <div style="height: 100vh; display: flex; justify-content: center; align-items: center; background: #fcfcfc;">
-            <div style="text-align: center; color: #64748b;">
-                <p style="font-family: serif; font-size: 1.2rem; margin-bottom: 1rem;">Nishiura Lab. Web Experiments</p>
-                <p style="font-size: 0.9rem;">Initializing...</p>
-            </div>
-        </div>
-    </div>
-
-    <script src="./translations.js"></script>
     <div id="root"></div>
 
-<script type="text/babel">
-const { useState, useEffect, useMemo } = React;
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-        // --- Icons (Same as before) ---
         // --- 1. Icons ---
-const Icon = ({ path, size = 20, className = "" }) => (
-<svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-{path}
-</svg>
-);
+        const Icon = ({ path, size = 20, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                {path}
+            </svg>
+        );
+        const icons = {
+            arrowLeft: <><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>,
+            search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
+            play: <><polygon points="5 3 19 12 5 21 5 3"/></>,
+            clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+            activity: <><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></>,
+            brain: <><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></>,
+            eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
+            database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
+            users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
+            smile: <><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></>,
+            map: <><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></>,
+            check: <><polyline points="20 6 9 17 4 12"/></>,
+            globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
+            alert: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
+            monitor: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></>,
+            zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+            grid: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></>,
+            card: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="2" y1="10" x2="22" y2="10" /></>,
+            camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></>,
+            layers: <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
+            heartHandshake: <><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.92 0l.29.29"></path></>,
+            shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></>,
+            copy: <><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></>,
+            print: <><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></>
+        };
 
-const icons = {
-arrowLeft: <><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>,
-search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
-@@ -176,7 +104,204 @@
-print: <><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></>
-};
-
-        // --- Data (Experiment List) ---
         // --- 2. Translation Data (Embedded) ---
         const translations = {
             ja: {
@@ -344,12 +302,26 @@ print: <><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 
         };
 
         // --- 3. Data (Experiment List) ---
-const experimentsData = [
-{ id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
-{ id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
-@@ -198,97 +323,150 @@
+        const experimentsData = [
+            { id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
+            { id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
+            { id: 7, title: { ja: "ミュラー・リヤー錯視", en: "Müller-Lyer Illusion", se: "Müller-Lyer-illusion" }, category: "cat_Perception", duration: "2-3 min", difficulty: "diff_Easy", description: { ja: "矢羽の向きによって線の長さが異なって見える錯視量を調整法を用いて定量的に測定します。", en: "Quantitatively measures illusion magnitude using the adjustment method.", se: "Mäter kvantitativt illusionsstorlek med justeringsmetoden." }, icon: "eye", link: "./Exp_Muller-Lyer_illusion.html" },
+            { id: 4, title: { ja: "短期記憶 (Digit Span)", en: "Short-term Memory", se: "Korttidsminne" }, category: "cat_Memory", duration: "2-4 min", difficulty: "diff_Easy", description: { ja: "数字や文字の系列を再生し、マジカルナンバー（7±2）などの短期記憶容量を測定します。", en: "Reproduces sequences to measure short-term memory capacity (Magical Number 7±2).", se: "Återger sekvenser för att mäta korttidsminneskapacitet." }, icon: "database", link: "./Exp_Short_term_memory.html" },
+            { id: 9, title: { ja: "チェンジ・ブラインドネス", en: "Change Blindness", se: "Förändringsblindhet" }, category: "cat_Perception", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "画像の大きな変化であっても、瞬きや画面切り替えの間に起こると気づかない現象を体験します。", en: "Experience phenomena where large changes go unnoticed during blinks.", se: "Upplev fenomen där stora förändringar går obemärkta förbi." }, icon: "eye", link: "./Exp_Change_blindness.html" },
+            { id: 10, title: { ja: "ポズナーの手がかり課題", en: "Posner Cueing", se: "Posner Cueing" }, category: "cat_Attention", duration: "4-7 min", difficulty: "diff_Medium", description: { ja: "手がかり刺激（Cue）が注意の移動に与える促進・抑制効果を測定する空間的注意の実験です。", en: "Measures facilitation/inhibition effects of cues on attentional shifts.", se: "Mäter effekter av ledtrådar på uppmärksamhetsförskjutningar." }, icon: "activity", link: "./Exp_Posner.html" },
+            { id: 11, title: { ja: "アッシュの同調実験", en: "Asch Conformity", se: "Asch Konformitet" }, category: "cat_Social", duration: "5-10 min", difficulty: "diff_Easy", description: { ja: "集団圧力によって個人の判断が歪められる同調現象を体験する実験です。", en: "Experience how group pressure distorts individual judgment.", se: "Upplev hur grupptryck snedvrider individuella bedömningar." }, icon: "users", link: "./Exp_Ash_conformity.html" },
+            { id: 12, title: { ja: "表情認知", en: "Face Recognition", se: "Ansiktsigenkänning" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Medium", description: { ja: "表情認知における倒立効果や提示時間の影響を検討します。", en: "Examines inversion effects and presentation time in face recognition.", se: "Undersöker inversionseffekter vid ansiktsigenkänning." }, icon: "smile", link: "./Exp_Face_recognition.html" },
+            { id: 13, title: { ja: "ホビットとオーク", en: "Hobbits and Orcs", se: "Hobbitar och Orcher" }, category: "cat_ProblemSolving", duration: "5-15 min", difficulty: "diff_Hard", description: { ja: "川渡り問題を用いた問題解決プロセスの実験。手段目標分析などの思考過程を体験します。", en: "River crossing problem to experience means-ends analysis.", se: "Flodövergångsproblem för att uppleva medel-mål-analys." }, icon: "map", link: "./Exp_Hobit_and orc.html" },
+            { id: 14, title: { ja: "Number Place", en: "Number Place", se: "Number Place" }, category: "cat_ProblemSolving", duration: "5-20 min", difficulty: "diff_Medium", description: { ja: "9×9のマスに1～9の数字を配置するロジックパズルです。一般的に「数独」「ナンプレ」として知られるルールと同じですが、実験用に開発しました。株式会社ニコリとは関係ありません。", en: "Number puzzle requiring logical reasoning and working memory.", se: "Sifferpussel som kräver logiskt resonemang." }, icon: "grid", link: "./Exp_NumberPlace.html" },
+            { id: 15, title: { ja: "AI心理相談ロールプレイ", en: "AI Counseling Roleplay", se: "AI Rådgivning Rollspel" }, category: "cat_Social", duration: "15-30 min", difficulty: "diff_Hard", description: { ja: "生成AI（Gemini）を相手に、カウンセリングのロールプレイを行うシステムです。ロジャーズやユングなどのペルソナを持つAIカウンセラーに相談したり、逆にAIクライエントの相談に乗る練習が可能です。", en: "A system for roleplaying counseling with Generative AI (Gemini). Consult with AI counselors simulating Rogers or Jung, or practice counseling AI clients.", se: "Ett system för att rollspela rådgivning med Generativ AI (Gemini). Konsultera AI-rådgivare eller öva på att ge råd till AI-klienter." }, icon: "heartHandshake", link: "./AI_counceling_roleplay.html" },
+            { id: 6, title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" }, category: "cat_Memory", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", en: "Respond if stimulus matches N steps back. Measures working memory updating.", se: "Svara om stimulit matchar N steg tillbaka. Mäter arbetsminne." }, icon: "brain", link: "./Exp_Working_memory.html" },
+            { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
+            { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity", link: "./Exp_GoNoGo.html" },
+            { id: 16, title: { ja: "Black and White 8×8", en: "Black and White 8×8", se: "Black and White 8×8" }, category: "cat_Social", duration: "10-20 min", difficulty: "diff_Medium", description: { ja: "このアプリは、8×8の盤に黒と白の石を交互に置き、相手の石を挟んで裏返すロジックパズルです。一般的に「リバーシ」や「オセロ」として知られるルールと同じですが、公式とは関係ありません。", en: "Real-time strategy task using Firebase. Examines interpersonal interaction and strategic thinking processes.", se: "Realtidsstrategiuppgift med Firebase. Undersöker mellanmänsklig interaktion." }, icon: "users", link: "./Exp_BW88.html" },
+            { id: 17, title: { ja: "仮現運動", en: "Apparent Motion", se: "Skenbar rörelse" }, category: "cat_Perception", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "空間的に離れた2つの光点を適切な時間間隔で点滅させると、光点が移動しているように見える現象（β運動など）を体験します。", en: "Experience apparent motion (e.g., beta movement), where static lights flashed in sequence appear to move.", se: "Upplev skenbar rörelse (t.ex. beta-rörelse), där statiska ljus som blinkar i sekvens verkar röra sig." }, icon: "zap", link: "./Exp_Apparent_motion.html" }
+        ];
 
-const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
+        const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
 
         // --- 4. Components ---
         const LanguageSwitcher = ({ currentLang, setLang }) => (
@@ -464,149 +436,115 @@ const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Per
             </div>
         );
 
-function ExperimentLibrary() {
-const [activeCategory, setActiveCategory] = useState("All");
-const [searchQuery, setSearchQuery] = useState("");
-const [lang, setLang] = useState("en");
-const [modalOpen, setModalOpen] = useState(false);
-const [modalMessage, setModalMessage] = useState("");
-const [manualOpen, setManualOpen] = useState(false);
-            const [isLoaded, setIsLoaded] = useState(false);
+        function ExperimentLibrary() {
+            const [activeCategory, setActiveCategory] = useState("All");
+            const [searchQuery, setSearchQuery] = useState("");
+            const [lang, setLang] = useState("en");
+            const [modalOpen, setModalOpen] = useState(false);
+            const [modalMessage, setModalMessage] = useState("");
+            const [manualOpen, setManualOpen] = useState(false);
 
-useEffect(() => {
-const browserLang = navigator.language || navigator.userLanguage;
-                if (browserLang.startsWith('ja')) setLang('ja');
-                else if (browserLang.startsWith('sv')) setLang('se');
-                else setLang('en');
-
-                // データの読み込み待ちチェック
-                const checkData = setInterval(() => {
-                    if (window.translations) {
-                        setIsLoaded(true);
-                        clearInterval(checkData);
-                    }
-                }, 100);
-                
-                // 3秒でタイムアウト（万が一データが来なくても強制表示）
-                setTimeout(() => {
-                    clearInterval(checkData);
-                    setIsLoaded(true);
-                }, 3000);
-
-                return () => clearInterval(checkData);
+            useEffect(() => {
+                const browserLang = navigator.language || navigator.userLanguage;
                 if (browserLang.startsWith('ja')) setLang('ja'); else if (browserLang.startsWith('sv')) setLang('se'); else setLang('en');
-}, []);
+            }, []);
 
-useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
+            useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
 
-            // 安全なデータ取得
-            const t = (window.translations && window.translations[lang]) ? window.translations[lang] : {};
-            
-            // ローディング中のフォールバック表示
-            if (!isLoaded || !t.lab_name) {
-                return (
-                    <div style={{height: "100vh", display: "flex", justifyContent: "center", alignItems: "center", background: "#fcfcfc"}}>
-                        <div style={{textAlign: "center", color: "#64748b"}}>
-                            <p style={{fontFamily: "serif", fontSize: "1.2rem", marginBottom: "1rem"}}>Nishiura Lab. Web Experiments</p>
-                            <p style={{fontSize: "0.9rem"}}>Loading...</p>
-                        </div>
-                    </div>
-                );
-            }
-
-            const handleAlert = (msg) => {
-                setModalMessage(msg);
-                setModalOpen(true);
-            };
             // Data is embedded, so always available
             const t = translations[lang];
 
-const filteredExperiments = useMemo(() => {
-return experimentsData.filter(exp => {
-const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
-                    // 安全策: titleやdescriptionが存在するか確認
-                    const titleText = (exp.title[lang] || "").toLowerCase();
-                    const descText = (exp.description[lang] || "").toLowerCase();
-                    const titleMatch = titleText.includes(searchQuery.toLowerCase());
-                    const descriptionMatch = descText.includes(searchQuery.toLowerCase());
+            const filteredExperiments = useMemo(() => {
+                return experimentsData.filter(exp => {
+                    const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
                     const titleMatch = exp.title[lang].toLowerCase().includes(searchQuery.toLowerCase());
                     const descriptionMatch = exp.description[lang].toLowerCase().includes(searchQuery.toLowerCase());
-return matchesCategory && (titleMatch || descriptionMatch);
-});
-}, [activeCategory, searchQuery, lang]);
+                    return matchesCategory && (titleMatch || descriptionMatch);
+                });
+            }, [activeCategory, searchQuery, lang]);
 
-            // Components (defined inside to use t)
-            const LanguageSwitcher = () => (
-                <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                    <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${lang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
-                    <span className="text-slate-300">|</span>
-                    <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${lang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
-                    <span className="text-slate-300">|</span>
-                    <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${lang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
-                </div>
-            );
-
-return (
-<div className="min-h-screen pb-24 font-sans animate-fade-in">
-                    <Modal 
-                        isOpen={modalOpen} 
-                        onClose={() => setModalOpen(false)} 
-                        message={modalMessage} 
-                        title={t.modal_notice || "Notice"} 
-                        btnText={t.modal_close || "Close"} 
-                    />
-
-                    <DataManualModal 
-                        isOpen={manualOpen}
-                        onClose={() => setManualOpen(false)}
-                    />
+            return (
+                <div className="min-h-screen pb-24 font-sans animate-fade-in">
                     <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} message={modalMessage} title={t.modal_notice || "Notice"} btnText={t.modal_close || "Close"} />
                     <DataManualModal isOpen={manualOpen} onClose={() => setManualOpen(false)} />
 
-<header className="glass sticky top-0 z-50 transition-all duration-300">
-<div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-@@ -304,7 +482,7 @@
-<a href="#library" className="hover:text-indigo-600 transition-colors">Library</a>
-<a href="index.html#contact" className="hover:text-indigo-600 transition-colors">{t.nav_contact}</a>
-</nav>
-                                <LanguageSwitcher />
+                    <header className="glass sticky top-0 z-50 transition-all duration-300">
+                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+                            <a href="index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
+                                <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white"><Icon path={icons.arrowLeft} size={14} /></div>
+                                <span className="text-xs font-bold tracking-widest uppercase font-serif">{t.lab_name}</span>
+                            </a>
+                            <div className="flex items-center gap-6">
+                                <nav className="hidden md:flex gap-6 text-xs uppercase tracking-widest font-medium text-slate-500">
+                                    <a href="index.html" className="hover:text-indigo-600 transition-colors">{t.nav_home}</a>
+                                    <a href="#concept" className="hover:text-indigo-600 transition-colors">Concept</a>
+                                    <a href="./Exp_About.html" className="hover:text-indigo-600 transition-colors">{t.nav_dev}</a>
+                                    <a href="#library" className="hover:text-indigo-600 transition-colors">Library</a>
+                                    <a href="index.html#contact" className="hover:text-indigo-600 transition-colors">{t.nav_contact}</a>
+                                </nav>
                                 <LanguageSwitcher currentLang={lang} setLang={setLang} />
-</div>
-</div>
-</header>
-@@ -350,32 +528,17 @@ <h2 className="text-4xl font-serif text-slate-900 mb-4">{t.libraryTitle}</h2>
-<TechCheck t={t} onOpenManual={() => setManualOpen(true)} />
+                            </div>
+                        </div>
+                    </header>
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {filteredExperiments.map((exp, index) => (
-                                    <ExperimentCard 
-                                        key={exp.id} 
-                                        data={exp} 
-                                        index={index} 
-                                        lang={lang} 
-                                        t={t} 
-                                        onAlert={handleAlert}
-                                    />
-                                ))}
-                                {filteredExperiments.map((exp, index) => <ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} onAlert={() => setModalMessage(t.alertMsg) || setModalOpen(true)} />)}
-</div>
-{filteredExperiments.length === 0 && (
-                                <div className="text-center py-32 animate-fade-in">
-                                    <div className="inline-block p-4 rounded-full bg-white text-slate-300 mb-4 shadow-sm"><Icon path={icons.search} size={32} /></div>
-                                    <p className="text-slate-500 font-medium">No experiments found.</p>
-                                    <button onClick={() => {setActiveCategory("All"); setSearchQuery("");}} className="mt-4 text-indigo-600 text-sm hover:text-indigo-800 font-bold underline underline-offset-4">View all experiments</button>
+                    <header className="relative min-h-[50vh] pt-40 pb-20 bg-white overflow-hidden flex items-center">
+                        <div className="dot-grid"></div>
+                        <div className="container max-w-7xl mx-auto px-6 relative z-10">
+                            <div className="animate-fade-up">
+                                <span className="block font-sans text-indigo-600 text-sm tracking-[0.2em] uppercase font-bold mb-4">{t.page_subtitle}</span>
+                                <h1 className="text-5xl md:text-7xl font-serif text-slate-900 leading-[1.1] mb-6 tracking-tight" dangerouslySetInnerHTML={{__html: t.page_title}}></h1>
+                                <p className="max-w-2xl text-slate-500 text-lg font-light leading-relaxed">{t.page_desc}</p>
+                            </div>
+                        </div>
+                    </header>
+
+                    <section id="concept" className="py-24 bg-white">
+                        <div className="container max-w-7xl mx-auto px-6">
+                            <div className="max-w-3xl animate-fade-up">
+                                <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-3">{t.concept_kicker}</span>
+                                <h3 className="text-3xl font-serif text-slate-800 mb-6">{t.concept_head}</h3>
+                                <p className="text-slate-500 leading-loose whitespace-pre-wrap font-light">{t.concept_body}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <FeaturedResearch t={t} />
+                    <ResearchAchievements t={t} />
+
+                    <div id="library" className="bg-slate-50 pt-24 pb-12">
+                        <div className="container max-w-7xl mx-auto px-6">
+                            <div className="text-center mb-16 animate-fade-up">
+                                <h2 className="text-4xl font-serif text-slate-900 mb-4">{t.libraryTitle}</h2>
+                                <div className="relative max-w-md mx-auto mt-8">
+                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400"><Icon path={icons.search} size={18} /></div>
+                                    <input type="text" placeholder={t.searchPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-0 rounded-full text-sm outline-none transition-all shadow-sm" />
                                 </div>
+                                <div className="flex flex-wrap justify-center gap-2 mt-8">
+                                    <FilterTab label={t.filterAll} active={activeCategory === "All"} onClick={() => setActiveCategory("All")} />
+                                    {categoriesList.map(catKey => (<FilterTab key={catKey} label={t[catKey]} active={activeCategory === catKey} onClick={() => setActiveCategory(catKey)} />))}
+                                </div>
+                            </div>
+
+                            <TechCheck t={t} onOpenManual={() => setManualOpen(true)} />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                {filteredExperiments.map((exp, index) => <ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} onAlert={() => setModalMessage(t.alertMsg) || setModalOpen(true)} />)}
+                            </div>
+                            {filteredExperiments.length === 0 && (
                                 <div className="text-center py-32 animate-fade-in"><div className="inline-block p-4 rounded-full bg-white text-slate-300 mb-4 shadow-sm"><Icon path={icons.search} size={32} /></div><p className="text-slate-500 font-medium">No experiments found.</p><button onClick={() => {setActiveCategory("All"); setSearchQuery("");}} className="mt-4 text-indigo-600 text-sm hover:text-indigo-800 font-bold underline underline-offset-4">View all experiments</button></div>
-)}
-</div>
-</div>
+                            )}
+                        </div>
+                    </div>
 
-<TermsSection t={t} />
+                    <TermsSection t={t} />
 
-                    <footer className="bg-slate-900 text-slate-400 py-12 text-center text-xs uppercase tracking-widest">
-                        <p>&copy; {new Date().getFullYear()} {t.footerRights}</p>
-                    </footer>
                     <footer className="bg-slate-900 text-slate-400 py-12 text-center text-xs uppercase tracking-widest"><p>&copy; {new Date().getFullYear()} {t.footerRights}</p></footer>
-</div>
-);
-}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ExperimentLibrary />);
+    </script>
+</body>
+</html>
