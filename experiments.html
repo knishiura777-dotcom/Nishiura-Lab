@@ -1,550 +1,371 @@
 <!DOCTYPE html>
-<html lang="ja" class="scroll-smooth">
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Web心理学実験プラットフォーム（インストール不要・無料ブラウザ版）｜西浦研究室</title>
-    
-    <meta name="description" content="宮城学院女子大学 西浦研究室が無料公開する「Web心理学実験ライブラリ」。ストループ課題、メンタルローテーション、N-back課題など10種類以上の実験が、インストール不要・ブラウザだけですぐに実施可能です。オンライン授業やレポート課題のデータ収集に最適です。">
-    <meta name="keywords" content="心理学実験,Web実験,オンライン実験,ストループ課題,メンタルローテーション,教育工学,西浦研究室,宮城学院女子大学,ブラウザ実験">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <title>西浦研究室｜Web心理学実験・ウェルビーイング・CWWH｜宮城学院女子大学</title>
+  
+  <meta name="description" content="宮城学院女子大学 西浦研究室の公式サイト。ブラウザですぐに使える『Web心理学実験プラットフォーム』を無料公開中。教育工学(EdTech)とウェルビーイング、CWWH、アウトドア教育を融合した新しい学びの場を提供しています。">
+  
+  <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/index.html">
 
-    <link rel="canonical" href="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html">
+  <meta property="og:title" content="西浦研究室｜Web心理学実験・ウェルビーイング・CWWH" />
+  <meta property="og:type" content="website" />
+  <meta property="og:description" content="宮城学院女子大学 西浦研究室。インストール不要のWeb心理学実験プラットフォームや、北欧の知見を取り入れたウェルビーイング研究について。" />
+  <meta property="og:url" content="https://knishiura777-dotcom.github.io/Nishiura-Lab/index.html" /> 
+  <meta property="og:image" content="./profile.jpg" />
+  <meta property="og:site_name" content="Nishiura Lab." />
+  <meta name="twitter:card" content="summary_large_image" />
 
-    <meta property="og:title" content="Web心理学実験プラットフォーム（インストール不要）｜西浦研究室" />
-    <meta property="og:type" content="website" />
-    <meta property="og:description" content="ストループ課題、メンタルローテーション、AIカウンセリングなど、ブラウザですぐに試せる10種類以上の心理学実験を無料公開中。" />
-    <meta property="og:url" content="https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html" />
-    <meta property="og:image" content="./experiments-ogp.jpg" />
-    <meta property="og:site_name" content="Nishiura Lab." />
-    <meta name="twitter:card" content="summary_large_image" />
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Inter"', '"Noto Sans JP"', 'sans-serif'],
-                        serif: ['"Cinzel"', '"Noto Serif JP"', 'serif'],
-                        body: ['"Noto Sans JP"', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f4f8', 100: '#d9e2ec', 500: '#4f46e5', 900: '#102a43',
-                        }
-                    },
-                    boxShadow: {
-                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
-                        'hover': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.01)',
-                    }
-                }
-            }
-        }
-    </script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&display=swap" rel="stylesheet">
-    
-    <style>
-        body { background-color: #fcfcfc; color: #334155; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-up { opacity: 0; animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
-        .dot-grid { position: absolute; inset: 0; opacity: 0.40; pointer-events: none; background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px); background-size: 32px 32px; }
-        @media print { body * { visibility: hidden; } #manual-modal-content, #manual-modal-content * { visibility: visible; } #manual-modal-content { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; } .no-print { display: none !important; } }
-    </style>
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "宮城学院女子大学 西浦研究室",
+    "alternateName": "Nishiura Laboratory",
+    "url": "https://knishiura777-dotcom.github.io/Nishiura-Lab/index.html", 
+    "parentOrganization": {
+      "@type": "CollegeOrUniversity",
+      "name": "宮城学院女子大学",
+      "url": "https://www.mgu.ac.jp/"
+    },
+    "employee": {
+      "@type": "Person",
+      "name": "西浦 和樹",
+      "jobTitle": "教授",
+      "description": "専門は教育心理学、健康心理学、教育工学。Webベースの心理学実験プラットフォームの開発やCWWH、アウトドア教育の研究を行う。"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@300;400;600&family=Cinzel:wght@400;600&family=Inter:wght@200;400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
-    <div id="root"></div>
+  <header class="nav" id="siteNav">
+    <div class="nav-inner">
+      <a class="brand" href="#home" aria-label="Nishiura Lab Home">
+        <div class="brand-mark">N</div>
+        <div class="brand-title">
+          <strong data-i18n="lab_name_short">Nishiura Lab.</strong>
+          <span data-i18n="univ_name_short">Miyagi Gakuin Women's Univ.</span>
+        </div>
+      </a>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+      <div class="nav-actions">
+        <nav class="nav-links" aria-label="Primary navigation">
+          <a href="#home" data-link="home" data-i18n="nav_home">home</a>
+          <a href="#about" data-link="about" data-i18n="nav_about">about</a>
+          <a href="#research" data-link="research" data-i18n="nav_research">research</a>
+          <a href="#publications" data-link="publications" data-i18n="nav_publications">publications</a>
+          <a href="#contact" data-link="contact" data-i18n="nav_contact">contact</a>
+        </nav>
 
-        // --- 1. Icons ---
-        const Icon = ({ path, size = 20, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-                {path}
-            </svg>
-        );
-        const icons = {
-            arrowLeft: <><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></>,
-            search: <><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>,
-            play: <><polygon points="5 3 19 12 5 21 5 3"/></>,
-            clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
-            activity: <><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></>,
-            brain: <><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></>,
-            eye: <><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
-            database: <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>,
-            users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>,
-            smile: <><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></>,
-            map: <><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></>,
-            check: <><polyline points="20 6 9 17 4 12"/></>,
-            globe: <><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></>,
-            alert: <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
-            monitor: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></>,
-            zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
-            grid: <><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></>,
-            card: <><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="2" y1="10" x2="22" y2="10" /></>,
-            camera: <><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></>,
-            layers: <><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></>,
-            heartHandshake: <><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08v0c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.92 0l.29.29"></path></>,
-            shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></>,
-            copy: <><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></>,
-            print: <><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></>
-        };
+        <div class="lang-switch">
+          <span class="lang-btn" onclick="setLanguage('en')">EN</span>
+          <span class="lang-btn active" onclick="setLanguage('ja')">JP</span>
+          <span class="lang-btn" onclick="setLanguage('se')">SE</span>
+        </div>
+      </div>
 
-        // --- 2. Translation Data (Embedded) ---
-        const translations = {
-            ja: {
-                lab_name: "Nishiura Lab.",
-                nav_home: "Home",
-                nav_about: "About",
-                nav_dev: "DEVELOPMENT STORY",
-                nav_research: "Research",
-                nav_publications: "Publications",
-                nav_contact: "Contact",
-                page_subtitle: "Research Field 01",
-                page_title: "Web心理学実験<br>プラットフォーム",
-                page_desc: "e-learning、LMS、ICTを活用した学習環境の構築と、心理学実験による実証的アプローチ。テクノロジーが学習者の創造性や自律性をどう支援するかを探求し、基礎実験からフィールド応用までを一貫して行います。",
-                concept_kicker: "Methodology",
-                concept_head: "実験室のコードを、社会実装の礎へ。",
-                concept_body: "私たちは、ブラウザ上で即座に動作する「Web心理学実験プラットフォーム」を構築・提供しています。\n\nここにあるのは、単なる教材ではありません。\n認知の干渉を暴く「ストループ」、脳内の空間操作を試す「メンタルローテーション」、記憶容量の限界に挑む「N-back」、そして「AIカウンセリング」による対話の深層——。\nこれら10を超える実験群は、人間の「注意」「記憶」「意思決定」というブラックボックスを解き明かすための鍵です。\n\n基礎実験（Lab）で得られた鋭利な知見を、教育やケアの現場（Field）へ。\nこの循環こそが、真に人間に最適化されたテクノロジーを生み出します。",
-                featured_title: "Advanced Research",
-                feat_1_title: "Attention & RSVP",
-                feat_1_desc: "「高速継時呈示（RSVP）」課題を用い、高ストレス状況下での注意資源の消費とモニタリング過程を解明。文字認知の誤りやメタ認知機能の限界を探る基礎研究です。",
-                feat_2_title: "Gamification for CPS",
-                feat_2_desc: "創造的問題解決（CPS）能力を育成するためのカードゲーム教材を開発。プレイ中の発話や行動ログから、学習者の心理的ストレス低減とルール習得効果を検証します。",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "保育・教育現場における子どもの行動センシング（表情・視線・姿勢）と脳波測定を組み合わせ、ウェルビーイングや集中度を客観的に評価するシステムの構築に挑んでいます。",
-                achievements_kicker: "Selected Publications",
-                achievements_title: "Key Research Achievements",
-                achieve_1_title: "ヒト型ロボットを用いたデジタル・ストーリーテリングが子どもの感情的・認知的発達に及す効果",
-                achieve_1_desc: "(The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot)",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | 共著・国際会議発表",
-                achieve_2_title: "タッチケア介入に及ぼす脳波トポグラフィへの影響に関する予備的研究",
-                achieve_2_meta: "日本創造学会 第43回研究大会 (2021) | 単著",
-                achieve_3_title: "高速度継時呈示事態における注意資源の消費とモニタリングに関する研究",
-                achieve_3_meta: "心理学研究 第69巻 (1998) | 単著",
-                achieve_4_title: "カードゲームを用いたブレインストーミング法による心理的ストレス低減効果の検討",
-                achieve_4_meta: "山形大学紀要 Vol.17 (2011) | 共著",
-                achieve_view_all: "全業績リストへ戻る",
-                libraryTitle: "Experiment Library",
-                searchPlaceholder: "実験を検索...",
-                filterAll: "すべて",
-                startBtn: "Start",
-                alertMsg: "現在準備中です。公開をお待ちください。",
-                footerRights: "Nishiura Laboratory. All rights reserved.",
-                cat_Cognition: "認知", cat_Memory: "記憶", cat_Attention: "注意", cat_Perception: "知覚",
-                cat_Spatial: "空間", cat_Inhibition: "抑制", cat_Social: "社会", cat_ProblemSolving: "問題解決",
-                diff_Easy: "初級", diff_Medium: "中級", diff_Hard: "上級",
-                precautionTitle: "実験をする前の注意事項",
-                precautionSubtitle: "データの信頼性を高めるための技術的チェック",
-                prec_screen_title: "高精細の画面提示を実現するには",
-                prec_screen_desc: "正確な実験のためには、画面の書き換え速度（リフレッシュレート）が安定していることが重要です。",
-                prec_screen_link: "フレームレート計測ツール",
-                prec_input_title: "反応時間を正確に測定するには",
-                prec_input_desc: "キーボード入力の遅延はデータに誤差を生じさせます。ご自身の環境の応答速度をチェックしましょう。",
-                prec_input_link: "キー入力応答計測ツール",
-                prec_data_title: "データの保存とセキュリティ",
-                prec_data_desc: "Web実験ではデータの保存方法（CSV/GAS/Firebase）によってセキュリティリスクが異なります。安全な管理方法について確認してください。",
-                prec_data_link: "保存・管理マニュアルを開く",
-                modal_notice: "お知らせ",
-                modal_close: "閉じる",
-                terms_title: "ご利用上の注意・免責事項",
-                terms_subtitle: "Terms of Use & Disclaimer",
-                term_1_head: "目的と免責",
-                term_1_body: "本ウェブサイトで公開している実験プログラムは、教育および研究目的で提供されています。これらは医学的な診断（ADHD、認知症等の診断）を行うものではありません。得られた結果について、当研究室は一切の責任を負いかねます。",
-                term_2_head: "利用規約 (License)",
-                term_2_body: "教育機関（学校、大学等）での授業利用、および個人の学習利用は自由です（連絡不要）。ただし、営利目的での利用、無断転載、プログラムの改変・再配布は固くお断りします。研究目的でデータを使用したい場合は、必ず事前にご連絡ください。",
-                term_3_head: "推奨環境",
-                term_3_body: "Google Chrome, Firefox, Safari, Edge の最新版での動作を推奨します。正確な時間測定のため、物理キーボードの使用を推奨します。"
-            },
-            en: {
-                lab_name: "Nishiura Lab.",
-                nav_home: "Home",
-                nav_about: "About",
-                nav_dev: "Dev Story",
-                nav_research: "Research",
-                nav_publications: "Publications",
-                nav_contact: "Contact",
-                page_subtitle: "Research Field 01",
-                page_title: "Web Psychology<br>Experiments",
-                page_desc: "Building learning environments using e-learning, LMS, and ICT, combined with an empirical approach via psychological experiments. We explore how technology supports learner creativity and autonomy, bridging basic experiments to field applications.",
-                concept_kicker: "Methodology",
-                concept_head: "From Lab Code to Social Implementation.",
-                concept_body: "We provide a 'Web-based Psychology Experiment Platform' that runs instantly in your browser.\n\nThese are keys to unlocking the black box of human cognition: exposing interference in 'Stroop', testing spatial manipulation in 'Mental Rotation', challenging memory limits in 'N-back', and exploring dialogue depth in 'AI Counseling'.\n\nThe sharp insights gained from these 10+ experiments (Lab) form the foundation for systems in education and care (Field).\nThis cycle creates technology truly optimized for humans.",
-                featured_title: "Advanced Research",
-                feat_1_title: "Attention & RSVP",
-                feat_1_desc: "Elucidating attentional resource consumption and monitoring processes under high-stress conditions using 'Rapid Serial Visual Presentation (RSVP)' tasks. Basic research exploring the limits of metacognitive functions.",
-                feat_2_title: "Gamification for CPS",
-                feat_2_desc: "Developing card game materials to foster Creative Problem Solving (CPS) skills. We verify psychological stress reduction and rule acquisition effects from gameplay logs and interactions.",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "Challenging the construction of systems that objectively evaluate well-being and concentration by combining child behavior sensing (expressions, gaze, posture) and EEG measurements in educational settings.",
-                achievements_kicker: "Selected Publications",
-                achievements_title: "Key Research Achievements",
-                achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
-                achieve_1_desc: "",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Co-author / Intl. Conf.",
-                achieve_2_title: "Preliminary Study on the Effect of Tactile Care Intervention on EEG Topography",
-                achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Single Author",
-                achieve_3_title: "A Study on Attentional Resource-Consuming and Monitoring Processes under Rapid Serial Visual Presentation",
-                achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Single Author",
-                achieve_4_title: "Examination of Psychological Stress Reduction Effect by Brainstorming Method Using Card Games",
-                achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Co-author",
-                achieve_view_all: "Back to All Publications",
-                libraryTitle: "Experiment Library",
-                searchPlaceholder: "Search experiments...",
-                filterAll: "All",
-                startBtn: "Start",
-                alertMsg: "Currently under preparation.",
-                footerRights: "Nishiura Laboratory. All rights reserved.",
-                cat_Cognition: "Cognition", cat_Memory: "Memory", cat_Attention: "Attention", cat_Perception: "Perception",
-                cat_Spatial: "Spatial", cat_Inhibition: "Inhibition", cat_Social: "Social", cat_ProblemSolving: "Problem Solving",
-                diff_Easy: "Easy", diff_Medium: "Medium", diff_Hard: "Hard",
-                precautionTitle: "Precautions before Experiment",
-                precautionSubtitle: "Technical checks to improve data reliability",
-                prec_screen_title: "Achieving High-Definition Presentation",
-                prec_screen_desc: "Consistent refresh rates are crucial for accurate visual experiments. Use this tool to diagnose your display.",
-                prec_screen_link: "Frame Timing Diagnostics",
-                prec_input_title: "Measuring Reaction Time Accurately",
-                prec_input_desc: "Input lag introduces noise into data. Check your environment's response speed here.",
-                prec_input_link: "Key Response Benchmark",
-                prec_data_title: "Data Storage & Security",
-                prec_data_desc: "Understand the risks and best practices for storing experiment data (CSV/GAS/Firebase).",
-                prec_data_link: "Open Data Manual",
-                modal_notice: "Notice",
-                modal_close: "Close",
-                terms_title: "Terms of Use & Disclaimer",
-                terms_subtitle: "Important legal and usage information",
-                term_1_head: "Disclaimer",
-                term_1_body: "These programs are provided for educational and research purposes only. They are NOT intended for medical diagnosis. The laboratory assumes no responsibility for any results obtained.",
-                term_2_head: "Terms of Use (License)",
-                term_2_body: "Free for use in educational settings (schools, universities) and personal learning. Commercial use, unauthorized reproduction, modification, or redistribution is strictly prohibited. Please contact us for research use.",
-                term_3_head: "System Requirements",
-                term_3_body: "Latest versions of Chrome, Firefox, Safari, or Edge are recommended. A physical keyboard is recommended for accurate timing."
-            },
-            se: {
-                lab_name: "Nishiura Lab.",
-                nav_home: "Hem",
-                nav_news: "Nyheter",
-                nav_about: "Om oss",
-                nav_dev: "Utveckling",
-                nav_research: "Forskning",
-                nav_publications: "Publikationer",
-                nav_contact: "Kontakt",
-                page_subtitle: "Forskningsområde 01",
-                page_title: "Webbpsykologiska<br>Experiment",
-                page_desc: "Vi bygger lärmiljöer med e-learning och IKT, kombinerat med en empirisk ansats via psykologiska experiment. Vi utforskar hur teknik stödjer inlärarens kreativitet och autonomi, från grundläggande experiment till fältapplikationer.",
-                concept_kicker: "Metodik",
-                concept_head: "Från labb insikter till social implementering.",
-                concept_body: "Vår forskning börjar med grundläggande psykologiska experiment (Lab) i webbläsare. Insikterna om 'uppmärksamhet', 'minne' och 'motivation' lägger grunden för systemutveckling inom utbildning och omsorg (Fält).\n\nCykeln av grundläggande och tillämpad forskning skapar effektiv utbildningsteknologi.",
-                featured_title: "Avancerad Forskning",
-                feat_1_title: "Uppmärksamhet & RSVP",
-                feat_1_desc: "Vi klargör förbrukning av uppmärksamhetsresurser under hög stress med hjälp av 'Rapid Serial Visual Presentation (RSVP)'. Grundforskning om metakognitiva gränser.",
-                feat_2_title: "Spelifiering för CPS",
-                feat_2_desc: "Utveckling av kortspel för att främja kreativ problemlösning (CPS). Vi verifierar stressreducering och regelinlärning genom analys av speldata.",
-                feat_3_title: "AI & Bio-Sensing",
-                feat_3_desc: "Vi utvecklar system för att objektivt utvärdera välbefinnande och koncentration genom att kombinera beteendeavkänning (AI) och EEG-mätningar i utbildningsmiljöer.",
-                achievements_kicker: "Valda Publikationer",
-                achievements_title: "Viktiga Forskningsresultat",
-                achieve_1_title: "The Effect of Digital Storytelling on Children's Emotional and Cognitive Development with a Humanoid Robot",
-                achieve_1_desc: "",
-                achieve_1_meta: "OMEP (World Assembly and Conference) 2025, Bologna | Medförfattare",
-                achieve_2_title: "Preliminär studie om effekten av taktil vårdintervention på EEG-topografi",
-                achieve_2_meta: "Japan Creativity Society 43rd Conference (2021) | Enskild författare",
-                achieve_3_title: "Studie om uppmärksamhetsresurser under snabb seriell visuell presentation",
-                achieve_3_meta: "The Japanese Journal of Psychology Vol.69 (1998) | Enskild författare",
-                achieve_4_title: "Undersökning av stressreducerande effekter av brainstorming med kortspel",
-                achieve_4_meta: "Bulletin of Yamagata University Vol.17 (2011) | Medförfattare",
-                achieve_view_all: "Tillbaka till alla publikationer",
-                libraryTitle: "Experimentbibliotek",
-                searchPlaceholder: "Sök experiment...",
-                filterAll: "Alla",
-                startBtn: "Starta",
-                alertMsg: "Under förberedelse.",
-                footerRights: "Nishiura Laboratory. Med ensamrätt.",
-                cat_Cognition: "Kognition", cat_Memory: "Minne", cat_Attention: "Uppmärksamhet", cat_Perception: "Perception",
-                cat_Spatial: "Spatial", cat_Inhibition: "Inhibition", cat_Social: "Social", cat_ProblemSolving: "Problemlösning",
-                diff_Easy: "Lätt", diff_Medium: "Medium", diff_Hard: "Svår",
-                precautionTitle: "Försiktighetsåtgärder",
-                precautionSubtitle: "Tekniska kontroller för datatillförlitlighet",
-                prec_screen_title: "Högupplöst presentation",
-                prec_screen_desc: "Konsekventa uppdateringsfrekvenser är avgörande för noggrannhet. Kontrollera din skärm.",
-                prec_screen_link: "Diagnostik av Bildtider",
-                prec_input_title: "Mäta reaktionstid",
-                prec_input_desc: "Inputfördröjning påverkar data. Kontrollera din miljös svarshastighet.",
-                prec_input_link: "Key Response Benchmark",
-                prec_data_title: "Datalagring och säkerhet",
-                prec_data_desc: "Förstå risker och praxis för datalagring.",
-                prec_data_link: "Öppna datamanual",
-                modal_notice: "Meddelande",
-                modal_close: "Stäng",
-                terms_title: "Användarvillkor & Ansvarsfriskrivning",
-                terms_subtitle: "Viktig information om användning",
-                term_1_head: "Ansvarsfriskrivning",
-                term_1_body: "Dessa program tillhandahålls endast för utbildnings- och forskningsändamål. De är INTE avsedda för medicinsk diagnos. Laboratoriet tar inget ansvar för erhållna resultat.",
-                term_2_head: "Användarvillkor",
-                term_2_body: "Gratis för användning i utbildningsmiljöer och personligt lärande. Kommersiell användning, otillåten reproduktion eller modifiering är strängt förbjuden.",
-                term_3_head: "Systemkrav",
-                term_3_body: "Senaste versionerna av Chrome, Firefox, Safari eller Edge rekommenderas. Fysiskt tangentbord rekommenderas för exakt tidtagning."
-            }
-        };
+      <div class="mobile-hint">scroll / tap sections</div>
+    </div>
+  </header>
 
-        // --- 3. Data (Experiment List) ---
-        const experimentsData = [
-            { id: 1, title: { ja: "ストループ課題", en: "Stroop Task", se: "Stroop-uppgift" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "色と文字の意味が矛盾する場合に反応時間が遅れる「ストループ効果」を測定します。", en: "Measures the 'Stroop effect,' where reaction time is delayed when color and text contradict.", se: "Mäter 'Stroop-effekten' där reaktionstiden fördröjs vid motsägelsefulla stimuli." }, icon: "brain", link: "./Exp_Stroop.html" },
-            { id: 2, title: { ja: "メンタルローテーション", en: "Mental Rotation", se: "Mental Rotation" }, category: "cat_Spatial", duration: "5-10 min", difficulty: "diff_Medium", description: { ja: "提示された物体が回転によって同一のものか識別する課題。空間的表象操作能力を測定します。", en: "Identify if objects are the same by rotation. Measures spatial representation manipulation.", se: "Identifiera om objekt är desamma genom rotation. Mäter spatial förmåga." }, icon: "activity", link: "./Exp_Mental_rotation.html" },
-            { id: 7, title: { ja: "ミュラー・リヤー錯視", en: "Müller-Lyer Illusion", se: "Müller-Lyer-illusion" }, category: "cat_Perception", duration: "2-3 min", difficulty: "diff_Easy", description: { ja: "矢羽の向きによって線の長さが異なって見える錯視量を調整法を用いて定量的に測定します。", en: "Quantitatively measures illusion magnitude using the adjustment method.", se: "Mäter kvantitativt illusionsstorlek med justeringsmetoden." }, icon: "eye", link: "./Exp_Muller-Lyer_illusion.html" },
-            { id: 4, title: { ja: "短期記憶 (Digit Span)", en: "Short-term Memory", se: "Korttidsminne" }, category: "cat_Memory", duration: "2-4 min", difficulty: "diff_Easy", description: { ja: "数字や文字の系列を再生し、マジカルナンバー（7±2）などの短期記憶容量を測定します。", en: "Reproduces sequences to measure short-term memory capacity (Magical Number 7±2).", se: "Återger sekvenser för att mäta korttidsminneskapacitet." }, icon: "database", link: "./Exp_Short_term_memory.html" },
-            { id: 9, title: { ja: "チェンジ・ブラインドネス", en: "Change Blindness", se: "Förändringsblindhet" }, category: "cat_Perception", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "画像の大きな変化であっても、瞬きや画面切り替えの間に起こると気づかない現象を体験します。", en: "Experience phenomena where large changes go unnoticed during blinks.", se: "Upplev fenomen där stora förändringar går obemärkta förbi." }, icon: "eye", link: "./Exp_Change_blindness.html" },
-            { id: 10, title: { ja: "ポズナーの手がかり課題", en: "Posner Cueing", se: "Posner Cueing" }, category: "cat_Attention", duration: "4-7 min", difficulty: "diff_Medium", description: { ja: "手がかり刺激（Cue）が注意の移動に与える促進・抑制効果を測定する空間的注意の実験です。", en: "Measures facilitation/inhibition effects of cues on attentional shifts.", se: "Mäter effekter av ledtrådar på uppmärksamhetsförskjutningar." }, icon: "activity", link: "./Exp_Posner.html" },
-            { id: 11, title: { ja: "アッシュの同調実験", en: "Asch Conformity", se: "Asch Konformitet" }, category: "cat_Social", duration: "5-10 min", difficulty: "diff_Easy", description: { ja: "集団圧力によって個人の判断が歪められる同調現象を体験する実験です。", en: "Experience how group pressure distorts individual judgment.", se: "Upplev hur grupptryck snedvrider individuella bedömningar." }, icon: "users", link: "./Exp_Ash_conformity.html" },
-            { id: 12, title: { ja: "表情認知", en: "Face Recognition", se: "Ansiktsigenkänning" }, category: "cat_Cognition", duration: "3-5 min", difficulty: "diff_Medium", description: { ja: "表情認知における倒立効果や提示時間の影響を検討します。", en: "Examines inversion effects and presentation time in face recognition.", se: "Undersöker inversionseffekter vid ansiktsigenkänning." }, icon: "smile", link: "./Exp_Face_recognition.html" },
-            { id: 13, title: { ja: "ホビットとオーク", en: "Hobbits and Orcs", se: "Hobbitar och Orcher" }, category: "cat_ProblemSolving", duration: "5-15 min", difficulty: "diff_Hard", description: { ja: "川渡り問題を用いた問題解決プロセスの実験。手段目標分析などの思考過程を体験します。", en: "River crossing problem to experience means-ends analysis.", se: "Flodövergångsproblem för att uppleva medel-mål-analys." }, icon: "map", link: "./Exp_Hobit_and orc.html" },
-            { id: 14, title: { ja: "Number Place", en: "Number Place", se: "Number Place" }, category: "cat_ProblemSolving", duration: "5-20 min", difficulty: "diff_Medium", description: { ja: "9×9のマスに1～9の数字を配置するロジックパズルです。一般的に「数独」「ナンプレ」として知られるルールと同じですが、実験用に開発しました。株式会社ニコリとは関係ありません。", en: "Number puzzle requiring logical reasoning and working memory.", se: "Sifferpussel som kräver logiskt resonemang." }, icon: "grid", link: "./Exp_NumberPlace.html" },
-            { id: 15, title: { ja: "AI心理相談ロールプレイ", en: "AI Counseling Roleplay", se: "AI Rådgivning Rollspel" }, category: "cat_Social", duration: "15-30 min", difficulty: "diff_Hard", description: { ja: "生成AI（Gemini）を相手に、カウンセリングのロールプレイを行うシステムです。ロジャーズやユングなどのペルソナを持つAIカウンセラーに相談したり、逆にAIクライエントの相談に乗る練習が可能です。", en: "A system for roleplaying counseling with Generative AI (Gemini). Consult with AI counselors simulating Rogers or Jung, or practice counseling AI clients.", se: "Ett system för att rollspela rådgivning med Generativ AI (Gemini). Konsultera AI-rådgivare eller öva på att ge råd till AI-klienter." }, icon: "heartHandshake", link: "./AI_counceling_roleplay.html" },
-            { id: 6, title: { ja: "N-back課題", en: "N-back Task", se: "N-back-uppgift" }, category: "cat_Memory", duration: "5-8 min", difficulty: "diff_Hard", description: { ja: "N個前の刺激と同じ場合に反応する課題。ワーキングメモリの更新機能を測定する高負荷な実験です。", en: "Respond if stimulus matches N steps back. Measures working memory updating.", se: "Svara om stimulit matchar N steg tillbaka. Mäter arbetsminne." }, icon: "brain", link: "./Exp_Working_memory.html" },
-            { id: 3, title: { ja: "視覚探索", en: "Visual Search", se: "Visuell sökning" }, category: "cat_Attention", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "多数の妨害刺激の中からターゲット刺激を見つける課題。", en: "Find a target stimulus among many distractors. Experience the difference between feature search and conjunction search.", se: "Hitta ett målstimulus bland många distraktorer." }, icon: "eye" },
-            { id: 5, title: { ja: "Go/No-Go課題", en: "Go/No-Go Task", se: "Go/No-Go-uppgift" }, category: "cat_Inhibition", duration: "4-6 min", difficulty: "diff_Medium", description: { ja: "特定の刺激に対しては反応し、別の刺激には反応を抑制する課題。", en: "Respond to specific stimuli and inhibit others. Measures inhibitory control.", se: "Svara på specifika stimuli och hämma andra." }, icon: "activity", link: "./Exp_GoNoGo.html" },
-            { id: 16, title: { ja: "Black and White 8×8", en: "Black and White 8×8", se: "Black and White 8×8" }, category: "cat_Social", duration: "10-20 min", difficulty: "diff_Medium", description: { ja: "このアプリは、8×8の盤に黒と白の石を交互に置き、相手の石を挟んで裏返すロジックパズルです。一般的に「リバーシ」や「オセロ」として知られるルールと同じですが、公式とは関係ありません。", en: "Real-time strategy task using Firebase. Examines interpersonal interaction and strategic thinking processes.", se: "Realtidsstrategiuppgift med Firebase. Undersöker mellanmänsklig interaktion." }, icon: "users", link: "./Exp_BW88.html" },
-            { id: 17, title: { ja: "仮現運動", en: "Apparent Motion", se: "Skenbar rörelse" }, category: "cat_Perception", duration: "3-5 min", difficulty: "diff_Easy", description: { ja: "空間的に離れた2つの光点を適切な時間間隔で点滅させると、光点が移動しているように見える現象（β運動など）を体験します。", en: "Experience apparent motion (e.g., beta movement), where static lights flashed in sequence appear to move.", se: "Upplev skenbar rörelse (t.ex. beta-rörelse), där statiska ljus som blinkar i sekvens verkar röra sig." }, icon: "zap", link: "./Exp_Apparent_motion.html" }
-        ];
+  <main>
+    <section id="home" class="hero">
+      <div class="dot-grid"></div>
+      <div class="ring" aria-hidden="true"></div>
 
-        const categoriesList = ["cat_Cognition", "cat_Memory", "cat_Attention", "cat_Perception", "cat_Spatial", "cat_Inhibition", "cat_Social", "cat_ProblemSolving"];
+      <div class="container">
+        <div class="hero-top fade-up">
+          <div>Est. 1886</div>
+          <div class="right" data-i18n="location">Sendai, Japan</div>
+        </div>
 
-        // --- 4. Components ---
-        const LanguageSwitcher = ({ currentLang, setLang }) => (
-            <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                <button onClick={() => setLang('en')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'en' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>EN</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('ja')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'ja' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>JP</button>
-                <span className="text-slate-300">|</span>
-                <button onClick={() => setLang('se')} className={`hover:text-indigo-600 transition-colors ${currentLang === 'se' ? 'text-indigo-600 underline underline-offset-4' : 'text-slate-400'}`}>SE</button>
+        <div class="hero-type mt-36">
+          <div class="fade-up">
+            <h1 data-i18n="hero_h1_1">Learning</h1>
+          </div>
+
+          <div class="hero-row fade-up">
+            <h1 class="design" data-i18n="hero_h1_2">Design</h1>
+            <div class="rule"></div>
+            <div class="sub" data-i18n="hero_sub">&amp; Psychology</div>
+          </div>
+        </div>
+
+        <div class="hero-bottom mt-36">
+          <div class="hero-desc fade-up">
+            <p class="mt-12">
+              <strong data-i18n="hero_desc_strong">Kazuki Nishiura Laboratory</strong> 
+              <span data-i18n="hero_desc_text">explores the intersection of Technology, Mind, and Creativity.</span>
+            </p>
+            <p class="jp" style="line-height: 1.6; margin-top: 0.8rem;" data-i18n="hero_desc_sub">
+              西浦研究室は、教育心理学とICTを融合し、<br>
+              学習・創造性・ウェルビーイングを科学的に探究する研究室です。
+            </p>
+          </div>
+
+          <a class="scroll-cta fade-up" href="#about" aria-label="Scroll to About section">
+            <span data-i18n="scroll_down">SCROLL DOWN</span>
+            <div class="circle-btn"><div class="arrow"></div></div>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section about">
+      <div class="container">
+        <div class="about-grid">
+          <div class="sticky">
+            <span class="kicker fade-up" data-i18n="about_kicker">About Professor</span>
+            <h2 class="about-title fade-up">Kazuki<br><em>Nishiura</em></h2>
+
+             <div class="portrait" aria-label="Professor photo">
+              <img src="./profile.jpg" 
+                   alt="Kazuki Nishiura" 
+                   width="300" height="400"
+                   style="width:100%; height:100%; object-fit:cover;"
+                   onerror="this.onerror=null; this.src='https://placehold.co/400x533?text=Profile+Image\n(Download+to+see+local+file)';">
             </div>
-        );
 
-        const Modal = ({ isOpen, onClose, message, title, btnText }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all scale-100 border border-slate-100" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="bg-indigo-50 text-indigo-600 p-2 rounded-full"><Icon path={icons.alert} size={20} /></div>
-                            <h3 className="text-lg font-serif font-bold text-slate-900">{title}</h3>
-                        </div>
-                        <p className="text-slate-600 mb-6 text-sm leading-relaxed">{message}</p>
-                        <button onClick={onClose} className="w-full py-2.5 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-lg transition-colors text-xs tracking-widest uppercase">{btnText}</button>
-                    </div>
-                </div>
-            );
-        };
+          </div>
 
-        const DataManualModal = ({ isOpen, onClose }) => {
-            if (!isOpen) return null;
-            const copyToClipboard = (elementId) => {
-                const codeText = document.getElementById(elementId).innerText;
-                navigator.clipboard.writeText(codeText).then(() => alert('コピーしました')).catch(err => console.error('Error', err));
-            };
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={onClose}>
-                    <div id="manual-modal-content" className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                        <div className="bg-slate-900 text-white p-6 flex justify-between flex-shrink-0">
-                            <div><div className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Guide</div><h1 className="text-2xl font-bold font-serif">データ管理マニュアル</h1></div>
-                            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg"><Icon path={icons.arrowLeft} size={20} className="rotate-180"/></button>
-                        </div>
-                        <div className="p-6 overflow-y-auto flex-1 bg-white"><p className="text-sm">データの保存方法（CSV/GAS/Firebase）についての詳細は、研究室の内部資料を参照してください。</p></div>
-                    </div>
-                </div>
-            );
-        };
-
-        const TermsSection = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.35s'}}>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8">
-                    <div className="mb-6 border-b border-slate-200 pb-4"><span className="block text-indigo-600 text-xs font-bold uppercase mb-1">{t.terms_subtitle}</span><h3 className="text-xl font-serif font-bold text-slate-900">{t.terms_title}</h3></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div><h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm"><Icon path={icons.alert} size={16} className="text-rose-500" />{t.term_1_head}</h4><p className="text-xs text-slate-500 leading-relaxed">{t.term_1_body}</p></div>
-                        <div><h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm"><Icon path={icons.check} size={16} className="text-indigo-500" />{t.term_2_head}</h4><p className="text-xs text-slate-500 leading-relaxed">{t.term_2_body}</p></div>
-                        <div><h4 className="flex items-center gap-2 font-bold text-slate-800 mb-3 text-sm"><Icon path={icons.monitor} size={16} className="text-emerald-500" />{t.term_3_head}</h4><p className="text-xs text-slate-500 leading-relaxed">{t.term_3_body}</p></div>
-                    </div>
-                </div>
+          <div class="about-right">
+            <div class="fade-up">
+              <h3 data-i18n="about_head">ウェルビーイングと教育心理学の架け橋</h3>
+              <p data-i18n="about_body">
+                宮城学院女子大学 教育学部 教育学科 教授。<br>
+                専門は教育心理学、健康心理学、教育工学。私たちは、単に知識を伝達するだけでなく、学習者一人ひとりの内発的な動機づけ（Motivation）と創造性（Creativity）をいかに引き出すかを問い続けています。<br><br>
+                ウェルビーイング、CWWH、アウトドア教育の研究に加え、誰でも体験できる『Web心理学実験プラットフォーム』と10の実験プログラムを公開中。教育心理学とICTを融合した新しい学びの場を提供しています。<br><br>
+                北欧スウェーデンのウェルビーイングと最新のICT技術を融合させ、心理学を基盤とした新しい学びの生態系をデザインすること。それが私たちのミッションです。
+              </p>
             </div>
-        );
 
-        const FeaturedResearch = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-16 animate-fade-up" style={{animationDelay: '0.2s'}}>
-                <div className="flex flex-col md:flex-row justify-between items-end mb-8"><h2 className="text-3xl font-serif font-semibold text-slate-900">{t.featured_title}</h2></div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:shadow-lg transition-all"><div className="text-indigo-500 mb-4"><Icon path={icons.layers} size={32} /></div><h3 className="font-serif text-lg font-bold text-slate-800 mb-3">{t.feat_1_title}</h3><p className="text-sm text-slate-500">{t.feat_1_desc}</p></div>
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:shadow-lg transition-all"><div className="text-indigo-500 mb-4"><Icon path={icons.card} size={32} /></div><h3 className="font-serif text-lg font-bold text-slate-800 mb-3">{t.feat_2_title}</h3><p className="text-sm text-slate-500">{t.feat_2_desc}</p></div>
-                    <div className="bg-white p-8 rounded-xl border border-slate-200 hover:shadow-lg transition-all"><div className="text-indigo-500 mb-4"><Icon path={icons.camera} size={32} /></div><h3 className="font-serif text-lg font-bold text-slate-800 mb-3">{t.feat_3_title}</h3><p className="text-sm text-slate-500">{t.feat_3_desc}</p></div>
-                </div>
+            <div class="meta fade-up" aria-label="Background and affiliations">
+              <div>
+                <h4><span class="dot"></span> <span data-i18n="about_bg_title">Background</span></h4>
+                <ul data-i18n="about_bg_list">
+                  <li>博士（心理学）</li>
+                  <li>宮城学院女子大学 教育学部 教授</li>
+                  <li>ストックホルム商科大学 客員教授</li>
+                </ul>
+              </div>
+              <div>
+                <h4><span class="dot"></span> <span data-i18n="about_aff_title">Affiliations</span></h4>
+                <ul data-i18n="about_aff_list">
+                  <li>日本心理学会</li>
+                  <li>日本教育心理学会</li>
+                  <li>日本教育工学会 (JSET)</li>
+                </ul>
+              </div>
             </div>
-        );
 
-        const ResearchAchievements = ({ t }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-24 animate-fade-up" style={{animationDelay: '0.25s'}}>
-                <div className="mb-10"><span className="block text-indigo-600 text-xs font-bold uppercase mb-2">{t.achievements_kicker}</span><h2 className="text-4xl font-serif font-semibold text-slate-900">{t.achievements_title}</h2></div>
-                <div className="border-t border-slate-200">
-                    <div className="py-8 border-b border-slate-200"><h3 className="font-bold text-lg text-slate-800 mb-1">{t.achieve_1_title}</h3><p className="text-xs text-slate-400 mt-2">{t.achieve_1_meta}</p></div>
-                    <div className="py-8 border-b border-slate-200"><h3 className="font-bold text-lg text-slate-800 mb-1">{t.achieve_2_title}</h3><p className="text-xs text-slate-400 mt-2">{t.achieve_2_meta}</p></div>
-                    <div className="py-8 border-b border-slate-200"><h3 className="font-bold text-lg text-slate-800 mb-1">{t.achieve_3_title}</h3><p className="text-xs text-slate-400 mt-2">{t.achieve_3_meta}</p></div>
-                </div>
-                <div className="mt-8"><a href="index.html#publications" className="inline-flex items-center text-xs font-bold uppercase text-slate-800 hover:text-indigo-600 transition-colors">{t.achieve_view_all} <Icon path={icons.arrowLeft} size={14} className="ml-2 rotate-180" /></a></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="research" class="section research">
+      <div class="container">
+        <div class="section-head">
+          <div class="fade-up">
+            <h2 data-i18n="research_title">Research Areas</h2>
+          </div>
+          <div class="caption fade-up" data-i18n="research_caption">Core Focus &amp; Methodology</div>
+        </div>
+
+        <div class="cards">
+          <a href="experiments.html" class="card fade-up" style="display:block; text-decoration:none;">
+            <div class="card-top">
+              <div class="pill">ET</div>
+              <div class="num">01</div>
             </div>
-        );
-
-        const FilterTab = ({ label, active, onClick }) => (
-            <button onClick={onClick} className={`px-5 py-2 rounded-full text-xs font-medium border ${active ? 'bg-slate-900 text-white border-slate-900' : 'bg-transparent text-slate-500 border-transparent hover:bg-slate-100'}`}>{label}</button>
-        );
-
-        const ExperimentCard = ({ data, index, lang, t, onAlert }) => {
-            const delayStyle = { animationDelay: `${index * 0.05}s` };
-            const content = (
-                <>
-                    <div className="flex justify-between items-start mb-6"><div className={`p-3 rounded-xl transition-colors ${data.link ? 'bg-slate-50 text-slate-700 group-hover:bg-indigo-50 group-hover:text-indigo-600' : 'bg-slate-50 text-slate-300'}`}><Icon path={icons[data.icon]} size={28} /></div><span className="text-[10px] font-bold uppercase text-slate-400 bg-slate-50 px-2 py-1 rounded-md">{t[data.category]}</span></div>
-                    <div className="flex-grow"><h3 className="text-xl font-serif font-semibold text-slate-900 mb-3 leading-tight group-hover:text-indigo-900 transition-colors">{data.title[lang]}</h3><p className="text-sm text-slate-500 leading-relaxed font-body mb-6 whitespace-pre-wrap">{data.description[lang]}</p></div>
-                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400"><div className="flex items-center gap-4"><span className="flex items-center gap-1.5"><Icon path={icons.clock} size={14} />{data.duration}</span><span className="flex items-center gap-1.5"><Icon path={icons.activity} size={14} />{t[data.difficulty]}</span></div><div className={`flex items-center gap-1 font-bold uppercase tracking-wider transition-all duration-300 ${data.link ? 'text-indigo-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0' : 'hidden'}`}>{t.startBtn} <Icon path={icons.play} size={10} className="fill-current" /></div></div>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-indigo-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left ${!data.link && 'hidden'}`}></div>
-                </>
-            );
-            return data.link ? <a href={data.link} style={delayStyle} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft hover:shadow-hover transition-all duration-500 cursor-pointer animate-fade-up hover:-translate-y-1 flex flex-col h-full overflow-hidden block text-left no-underline">{content}</a> : <div style={delayStyle} onClick={() => onAlert(t.alertMsg)} className="group relative bg-white rounded-2xl p-6 border border-slate-100 shadow-soft transition-all duration-500 cursor-not-allowed animate-fade-up flex flex-col h-full overflow-hidden block text-left">{content}</div>;
-        };
-
-        const TechCheck = ({ t, onOpenManual }) => (
-            <div className="max-w-7xl mx-auto px-6 mb-12 animate-fade-up" style={{animationDelay: '0.3s'}}>
-                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-1 h-full bg-slate-300"></div>
-                    <div className="mb-4"><h3 className="text-lg font-serif font-bold text-slate-800 flex items-center gap-2"><Icon path={icons.alert} size={20} className="text-slate-500" />{t.precautionTitle}</h3><p className="text-xs text-slate-500">{t.precautionSubtitle}</p></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <a href="./Frame_rate_measurement.html" target="_blank" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left"><div className="flex justify-between items-start mb-2"><span className="p-2 bg-indigo-50 text-indigo-600 rounded-lg group-hover:bg-indigo-100 transition"><Icon path={icons.monitor} size={20} /></span></div><h4 className="font-bold text-slate-800 text-sm mb-1">{t.prec_screen_title}</h4><p className="text-xs text-slate-500 mb-3">{t.prec_screen_desc}</p><span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_screen_link}</span></a>
-                        <a href="./Key_response_measurement.html" className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left"><div className="flex justify-between items-start mb-2"><span className="p-2 bg-emerald-50 text-emerald-600 rounded-lg group-hover:bg-emerald-100 transition"><Icon path={icons.zap} size={20} /></span></div><h4 className="font-bold text-slate-800 text-sm mb-1">{t.prec_input_title}</h4><p className="text-xs text-slate-500 mb-3">{t.prec_input_desc}</p><span className="text-xs font-bold text-emerald-600 flex items-center gap-1">{t.prec_input_link}</span></a>
-                        <div onClick={onOpenManual} className="group bg-white p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-md transition-all flex flex-col block text-left cursor-pointer"><div className="flex justify-between items-start mb-2"><span className="p-2 bg-slate-50 text-slate-600 rounded-lg group-hover:bg-slate-100 transition"><Icon path={icons.database} size={20} /></span></div><h4 className="font-bold text-slate-800 text-sm mb-1">{t.prec_data_title}</h4><p className="text-xs text-slate-500 mb-3">{t.prec_data_desc}</p><span className="text-xs font-bold text-indigo-600 flex items-center gap-1">{t.prec_data_link}</span></div>
-                    </div>
-                </div>
+            <div class="card-concept" style="margin-top:12px; font-size:13px; font-weight:600; color:#9ca3af; letter-spacing:0.1em; text-transform:uppercase;">
+              Research
             </div>
-        );
+            <h3 style="margin-top:4px;">EdTech & Experiments</h3>
+            <p data-i18n="res_1_text">独自開発の『Web心理学実験プラットフォーム』にて、ストループ効果など10の実験プログラムを無料公開中。ICTがいかに学習者の理解と関心を深めるかを実証的に研究しています。</p>
+            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
+              View Web Experiments &rarr;
+            </div>
+          </a>
 
-        function ExperimentLibrary() {
-            const [activeCategory, setActiveCategory] = useState("All");
-            const [searchQuery, setSearchQuery] = useState("");
-            const [lang, setLang] = useState("en");
-            const [modalOpen, setModalOpen] = useState(false);
-            const [modalMessage, setModalMessage] = useState("");
-            const [manualOpen, setManualOpen] = useState(false);
+          <a href="creativity_learning.html" class="card fade-up" style="display:block; text-decoration:none;">
+            <div class="card-top">
+              <div class="pill">CL</div>
+              <div class="num">02</div>
+            </div>
+            <div class="card-concept" style="margin-top:12px; font-size:13px; font-weight:600; color:#9ca3af; letter-spacing:0.1em; text-transform:uppercase;">
+              Approach
+            </div>
+            <h3 data-i18n="res_2_title" style="margin-top:4px;">Creativity & Learning</h3>
+            <p data-i18n="res_2_text">創造性は脳内だけのプロセスではありません。テクノロジー、身体性、認知メカニズムの交差点から、人間の創造的振る舞いを科学的に解明し、拡張することを目指しています。</p>
+            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
+               View Creativity &rarr;
+            </div>
+          </a>
 
-            useEffect(() => {
-                const browserLang = navigator.language || navigator.userLanguage;
-                if (browserLang.startsWith('ja')) setLang('ja'); else if (browserLang.startsWith('sv')) setLang('se'); else setLang('en');
-            }, []);
+          <a href="wb.html" class="card fade-up" style="display:block; text-decoration:none;">
+            <div class="card-top">
+              <div class="pill">WB</div>
+              <div class="num">03</div>
+            </div>
+            <div class="card-concept" style="margin-top:12px; font-size:13px; font-weight:600; color:#9ca3af; letter-spacing:0.1em; text-transform:uppercase;">
+              Collaboration
+            </div>
+            <h3 data-i18n="res_3_title" style="margin-top:4px;">Well-being & Psychology</h3>
+            <p data-i18n="res_3_text">CWWHやアウトドア教育の観点から、人間の「ウェルビーイング」を科学的に探求。北欧の知見と最新のセンシング技術を掛け合わせ、教育とケアの現場に新たな価値を創造します。</p>
+            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#4f46e5; letter-spacing:.1em; text-transform:uppercase;">
+              View Well-being &rarr;
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
 
-            useEffect(() => { document.documentElement.lang = lang === 'se' ? 'sv' : lang; }, [lang]);
+    <!-- NEW SECTION: Simulations & Experiments List -->
+    <section id="simulations" class="section">
+      <div class="container">
+        <div class="section-head">
+          <div class="fade-up">
+            <h2>Web Experiments & Games</h2>
+          </div>
+          <div class="caption fade-up">Playable Simulations</div>
+        </div>
 
-            // Data is embedded, so always available
-            const t = translations[lang];
+        <div class="cards">
+          <!-- Coop Simulator Card -->
+          <a href="CoopSimulator.html" class="card fade-up" style="display:block; text-decoration:none;">
+            <div class="card-top">
+              <div class="pill" style="background:#06b6d4; color:#fff;">SIM</div>
+              <div class="num">NEW</div>
+            </div>
+            <div class="card-concept" style="margin-top:12px; font-size:13px; font-weight:600; color:#9ca3af; letter-spacing:0.1em; text-transform:uppercase;">
+              Strategy Simulation
+            </div>
+            <h3 style="margin-top:4px;">The Bridge: Co-op Strategy</h3>
+            <p>2035年の人口減少社会を舞台にした戦略シミュレーション。物流網を駆使して地域のリスクを管理し、ウェルビーイングな社会を構築せよ。</p>
+            <div style="margin-top:16px; font-size:11px; font-weight:700; color:#06b6d4; letter-spacing:.1em; text-transform:uppercase;">
+              Play Game &rarr;
+            </div>
+          </a>
+          
+          <!-- Placeholder for other experiments mentioned -->
+          <div class="card fade-up" style="opacity:0.6; cursor: default;">
+            <div class="card-top">
+               <div class="pill" style="background:#64748b;">EXP</div>
+               <div class="num">00</div>
+            </div>
+             <h3 style="margin-top:34px;">Coming Soon...</h3>
+             <p>その他の実験プログラム（ストループ効果測定など）も順次公開予定です。</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
-            const filteredExperiments = useMemo(() => {
-                return experimentsData.filter(exp => {
-                    const matchesCategory = activeCategory === "All" || exp.category === activeCategory;
-                    const titleMatch = exp.title[lang].toLowerCase().includes(searchQuery.toLowerCase());
-                    const descriptionMatch = exp.description[lang].toLowerCase().includes(searchQuery.toLowerCase());
-                    return matchesCategory && (titleMatch || descriptionMatch);
-                });
-            }, [activeCategory, searchQuery, lang]);
+    <section id="publications" class="section pub">
+      <div class="container">
+        <div class="center">
+          <span class="kicker fade-up" data-i18n="pub_kicker">Archive</span>
+          <h2 class="fade-up" data-i18n="pub_title">Selected Publications</h2>
+        </div>
 
-            return (
-                <div className="min-h-screen pb-24 font-sans animate-fade-in">
-                    <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} message={modalMessage} title={t.modal_notice || "Notice"} btnText={t.modal_close || "Close"} />
-                    <DataManualModal isOpen={manualOpen} onClose={() => setManualOpen(false)} />
+        <div class="list">
+          <div class="item fade-up">
+            <div class="year">2022</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_1_title">脳と学習ー未来の学校に必要な知識</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_1_source">宮城学院女子大学西浦研究室 (編訳)</em></span>
+                <span class="role" data-i18n="role_edit_trans">編訳</span>
+              </div>
+            </div>
+          </div>
 
-                    <header className="glass sticky top-0 z-50 transition-all duration-300">
-                        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                            <a href="index.html" className="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors group">
-                                <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center group-hover:border-slate-400 transition-colors bg-white"><Icon path={icons.arrowLeft} size={14} /></div>
-                                <span className="text-xs font-bold tracking-widest uppercase font-serif">{t.lab_name}</span>
-                            </a>
-                            <div className="flex items-center gap-6">
-                                <nav className="hidden md:flex gap-6 text-xs uppercase tracking-widest font-medium text-slate-500">
-                                    <a href="index.html" className="hover:text-indigo-600 transition-colors">{t.nav_home}</a>
-                                    <a href="#concept" className="hover:text-indigo-600 transition-colors">Concept</a>
-                                    <a href="./Exp_About.html" className="hover:text-indigo-600 transition-colors">{t.nav_dev}</a>
-                                    <a href="#library" className="hover:text-indigo-600 transition-colors">Library</a>
-                                    <a href="index.html#contact" className="hover:text-indigo-600 transition-colors">{t.nav_contact}</a>
-                                </nav>
-                                <LanguageSwitcher currentLang={lang} setLang={setLang} />
-                            </div>
-                        </div>
-                    </header>
+          <div class="item fade-up">
+            <div class="year">2021</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_2_title">森のこども園の誕生、現在、そして未来</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_2_source">宮城学院女子大学附属発達科学研究所</em></span>
+                <span class="role" data-i18n="role_coauthor">共著</span>
+              </div>
+            </div>
+          </div>
 
-                    <header className="relative min-h-[50vh] pt-40 pb-20 bg-white overflow-hidden flex items-center">
-                        <div className="dot-grid"></div>
-                        <div className="container max-w-7xl mx-auto px-6 relative z-10">
-                            <div className="animate-fade-up">
-                                <span className="block font-sans text-indigo-600 text-sm tracking-[0.2em] uppercase font-bold mb-4">{t.page_subtitle}</span>
-                                <h1 className="text-5xl md:text-7xl font-serif text-slate-900 leading-[1.1] mb-6 tracking-tight" dangerouslySetInnerHTML={{__html: t.page_title}}></h1>
-                                <p className="max-w-2xl text-slate-500 text-lg font-light leading-relaxed">{t.page_desc}</p>
-                            </div>
-                        </div>
-                    </header>
+          <div class="item fade-up">
+            <div class="year">2016</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_3_title">北欧スウェーデン発 森の教室－生きる知恵と喜びを生み出すアウトドア教育</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_3_source">北大路書房</em></span>
+                <span class="role" data-i18n="role_cotrans">共訳</span>
+              </div>
+            </div>
+          </div>
 
-                    <section id="concept" className="py-24 bg-white">
-                        <div className="container max-w-7xl mx-auto px-6">
-                            <div className="max-w-3xl animate-fade-up">
-                                <span className="block text-indigo-600 text-xs font-bold tracking-widest uppercase mb-3">{t.concept_kicker}</span>
-                                <h3 className="text-3xl font-serif text-slate-800 mb-6">{t.concept_head}</h3>
-                                <p className="text-slate-500 leading-loose whitespace-pre-wrap font-light">{t.concept_body}</p>
-                            </div>
-                        </div>
-                    </section>
+          <div class="item fade-up" style="border-bottom:none;">
+            <div class="year">2010</div>
+            <div class="grow">
+              <div class="it-title" data-i18n="pub_4_title">青年期女性の食行動異常に関する心理学的研究</div>
+              <div class="it-meta">
+                <span><em data-i18n="pub_4_source">岩手大学教育学部附属教育実践総合センター研究紀要</em></span>
+                <span class="role" data-i18n="role_coauthor">共著</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-                    <FeaturedResearch t={t} />
-                    <ResearchAchievements t={t} />
+        <div class="center mt-24">
+          <a class="viewall" href="https://researchmap.jp/read0063225" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="view_researchmap">View all on Researchmap</span> <span class="mini-arrow" aria-hidden="true"></span>
+          </a>
+        </div>
+      </div>
+    </section>
 
-                    <div id="library" className="bg-slate-50 pt-24 pb-12">
-                        <div className="container max-w-7xl mx-auto px-6">
-                            <div className="text-center mb-16 animate-fade-up">
-                                <h2 className="text-4xl font-serif text-slate-900 mb-4">{t.libraryTitle}</h2>
-                                <div className="relative max-w-md mx-auto mt-8">
-                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-400"><Icon path={icons.search} size={18} /></div>
-                                    <input type="text" placeholder={t.searchPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-white border border-slate-200 hover:border-indigo-300 focus:border-indigo-500 focus:ring-0 rounded-full text-sm outline-none transition-all shadow-sm" />
-                                </div>
-                                <div className="flex flex-wrap justify-center gap-2 mt-8">
-                                    <FilterTab label={t.filterAll} active={activeCategory === "All"} onClick={() => setActiveCategory("All")} />
-                                    {categoriesList.map(catKey => (<FilterTab key={catKey} label={t[catKey]} active={activeCategory === catKey} onClick={() => setActiveCategory(catKey)} />))}
-                                </div>
-                            </div>
+    <section id="contact" class="contact">
+      <div class="container contact-grid">
+        <div class="fade-up">
+          <h2 data-i18n="contact_title">Let's Connect</h2>
+          <p data-i18n="contact_text">研究に関するお問い合わせ、大学院進学のご相談はメールにて受け付けています。教育とテクノロジーの未来について語り合いましょう。</p>
 
-                            <TechCheck t={t} onOpenManual={() => setManualOpen(true)} />
+          <a class="mail" href="mailto:nishiura@mgu.ac.jp" aria-label="Send email">
+            <span class="icon" aria-hidden="true"></span>
+            <span>nishiura@mgu.ac.jp</span>
+          </a>
+        </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                {filteredExperiments.map((exp, index) => <ExperimentCard key={exp.id} data={exp} index={index} lang={lang} t={t} onAlert={() => setModalMessage(t.alertMsg) || setModalOpen(true)} />)}
-                            </div>
-                            {filteredExperiments.length === 0 && (
-                                <div className="text-center py-32 animate-fade-in"><div className="inline-block p-4 rounded-full bg-white text-slate-300 mb-4 shadow-sm"><Icon path={icons.search} size={32} /></div><p className="text-slate-500 font-medium">No experiments found.</p><button onClick={() => {setActiveCategory("All"); setSearchQuery("");}} className="mt-4 text-indigo-600 text-sm hover:text-indigo-800 font-bold underline underline-offset-4">View all experiments</button></div>
-                            )}
-                        </div>
-                    </div>
+        <div class="contact-right fade-up">
+          <div>
+            <strong data-i18n="univ_name">Miyagi Gakuin Women's University</strong>
+            <div class="small" data-i18n="faculty_name">Faculty of Education</div>
+            <div class="tiny" data-i18n="address">9-1-1 Sakuragaoka, Aoba-ku, Sendai, Miyagi 981-8557</div>
+          </div>
 
-                    <TermsSection t={t} />
+          <div class="contact-links">
+            <a href="https://www.mgu.ac.jp/" target="_blank" rel="noopener noreferrer" data-i18n="univ_site">University Site</a>
+            <a href="privacy.html" data-i18n="privacy">Privacy Policy</a>
+          </div>
+        </div>
+      </div>
+      <div class="grad-line" aria-hidden="true"></div>
+    </section>
+  </main>
 
-                    <footer className="bg-slate-900 text-slate-400 py-12 text-center text-xs uppercase tracking-widest"><p>&copy; {new Date().getFullYear()} {t.footerRights}</p></footer>
-                </div>
-            );
-        }
+  <footer>
+    &copy; <span id="year"></span> Nishiura Laboratory. All Rights Reserved.
+  </footer>
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<ExperimentLibrary />);
-    </script>
+  <script src="./translations.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
