@@ -566,9 +566,23 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            // Get name for filename
-            const name = document.querySelector('input[placeholder="氏名"]').value || "実習生";
-            link.download = `実習生調書_${name}.doc`;
+            
+            // Generate Filename: YYYYMMDD_HHMM_Type_Name.doc
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const timestamp = `${y}${m}${d}_${hh}${mm}`;
+
+            const typeLabel = document.getElementById('title-type').textContent; // "教育" or "保育"
+            const reportName = `${typeLabel}実習生調書`;
+            
+            const nameVal = document.querySelector('input[placeholder="氏名"]').value.trim();
+            const fileName = nameVal ? `${timestamp}_${reportName}_${nameVal}.doc` : `${timestamp}_${reportName}.doc`;
+
+            link.download = fileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
