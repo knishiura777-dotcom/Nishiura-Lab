@@ -94,8 +94,10 @@
       display: grid; place-items: center; margin-bottom: 24px; font-size: 24px; border-radius: 8px;
     }
     .tool-card h4 { margin: 0 0 16px; font-size: 18px; color: var(--dark); line-height: 1.4; }
-    .tool-card a { transition: color 0.2s ease; }
-    .tool-card a:hover { color: var(--indigo); }
+    /* Link styling for standard links */
+    .tool-card a.standard-link { transition: color 0.2s ease; }
+    .tool-card a.standard-link:hover { color: var(--indigo); }
+    
     .tool-card p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 24px; }
     .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
     .tag {
@@ -125,6 +127,49 @@
     .mini-arrow {
       width: 10px; height: 10px; border-right: 2px solid currentColor;
       border-bottom: 2px solid currentColor;
+    }
+
+    /* --- DX Menu Styles --- */
+    .dx-action-wrapper { position: relative; display: inline-block; }
+    
+    .dx-trigger-btn {
+      background: none; border: none; padding: 0; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; font-weight: 600; color: var(--indigo);
+      margin-bottom: 16px; transition: opacity 0.2s; font-family: inherit;
+    }
+    .dx-trigger-btn:hover { opacity: 0.8; }
+    
+    .dx-menu {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: white; border: 1px solid #e2e8f0;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      border-radius: 12px; padding: 8px; min-width: 260px; z-index: 50;
+      animation: menuFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .dx-menu.active { display: block; }
+    
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(4px) scale(1); }
+    }
+
+    .dx-menu-header {
+      font-size: 10px; color: #94a3b8; margin: 6px 12px 8px;
+      text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;
+    }
+
+    .dx-menu-item {
+      display: block; padding: 10px 12px;
+      color: #1e293b; text-decoration: none;
+      font-size: 14px; font-weight: 600;
+      border-radius: 6px; transition: background 0.2s, color 0.2s;
+    }
+    .dx-menu-item:hover { background: #f1f5f9; color: var(--indigo); }
+    
+    .dx-menu-desc {
+      display: block; font-size: 11px; color: #64748b;
+      font-weight: 400; margin-top: 3px; line-height: 1.4;
     }
   </style>
 </head>
@@ -205,7 +250,7 @@
             ストックホルム商科大学 Center for Wellbeing, Welfare and Happiness と連携し、北欧のウェルビーイングモデルを日本の子ども政策へ応用するための共同研究および政策提言を行っています。
           </p>
           
-          <a href="https://www.hhs.se/en/research/centers/cwwh/" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
+          <a href="https://www.hhs.se/en/research/centers/cwwh/" target="_blank" rel="noopener noreferrer" class="standard-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
              <span data-i18n="wb_link_cwwh">Visit: CWWH 公式サイト</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
@@ -237,7 +282,7 @@
             東日本大震災の教訓を基盤に、北欧の「子どもの権利」の視点を統合した防災教育カリキュラムを開発。児童館でのアウトリーチ活動なども展開し、災害時の即時判断力と、困難を乗り越える心理的レジリエンス（回復力）を育みます。
           </p>
           
-          <a href="https://www.mgu.ac.jp/child-future/" target="_blank" rel="noopener noreferrer" style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
+          <a href="https://www.mgu.ac.jp/child-future/" target="_blank" rel="noopener noreferrer" class="standard-link" style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
              <span data-i18n="wb_link_child_center">Visit: 地域子ども学研究センター</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
@@ -256,7 +301,7 @@
             研究知見を社会システムへ実装する「ガバナンス」への参画。宮城県「子ども・子育て会議」副会長や認定NPO理事として政策・地域課題に向き合う一方、大学生協理事長としてキャンパスライフの質的向上（Well-being）も経営視点で牽引しています。
           </p>
 
-          <a href="https://www.machispo-sendai.com/" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
+          <a href="https://www.machispo-sendai.com/" target="_blank" rel="noopener noreferrer" class="standard-link" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
              <span data-i18n="wb_link_machispo">Visit: まちづくりスポット仙台</span>
              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
           </a>
@@ -277,10 +322,26 @@
             「手書きこそ誠意」という旧来のドグマを打破する。AIによる環境構成図の自動生成、Word相互変換機能を搭載した次世代の実習日誌システム。記録業務を極限まで効率化し、実習生が「子どもと向き合う時間」を最大化するための、教育DXへの挑戦状。
           </p>
           
-          <a href="TeacherTrainingNote.html" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:600; color:var(--indigo); margin-bottom:16px; text-decoration:none;">
-             <span>Try: Digital Logbook v12</span>
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-          </a>
+          <!-- DX Menu Trigger -->
+          <div class="dx-action-wrapper">
+            <button onclick="toggleDxMenu(this)" class="dx-trigger-btn">
+               <span>Try: Digital Logbook v12</span>
+               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+            </button>
+            
+            <!-- Menu Content -->
+            <div class="dx-menu">
+                <div class="dx-menu-header">Select Application</div>
+                <a href="EducationalReportApp.html" target="_blank" class="dx-menu-item">
+                    📄 実習調書作成
+                    <span class="dx-menu-desc">ブラウザ上で顔写真付きの実習生調書（履歴書）を作成・Word出力。</span>
+                </a>
+                <a href="TeacherTrainingNote.html" target="_blank" class="dx-menu-item" style="margin-top:4px;">
+                    📝 実習日誌作成
+                    <span class="dx-menu-desc">AI作図機能とWord相互変換を搭載した高機能日誌エディタ。</span>
+                </a>
+            </div>
+          </div>
           
           <div class="tag-list">
             <span class="tag">EdTech DX</span>
@@ -363,5 +424,32 @@
 
   <script src="./translations.js"></script>
   <script src="./script.js"></script>
+  
+  <!-- DX Menu Logic -->
+  <script>
+    function toggleDxMenu(btn) {
+      // Prevent bubbling to document
+      event.stopPropagation();
+      
+      // Find the menu relative to the button
+      const menu = btn.nextElementSibling;
+      const isCurrentlyOpen = menu.classList.contains('active');
+      
+      // Close all other menus first (good practice if we add more)
+      document.querySelectorAll('.dx-menu').forEach(m => m.classList.remove('active'));
+      
+      // Toggle current
+      if (!isCurrentlyOpen) {
+        menu.classList.add('active');
+      }
+    }
+
+    // Close menu when clicking anywhere else
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.dx-action-wrapper')) {
+        document.querySelectorAll('.dx-menu').forEach(m => m.classList.remove('active'));
+      }
+    });
+  </script>
 </body>
 </html>
