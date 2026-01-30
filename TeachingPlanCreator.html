@@ -1,0 +1,1065 @@
+<!--
+© 2026 西浦研究室 / Kazuki Nishiura Lab
+本プログラムは教育目的での使用に限り利用を許可します。
+無断での再配布・改変・商用利用を禁止します。
+-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- CSP（Content Security Policy） -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
+    
+    <title>教育実習指導案作成（修正完全版）v43-beta.36</title>
+    
+    <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+        /* --- ベーススタイル (日誌アプリと統一) --- */
+        :root {
+            --primary-color: #111827;
+            --accent-color: #2563eb;
+            --bg-color: #f3f4f6;
+            --surface-color: #ffffff;
+            --text-color: #374151;
+            --border-radius: 12px;
+            --control-radius: 99px;
+            --error-bg: #fff1f0;
+            --error-border: #ffccc7;
+            --error-text: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 60px 20px 40px 20px;
+            color: var(--text-color);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 860px; /* A4幅に近い設定 */
+            margin: 20px auto;
+            background-color: var(--surface-color);
+            padding: 60px 80px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08);
+            border-radius: 16px;
+        }
+
+        /* --- コントロールパネル --- */
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: var(--control-radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .controls:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .control-group { display: flex; align-items: center; gap: 4px; }
+        .divider { width: 1px; height: 20px; background-color: #d1d5db; margin: 0 8px; }
+        .file-upload-wrapper { position: relative; display: inline-block; }
+        #docx-input, #img-upload-input { display: none; }
+
+        .btn {
+            appearance: none; border: none; background: transparent; cursor: pointer;
+            padding: 8px 16px; border-radius: var(--control-radius); font-size: 13px;
+            font-weight: 600; color: #4b5563; display: inline-flex; align-items: center;
+            gap: 6px; transition: all 0.2s ease; text-decoration: none; white-space: nowrap;
+        }
+        .btn:hover { background-color: rgba(0, 0, 0, 0.05); color: #111; }
+        .btn:active { transform: scale(0.96); background-color: rgba(0, 0, 0, 0.1); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-danger { color: #ef4444; }
+        .btn-danger:hover { background-color: #fef2f2; color: #dc2626; }
+        
+        /* Selectスタイル調整 */
+        select.btn {
+            background-color: rgba(255,255,255,0.5);
+            border: 1px solid #e5e7eb;
+            padding-right: 28px;
+            min-width: 100px;
+        }
+        select.btn:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        /* サンプルロードボタン用 */
+        .btn-accent { color: var(--accent-color); }
+        .btn-accent:hover { background-color: #eff6ff; color: #1d4ed8; }
+
+        /* --- モーダル・ステータス (日誌アプリと共通) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+        }
+        .modal-overlay[style*="display: flex"] { opacity: 1; visibility: visible; }
+        .modal-content {
+            background-color: #fff; padding: 48px; border-radius: 24px;
+            max-width: 520px; width: 90%; text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); border: 1px solid #f3f4f6;
+        }
+        .modal-title { font-size: 24px; font-weight: 800; margin-bottom: 24px; color: #111; }
+        .modal-body { text-align: left; margin-bottom: 32px; font-size: 14px; color: #4b5563; }
+        .modal-actions { display: flex; justify-content: center; gap: 16px; }
+        
+        .btn-solid { background-color: #111; color: #fff; padding: 10px 24px; border-radius: 99px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; }
+        .btn-outline { background: transparent; border: 1px solid #d1d5db; color: #374151; padding: 10px 24px; border-radius: 99px; font-weight: 600; font-size: 14px; cursor: pointer; }
+        
+        /* --- ドキュメントスタイル --- */
+        .title-header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            border-bottom: 4px solid #111; padding-bottom: 12px; margin-bottom: 40px;
+        }
+        h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+        .student-info { text-align: right; }
+        .info-row { display: flex; align-items: center; justify-content: flex-end; margin-top: 4px; }
+        .info-label { font-size: 12px; font-weight: 700; color: #6b7280; margin-right: 8px; text-transform: uppercase; }
+        .info-input { min-width: 180px; border-bottom: 1px solid #d1d5db; font-size: 15px; padding: 0 4px; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 14px; }
+        th, td { border: 1px solid #e5e7eb; padding: 12px; vertical-align: top; }
+        th { background-color: #f9fafb; text-align: center; font-weight: 700; color: #374151; }
+        
+        .editable { 
+            position: relative; background-color: #fffbeb; padding: 4px 8px; 
+            border-radius: 4px; transition: all 0.2s; min-height: 1.5em; outline: none; 
+        }
+        .editable:focus { background-color: #fef3c7; box-shadow: 0 0 0 2px #fcd34d; }
+        .editable:empty::before { content: "[入力]"; color: #d1d5db; }
+        .editable[data-required="true"]:empty { background-color: var(--error-bg); }
+
+        /* 環境構成図エリア (日誌アプリと同一ロジック) */
+        .env-section { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 30px; background-color: #fff; border-radius: 8px; }
+        .env-drawing-container { position: relative; }
+        .env-drawing-area { 
+            border: 2px dashed #e5e7eb; height: 300px; display: flex; align-items: center; 
+            justify-content: center; background-color: #fafafa; position: relative; 
+            overflow: hidden; border-radius: 8px; 
+        }
+        #manual-image { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; display: none; pointer-events: none; }
+        
+        .drawing-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f3f4f6; }
+        .tool-btn { background: #fff; border: 1px solid #e5e7eb; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; color: #4b5563; }
+        .tool-btn:hover { border-color: #9ca3af; color: #111; }
+        .tool-btn.danger { color: #ef4444; border-color: #fecaca; }
+
+        /* 指導案特有のテーブルスタイル */
+        .plan-table th { width: 15%; }
+        .process-table th:nth-child(1) { width: 10%; } /* 時間 */
+        .process-table th:nth-child(2) { width: 30%; } /* 活動 */
+        .process-table th:nth-child(3) { width: 25%; } /* 子どもの姿 */
+        .process-table th:nth-child(4) { width: 35%; } /* 援助・配慮 */
+
+        /* フッター */
+        .footer-info { display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 20px; font-size: 11px; color: #9ca3af; }
+        .copyright { text-align: center; margin-top: 60px; font-size: 11px; color: #9ca3af; font-family: monospace; }
+
+        /* ステータス表示 */
+        #status-msg-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 900; }
+        .status-pill { padding: 8px 16px; border-radius: 8px; font-size: 13px; background: #fff; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: none; }
+        .status-pill.show { display: inline-flex; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media print {
+            body { background: #fff; padding: 0; }
+            .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; }
+            .no-print, .controls, .modal-overlay { display: none !important; }
+            .editable { background-color: transparent !important; padding: 0; }
+            .editable:empty::before { content: ""; }
+            .env-drawing-area { border: 1px solid #111; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 起動時同意モーダル -->
+    <div id="agreement-modal" class="modal-overlay no-print" role="dialog">
+        <div class="modal-content">
+            <div class="modal-title">利用上の注意</div>
+            <div class="modal-body">
+                <p>本ツールは<strong>「教育実習指導案作成」</strong>を支援するものです。</p>
+                <p>個人情報保護および著作権遵守のため、以下の行為を禁じます。</p>
+                <ul><li>無断での再配布・改変・商用利用</li></ul>
+                <p style="text-align:center; font-size:11px; color:#999;">© 2026 西浦研究室 / Kazuki Nishiura Lab</p>
+            </div>
+            <div class="modal-actions">
+                <button id="btn-start-app" class="btn-solid">同意して利用を開始</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div class="controls no-print">
+        <div class="control-group">
+            <select id="plan-type-select" class="btn" title="実習の種類を選択">
+                <option value="教育実習">教育実習</option>
+                <option value="保育実習">保育実習</option>
+            </select>
+            <select id="plan-mode-select" class="btn" title="実習の形態を選択">
+                <option value="">形態(なし)</option>
+                <option value="部分">部分</option>
+                <option value="全日">全日</option>
+                <option value="責任">責任</option>
+            </select>
+            <div class="divider"></div>
+            <div class="file-upload-wrapper">
+                <label for="docx-input" class="btn" title="Word下書きを読み込む">📂 Word読込</label>
+                <input type="file" id="docx-input" accept=".docx,.doc">
+            </div>
+            <button id="btn-export" class="btn" title="Word形式で保存">💾 保存</button>
+            <button id="btn-print" class="btn" title="印刷またはPDF保存">🖨️ 印刷</button>
+        </div>
+        <div class="divider"></div>
+        <div class="control-group">
+            <button id="btn-save-img" class="btn" title="現在の図を画像として保存">⬇️ 図保存</button>
+            <div class="file-upload-wrapper">
+                <label for="img-upload-input" class="btn" title="画像を読み込んで背景に表示">📂 図読込</label>
+                <input type="file" id="img-upload-input" accept="image/*">
+            </div>
+            <button id="btn-clear" class="btn btn-danger" title="リセット">🗑️</button>
+        </div>
+    </div>
+
+    <div id="status-msg-container"></div>
+
+    <div class="container" id="plan-area">
+        
+        <!-- ヘッダー -->
+        <div class="title-header">
+            <h1 id="main-title">教育実習指導案</h1>
+            <div class="student-info">
+                <div class="info-row"><span class="info-label">大学名</span><div class="editable info-input" id="field-university" contenteditable="true"></div></div>
+                <div class="info-row"><span class="info-label">氏名</span><div class="editable info-input" id="field-name" contenteditable="true"></div></div>
+            </div>
+        </div>
+
+        <!-- 基本情報 -->
+        <table class="plan-table">
+            <tr>
+                <th>日時</th>
+                <td><div class="editable" id="field-date" contenteditable="true">令和〇年〇月〇日（〇） 10:00～10:45</div></td>
+                <th>クラス</th>
+                <td><div class="editable" id="field-class" contenteditable="true">〇〇組</div></td>
+            </tr>
+            <tr>
+                <th>対象年齢</th>
+                <td><div class="editable" id="field-age" contenteditable="true">4歳児</div></td>
+                <th>在籍・出席</th>
+                <td><div class="editable" id="field-attendance" contenteditable="true">〇名</div></td>
+            </tr>
+            <tr>
+                <th>主活動<br>（題材名）</th>
+                <td colspan="3"><div class="editable" id="field-activity" contenteditable="true"></div></td>
+            </tr>
+        </table>
+
+        <!-- ねらい・視点 -->
+        <table class="plan-table">
+            <tr>
+                <th>ねらい</th>
+                <td>
+                    <strong>【主となるねらい】</strong>
+                    <div class="editable" id="field-aim-main" contenteditable="true"></div>
+                    <br><strong>【その他のねらい】</strong>
+                    <div class="editable" id="field-aim-sub" contenteditable="true"></div>
+                </td>
+            </tr>
+            <tr>
+                <th>領域に関する<br>視点・内容</th>
+                <td><div class="editable" id="field-perspective" contenteditable="true"></div></td>
+            </tr>
+        </table>
+
+        <!-- 環境構成図（日誌アプリと共通システム） -->
+        <div class="env-section">
+            <span style="font-weight:bold; display:block; margin-bottom:15px; color:#6b7280;">環境構成・準備</span>
+            <div class="env-content">
+                <div class="env-drawing-container">
+                    <div id="drawing-toolbar" class="drawing-toolbar no-print">
+                        <button class="tool-btn" data-action="add" data-type="teacher">＋保育者</button>
+                        <button class="tool-btn" data-action="add" data-type="child">＋子供</button>
+                        <button class="tool-btn" data-action="add" data-type="desk">＋机</button>
+                        <button class="tool-btn" data-action="add" data-type="chair">＋椅子</button>
+                        <button class="tool-btn" data-action="add" data-type="piano">＋ピアノ</button>
+                        <button class="tool-btn" data-action="add" data-type="mat">＋マット</button>
+                        <button class="tool-btn" data-action="add" data-type="cone">＋コーン</button>
+                        <button class="tool-btn" data-action="add" data-type="goal">＋ゴール</button>
+                        <div style="flex-grow:1;"></div>
+                        <button class="tool-btn" data-action="regen" title="テキストから自動配置">🔄 生成</button>
+                        <button class="tool-btn" data-action="undo" title="一つ前の状態に戻す">↩️ 元に戻す</button>
+                        <button class="tool-btn danger" data-action="delete" title="選択した項目を削除">✖ 削除</button>
+                    </div>
+                    <div class="env-drawing-area" id="drawing-area">
+                        <canvas id="env-canvas" width="400" height="300"></canvas>
+                        <img id="manual-image" alt="環境構成図">
+                    </div>
+                </div>
+                <div style="margin-top:15px;">
+                    <strong>【準備物・配置の記述】</strong>
+                    <div class="editable" id="field-env-text" contenteditable="true" style="min-height:80px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 予想される子どもの姿 -->
+        <table class="plan-table">
+            <tr>
+                <th>予想される<br>子どもの姿</th>
+                <td><div class="editable" id="field-child-prediction" contenteditable="true"></div></td>
+            </tr>
+        </table>
+
+        <!-- 指導過程 -->
+        <div style="margin-bottom:10px; font-weight:bold; font-size:16px;">指導過程（活動の展開）</div>
+        <table class="process-table">
+            <thead>
+                <tr>
+                    <th>時間</th>
+                    <th>活動の内容</th>
+                    <th>子どもの姿（予想）</th>
+                    <th>保育者の援助・配慮</th>
+                </tr>
+            </thead>
+            <tbody id="timeline-body">
+                <!-- JSで生成 -->
+            </tbody>
+        </table>
+        <button class="btn no-print" onclick="addTimelineRow()" style="width:100%; border:1px dashed #ccc; justify-content:center;">＋ 行を追加</button>
+
+        <!-- 振り返り・備考 -->
+        <div class="env-section" style="margin-top:30px;">
+            <span style="font-weight:bold; display:block; margin-bottom:10px;">実習生としての振り返り・考察の視点</span>
+            <div class="editable" id="field-reflection" contenteditable="true" style="min-height:100px;"></div>
+        </div>
+
+        <div class="footer-info no-print">
+            <span id="auto-save-status"></span>
+            <span>App Version: v43-beta.36 (Plan)</span>
+        </div>
+    </div>
+
+    <footer class="copyright">
+        © 2026 西浦研究室 / Kazuki Nishiura Lab｜教育目的限定・再配布禁止
+    </footer>
+
+    <script>
+        // --- 変数定義 ---
+        let canvasObjects = [];
+        let historyStack = []; // 履歴保存用
+        let dragSnapshot = null; // ドラッグ開始時の状態保存用
+        
+        let selectedIndex = -1;
+        let isDragging = false, dragStartX = 0, dragStartY = 0;
+        let saveTimeout = null;
+        const STORAGE_KEY = 'tt_plan_data_v1';
+
+        // --- 初期化 ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            loadFromStorage();
+        });
+
+        function initApp() {
+            // モーダル
+            document.getElementById('btn-start-app').addEventListener('click', () => {
+                document.getElementById('agreement-modal').style.display = 'none';
+            });
+            
+            // 実習タイプ切り替えイベント
+            const typeSelect = document.getElementById('plan-type-select');
+            const modeSelect = document.getElementById('plan-mode-select');
+            
+            const updateTitle = () => {
+                const type = typeSelect.value;
+                const mode = modeSelect.value;
+                let title = `${type}指導案`;
+                if(mode) {
+                    title += `（${mode}実習）`;
+                }
+                document.getElementById('main-title').innerText = title;
+                debouncedSave();
+            };
+
+            typeSelect.addEventListener('change', updateTitle);
+            modeSelect.addEventListener('change', updateTitle);
+
+            // ボタンイベント
+            document.getElementById('btn-print').addEventListener('click', () => { 
+                selectedIndex=-1; 
+                renderCanvas(); 
+                
+                // 印刷用ファイル名設定（タイトルタグ書き換え）
+                const currentTitleText = document.getElementById('main-title').innerText.trim();
+                let dateStr = document.getElementById('field-date').innerText.trim();
+                
+                // 日付抽出
+                const dateMatch = dateStr.match(/(?:[0-9０-９]{4}年|[令和平成昭和][0-9０-９元]+年)\s*[0-9０-９]+月\s*[0-9０-９]+日/);
+                
+                if (dateMatch) {
+                    dateStr = dateMatch[0];
+                } else {
+                    dateStr = dateStr.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '_').substring(0, 30);
+                    if (!dateStr) dateStr = new Date().toISOString().slice(0,10);
+                }
+                
+                const originalTitle = document.title;
+                document.title = `${currentTitleText}_${dateStr}`;
+                
+                window.print();
+                
+                // 少し待ってから元に戻す
+                setTimeout(() => { document.title = originalTitle; }, 500);
+            });
+            
+            document.getElementById('btn-export').addEventListener('click', exportToWord);
+            document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
+            document.getElementById('btn-clear').addEventListener('click', clearAll);
+            document.getElementById('docx-input').addEventListener('change', handleDocUpload);
+            
+            // 画像読み込みイベント
+            document.getElementById('img-upload-input').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.getElementById('manual-image');
+                    img.src = event.target.result;
+                    img.style.display = 'block';
+                    updateStatus('画像を読み込みました');
+                };
+                reader.readAsDataURL(file);
+                e.target.value = '';
+            });
+
+            // 作図ツールバー
+            document.getElementById('drawing-toolbar').addEventListener('click', (e) => {
+                if(e.target.tagName !== 'BUTTON') return;
+                const action = e.target.getAttribute('data-action');
+                const type = e.target.getAttribute('data-type');
+                
+                if(action === 'add') { saveHistory(); addObj(type); }
+                if(action === 'regen') { saveHistory(); generateDiagramFromText(); }
+                if(action === 'delete') { if(selectedIndex>=0) { saveHistory(); deleteSelectedObj(); } }
+                if(action === 'undo') undo();
+            });
+
+            initCanvasEvents();
+            
+            // 自動保存監視
+            document.querySelectorAll('.editable').forEach(el => {
+                el.addEventListener('input', debouncedSave);
+            });
+        }
+
+        // --- 履歴管理システム ---
+        function saveHistory() {
+            const state = JSON.parse(JSON.stringify(canvasObjects));
+            historyStack.push(state);
+            if(historyStack.length > 20) historyStack.shift();
+        }
+
+        function undo() {
+            if(historyStack.length === 0) {
+                alert('戻せる履歴がありません');
+                return;
+            }
+            canvasObjects = historyStack.pop();
+            selectedIndex = -1;
+            renderCanvas();
+            debouncedSave();
+        }
+
+        // --- タイムライン操作 ---
+        function addTimelineRow(t='', act='', child='', aid='') {
+            const tbody = document.getElementById('timeline-body');
+            const tr = document.createElement('tr');
+            [t, act, child, aid].forEach(text => {
+                const td = document.createElement('td');
+                const div = document.createElement('div');
+                div.className = 'editable';
+                div.contentEditable = 'true';
+                div.innerHTML = text.replace(/\n/g, '<br>');
+                div.addEventListener('input', debouncedSave);
+                td.appendChild(div);
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        }
+
+        // --- 保存・復元システム ---
+        function saveToStorage() {
+            const data = {
+                fields: {},
+                timeline: [],
+                canvasObjects: canvasObjects,
+                manualImageSrc: document.getElementById('manual-image').getAttribute('src'),
+                planType: document.getElementById('plan-type-select').value, 
+                planMode: document.getElementById('plan-mode-select').value, // 形態も保存
+                timestamp: Date.now()
+            };
+            
+            document.querySelectorAll('.editable[id]').forEach(el => {
+                data.fields[el.id] = el.innerHTML;
+            });
+
+            const rows = document.getElementById('timeline-body').querySelectorAll('tr');
+            rows.forEach(tr => {
+                const cells = [];
+                tr.querySelectorAll('.editable').forEach(d => cells.push(d.innerHTML));
+                data.timeline.push(cells);
+            });
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            const now = new Date();
+            document.getElementById('auto-save-status').innerText = `☁️ 保存済 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
+        }
+
+        function debouncedSave() {
+            document.getElementById('auto-save-status').innerText = '🖊️ 保存中...';
+            if(saveTimeout) clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveToStorage, 1000);
+        }
+
+        function loadFromStorage() {
+            const json = localStorage.getItem(STORAGE_KEY);
+            if(!json) {
+                for(let i=0; i<4; i++) addTimelineRow();
+                return;
+            }
+            try {
+                const data = JSON.parse(json);
+                // 実習タイプの復元
+                if(data.planType) {
+                    const select = document.getElementById('plan-type-select');
+                    select.value = data.planType;
+                }
+                if(data.planMode) {
+                    const select = document.getElementById('plan-mode-select');
+                    select.value = data.planMode;
+                }
+                // タイトル更新
+                const type = document.getElementById('plan-type-select').value;
+                const mode = document.getElementById('plan-mode-select').value;
+                let title = `${type}指導案`;
+                if(mode) title += `（${mode}実習）`;
+                document.getElementById('main-title').innerText = title;
+
+                if(data.fields) {
+                    for(const [id, val] of Object.entries(data.fields)) {
+                        const el = document.getElementById(id);
+                        if(el) el.innerHTML = val;
+                    }
+                }
+                if(data.timeline) {
+                    const tbody = document.getElementById('timeline-body');
+                    tbody.innerHTML = '';
+                    data.timeline.forEach(row => {
+                        const cleanRow = row.map(cell => cell.replace(/<br\s*\/?>/gi, '\n'));
+                        addTimelineRow(...cleanRow);
+                    });
+                }
+                if(data.canvasObjects) {
+                    canvasObjects = data.canvasObjects;
+                    renderCanvas();
+                }
+                if(data.manualImageSrc) {
+                    const img = document.getElementById('manual-image');
+                    img.src = data.manualImageSrc;
+                    img.style.display = 'block';
+                }
+                document.getElementById('auto-save-status').innerText = '自動復元完了';
+            } catch(e) { console.error(e); }
+        }
+
+        function clearAll() {
+            if(!confirm('全ての入力内容を消去しますか？')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();
+        }
+
+        // --- Wordエクスポート ---
+        function exportToWord() {
+            selectedIndex = -1; renderCanvas();
+            const clone = document.getElementById('plan-area').cloneNode(true);
+            
+            // 図の処理
+            const canvas = document.getElementById('env-canvas');
+            const manualImg = document.getElementById('manual-image');
+            const mergedCanvas = document.createElement('canvas');
+            mergedCanvas.width = canvas.width;
+            mergedCanvas.height = canvas.height;
+            const ctx = mergedCanvas.getContext('2d');
+            
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, mergedCanvas.width, mergedCanvas.height);
+
+            if (manualImg.style.display !== 'none' && manualImg.src) {
+                const hRatio = mergedCanvas.width / manualImg.naturalWidth;
+                const vRatio = mergedCanvas.height / manualImg.naturalHeight;
+                const ratio  = Math.min ( hRatio, vRatio );
+                const centerShift_x = ( mergedCanvas.width - manualImg.naturalWidth*ratio ) / 2;
+                const centerShift_y = ( mergedCanvas.height - manualImg.naturalHeight*ratio ) / 2;  
+                ctx.drawImage(manualImg, 0, 0, manualImg.naturalWidth, manualImg.naturalHeight,
+                                       centerShift_x, centerShift_y, manualImg.naturalWidth*ratio, manualImg.naturalHeight*ratio);
+            }
+            ctx.drawImage(canvas, 0, 0);
+            
+            const imgData = mergedCanvas.toDataURL("image/png");
+            const drawingArea = clone.querySelector('.env-drawing-container');
+            drawingArea.innerHTML = `<img src="${imgData}" width="400" style="border:1px solid #ccc;">`;
+            
+            clone.querySelectorAll('.editable').forEach(el => {
+                const text = el.innerText.replace(/\n/g, '<br>');
+                el.removeAttribute('contenteditable');
+                el.innerHTML = text || '　';
+                el.style.background = 'none';
+                el.style.border = 'none';
+            });
+            
+            clone.querySelectorAll('.drawing-toolbar, .no-print').forEach(el => el.remove());
+
+            const html = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
+                <head><meta charset='UTF-8'><style>
+                    body { font-family: 'MS Mincho', serif; font-size: 10.5pt; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+                    th, td { border: 1px solid #000; padding: 5px; vertical-align: top; }
+                    th { background-color: #f0f0f0; }
+                </style></head><body>${clone.innerHTML}</body></html>`;
+            
+            const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // ファイル名生成ロジック変更
+            const title = document.getElementById('main-title').innerText.trim();
+            let dateStr = document.getElementById('field-date').innerText.trim();
+            
+            // 日付抽出
+            const dateMatch = dateStr.match(/(?:[0-9０-９]{4}年|[令和平成昭和][0-9０-９元]+年)\s*[0-9０-９]+月\s*[0-9０-９]+日/);
+            
+            if (dateMatch) {
+                dateStr = dateMatch[0];
+            } else {
+                dateStr = dateStr.replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, '_').substring(0, 30);
+                if (!dateStr) dateStr = new Date().toISOString().slice(0,10);
+            }
+
+            // 現在時刻のタイムスタンプを生成 (例: 20260130-123045)
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                            (now.getMonth()+1).toString().padStart(2, '0') +
+                            now.getDate().toString().padStart(2, '0') + '-' +
+                            now.getHours().toString().padStart(2, '0') +
+                            now.getMinutes().toString().padStart(2, '0') +
+                            now.getSeconds().toString().padStart(2, '0');
+            
+            link.download = `${title}_${dateStr}_${timestamp}.doc`;
+            link.click();
+        }
+
+        // --- Canvas ロジック ---
+        function initCanvasEvents() {
+            const canvas = document.getElementById('env-canvas');
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('touchstart', handleMouseDown, {passive:false});
+            canvas.addEventListener('touchmove', handleMouseMove, {passive:false});
+            window.addEventListener('touchend', handleMouseUp);
+        }
+
+        function getMousePos(evt) {
+            const canvas = document.getElementById('env-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const clientX = evt.changedTouches ? evt.changedTouches[0].clientX : evt.clientX;
+            const clientY = evt.changedTouches ? evt.changedTouches[0].clientY : evt.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e);
+            let hit = false;
+            for(let i=canvasObjects.length-1; i>=0; i--) {
+                const obj = canvasObjects[i];
+                if(Math.abs(pos.x - obj.x) < 20 && Math.abs(pos.y - obj.y) < 20) {
+                    selectedIndex = i; isDragging = true;
+                    dragStartX = pos.x; dragStartY = pos.y;
+                    dragSnapshot = JSON.parse(JSON.stringify(canvasObjects));
+                    hit = true;
+                    renderCanvas(); return;
+                }
+            }
+            if(!hit) { selectedIndex = -1; renderCanvas(); }
+        }
+
+        function handleMouseMove(e) {
+            e.preventDefault();
+            if(!isDragging || selectedIndex === -1) return;
+            const pos = getMousePos(e);
+            canvasObjects[selectedIndex].x += pos.x - dragStartX;
+            canvasObjects[selectedIndex].y += pos.y - dragStartY;
+            dragStartX = pos.x; dragStartY = pos.y;
+            renderCanvas();
+        }
+
+        function handleMouseUp() { 
+            if (isDragging && dragSnapshot) {
+                historyStack.push(dragSnapshot);
+                if(historyStack.length > 20) historyStack.shift();
+                dragSnapshot = null;
+            }
+            isDragging = false; 
+            debouncedSave(); 
+        }
+
+        function addObj(type) {
+            const obj = { type: type, x: 200, y: 150 };
+            if(type==='teacher'){ obj.label='T'; obj.color='red'; }
+            if(type==='child'){ obj.label='子'; obj.color='#333'; }
+            if(type==='desk'){ obj.w=50; obj.h=30; obj.color='#ddd'; }
+            if(type==='chair'){ obj.w=15; obj.h=15; obj.color='#fff'; }
+            if(type==='piano'){ obj.w=40; obj.h=50; obj.color='#333'; }
+            if(type==='mat'){ obj.w=60; obj.h=40; obj.color='#81c784'; }
+            if(type==='cone'){ obj.color='red'; }
+            if(type==='goal'){ obj.color='blue'; }
+            canvasObjects.push(obj);
+            selectedIndex = canvasObjects.length - 1;
+            renderCanvas();
+        }
+
+        function deleteSelectedObj() {
+            if(selectedIndex >= 0) {
+                canvasObjects.splice(selectedIndex, 1);
+                selectedIndex = -1; renderCanvas();
+            }
+        }
+
+        function renderCanvas() {
+            const ctx = document.getElementById('env-canvas').getContext('2d');
+            ctx.clearRect(0,0,400,300);
+            
+            // 背景は透過（HTMLのimgが見えるように）
+            // ただし、画像保存時は背景白が必要なので、ここではクリアのみ
+            
+            canvasObjects.forEach((obj, i) => {
+                ctx.save(); ctx.translate(obj.x, obj.y);
+                if(i === selectedIndex) {
+                    ctx.shadowColor = '#2563eb'; ctx.shadowBlur = 10;
+                }
+                
+                if(obj.type === 'teacher') {
+                    ctx.font='bold 20px Arial'; ctx.fillStyle=obj.color;
+                    ctx.textAlign='center'; ctx.fillText('×',0,4); ctx.font='10px Arial'; ctx.fillText(obj.label,12,-5);
+                } else if(obj.type === 'child') {
+                    ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.strokeStyle=obj.color; ctx.stroke();
+                    ctx.font='10px Arial'; ctx.fillStyle='#333'; ctx.textAlign='center'; ctx.fillText(obj.label,0,-12);
+                } else if(obj.type === 'desk' || obj.type === 'mat' || obj.type === 'piano') {
+                    ctx.fillStyle=obj.color; ctx.fillRect(-obj.w/2, -obj.h/2, obj.w, obj.h);
+                    ctx.strokeRect(-obj.w/2, -obj.h/2, obj.w, obj.h);
+                } else if(obj.type === 'chair') {
+                    ctx.strokeRect(-7, -7, 14, 14); ctx.beginPath(); ctx.moveTo(-7,-7); ctx.lineTo(7,-7); ctx.stroke();
+                } else if(obj.type === 'cone') {
+                    ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(8,10); ctx.lineTo(-8,10); ctx.closePath();
+                    ctx.fillStyle=obj.color; ctx.fill(); ctx.stroke();
+                } else if(obj.type === 'goal') {
+                    ctx.strokeRect(0,-15,15,10); ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-15); ctx.stroke();
+                }
+                ctx.restore();
+            });
+        }
+
+        // 簡易的なテキスト解析作図（キーワード検知）
+        function generateDiagramFromText() {
+            const text = document.getElementById('field-env-text').innerText;
+            canvasObjects = [];
+            
+            if(text.includes('ピアノ')) addObj('piano');
+            if(text.includes('マット')) addObj('mat');
+            if(text.includes('コーン')) { addObj('cone'); canvasObjects[canvasObjects.length-1].x += 40; addObj('cone'); }
+            if(text.includes('ゴール') || text.includes('サッカー')) addObj('goal');
+            
+            // デフォルト
+            addObj('teacher');
+            for(let i=0; i<3; i++) {
+                addObj('child');
+                canvasObjects[canvasObjects.length-1].x = 100 + i*50;
+                canvasObjects[canvasObjects.length-1].y = 200;
+            }
+            renderCanvas();
+        }
+
+        function saveDiagramImage() {
+            const canvas = document.getElementById('env-canvas');
+            const manualImg = document.getElementById('manual-image');
+            
+            // 合成用キャンバス
+            const mergedCanvas = document.createElement('canvas');
+            mergedCanvas.width = canvas.width;
+            mergedCanvas.height = canvas.height;
+            const ctx = mergedCanvas.getContext('2d');
+            
+            // 背景白
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, mergedCanvas.width, mergedCanvas.height);
+
+            // 背景画像がある場合は描画
+            if (manualImg.style.display !== 'none' && manualImg.src) {
+                const hRatio = mergedCanvas.width / manualImg.naturalWidth;
+                const vRatio = mergedCanvas.height / manualImg.naturalHeight;
+                const ratio  = Math.min ( hRatio, vRatio );
+                const centerShift_x = ( mergedCanvas.width - manualImg.naturalWidth*ratio ) / 2;
+                const centerShift_y = ( mergedCanvas.height - manualImg.naturalHeight*ratio ) / 2;  
+                ctx.drawImage(manualImg, 0, 0, manualImg.naturalWidth, manualImg.naturalHeight,
+                                       centerShift_x, centerShift_y, manualImg.naturalWidth*ratio, manualImg.naturalHeight*ratio);
+            }
+            
+            // Canvasの内容
+            ctx.drawImage(canvas, 0, 0);
+
+            const link = document.createElement('a');
+            link.href = mergedCanvas.toDataURL("image/png");
+            link.download = "env_diagram.png";
+            link.click();
+        }
+
+        // --- Word読み込みロジック (v43-beta.10の extractRawText を維持して強化) ---
+        function handleDocUpload(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            
+            updateStatus('ファイルを解析中...');
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                // 現状維持のため extractRawText を使用
+                mammoth.extractRawText({arrayBuffer: event.target.result})
+                    .then(result => {
+                        const text = result.value;
+                        parseAndSetData(text); // 解析関数を呼ぶ
+                        updateStatus('読み込み完了');
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('読み込みエラー: ' + err.message);
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parseAndSetData(text) {
+            // 1. ねらいの抽出
+            const aimMainMatch = text.match(/【主となるねらい】\s*([\s\S]*?)(?=\n\s*【その他のねらい】|\n\s*[3-9]\.|\n\s*4\.|$)/);
+            const aimSubMatch = text.match(/【その他のねらい】\s*([\s\S]*?)(?=\n\s*[3-9]\.|\n\s*4\.|$)/);
+            
+            if (aimMainMatch) {
+                document.getElementById('field-aim-main').innerText = aimMainMatch[1].trim();
+            }
+            if (aimSubMatch) {
+                document.getElementById('field-aim-sub').innerText = aimSubMatch[1].trim();
+            }
+
+            // 2. 主活動（2. 主活動 〜 3. ねらい の間）
+            const activityMatch = text.match(/2\.\s*主活動[^]*?\n([\s\S]*?)(?=\n\s*3\.\s*ねらい)/);
+            if(activityMatch) {
+                 document.getElementById('field-activity').innerText = activityMatch[1].trim();
+            }
+            
+            // 3. 基本情報の抽出 (日時、クラスなど)
+            const dateMatch = text.match(/日時[:：]\s*(.*)/);
+            if(dateMatch) document.getElementById('field-date').innerText = dateMatch[1].trim();
+
+            const classMatch = text.match(/クラス[:：]\s*(.*)/);
+            if(classMatch) document.getElementById('field-class').innerText = classMatch[1].trim();
+
+            const ageMatch = text.match(/対象年齢[:：]\s*(.*)/);
+            if(ageMatch) document.getElementById('field-age').innerText = ageMatch[1].trim();
+            
+            // 4. 環境構成
+            const envMatch = text.match(/環境構成・準備[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.|\n\s*6\.)/);
+            if(envMatch) {
+                document.getElementById('field-env-text').innerText = envMatch[1].trim();
+                // 環境構成のテキストがセットされたら、自動的に図を生成する
+                // 生成前の状態を履歴に保存したいが、ここはファイル読み込み直後なので
+                // 履歴をリセットして初期状態とする方が自然かもしれない
+                historyStack = [];
+                generateDiagramFromText();
+            }
+
+            // 5. 領域に関する視点・内容 (新規追加: Raw Text対応)
+            const perspectiveMatch = text.match(/領域.*視点[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.)/);
+            if (perspectiveMatch) {
+                document.getElementById('field-perspective').innerText = perspectiveMatch[1].trim();
+            }
+
+            // 6. 予想される子どもの姿 (新規追加)
+            const childMatch = text.match(/予想される子どもの姿[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.|指導過程)/);
+            if (childMatch) {
+                document.getElementById('field-child-prediction').innerText = childMatch[1].trim();
+            }
+
+            // 7. 指導過程（活動の展開） - テキスト解析による簡易抽出 (強化版)
+            const processStartKey = "指導過程";
+            const processStartIdx = text.indexOf(processStartKey);
+            
+            if (processStartIdx !== -1) {
+                let processText = text.substring(processStartIdx);
+                const nextSectionMatch = processText.match(/\n\s*[8-9８-９][.．]/); 
+                if (nextSectionMatch) {
+                    processText = processText.substring(0, nextSectionMatch.index);
+                }
+
+                // 行区切り（時間が先頭に来る部分で分割）
+                const timeBlocks = processText.split(/\n+(?=\s*\d{1,2}[:：]\d{2})/);
+                const tbody = document.getElementById('timeline-body');
+                
+                const validRows = timeBlocks.filter(block => block.match(/^\s*\d{1,2}[:：]\d{2}/));
+
+                if (validRows.length > 0) {
+                    tbody.innerHTML = ''; // 既存の空行をクリア
+                    
+                    validRows.forEach(block => {
+                        const lines = block.split(/\n+/).map(s => s.trim()).filter(s => s);
+                        
+                        if (lines.length > 0) {
+                            const time = lines[0];
+                            let activityLines = [];
+                            let childLines = [];
+                            let supportLines = [];
+                            
+                            // 1. 援助・配慮 (Support) の分離
+                            let supportStartIndex = -1;
+                            for (let i = 1; i < lines.length; i++) {
+                                const line = lines[i];
+                                if (line.match(/^[●○◎]/) || line.includes('【配慮') || line.includes('【援助') || line.includes('【工夫') || line.includes('【環境') || line.includes('【対応')) {
+                                    supportStartIndex = i;
+                                    break;
+                                }
+                            }
+                            
+                            let contentLines = [];
+                            if (supportStartIndex !== -1) {
+                                contentLines = lines.slice(1, supportStartIndex);
+                                supportLines = lines.slice(supportStartIndex);
+                            } else {
+                                contentLines = lines.slice(1);
+                            }
+
+                            // 2. 活動 (Activity) と 子ども (Child) の分離
+                            // 「」などの会話文や感情語句があれば、そこからChildとみなす
+                            let childStartIndex = -1;
+                            for (let i = 0; i < contentLines.length; i++) {
+                                const line = contentLines[i];
+                                // 会話文、感情語句、または子供らしい記述
+                                if (line.includes('「') || line.includes('」') || line.includes('様子') || line.includes('姿') || line.match(/(喜ぶ|泣く|怒る|楽しむ|遊ぶ|言う|話す|集まる|たがる|出る)$/)) {
+                                    // 1行目は「導入」などの項目名の可能性が高いのでスキップ
+                                    if (i === 0 && (line.includes('導入') || line.includes('展開') || line.includes('まとめ'))) {
+                                        continue;
+                                    }
+                                    childStartIndex = i;
+                                    break;
+                                }
+                            }
+
+                            if (childStartIndex !== -1) {
+                                activityLines = contentLines.slice(0, childStartIndex);
+                                childLines = contentLines.slice(childStartIndex);
+                            } else {
+                                // キーワードが見つからない場合は行数で等分
+                                const splitPoint = Math.ceil(contentLines.length / 2);
+                                activityLines = contentLines.slice(0, splitPoint);
+                                childLines = contentLines.slice(splitPoint);
+                            }
+
+                            // フォーマット整形関数:
+                            const formatText = (str) => {
+                                let res = str;
+                                // 1. 「導入」「展開」「事後」の後の改行処理
+                                // キーワード + (スペース) + ・ -> ・の前で改行
+                                res = res.replace(/^([ \t　]*(?:導入|展開(?:（.*?）)?|事後(?:（.*?）)?))([ \t　]*)(・)/gm, '$1\n$3');
+                                // キーワード + スペース + (・以外) -> スペースで改行
+                                res = res.replace(/^([ \t　]*(?:導入|展開(?:（.*?）)?|事後(?:（.*?）)?))([ \t　]+)([^・\n])/gm, '$1\n$3');
+                                
+                                // 2. 全ての「・」について、その前が改行でないなら改行を入れる
+                                // 直前が改行でない場合に改行を挿入。スペースがあっても無視して改行を入れる
+                                res = res.replace(/([^\n])\s*(・)/g, '$1\n$2');
+                                return res;
+                            };
+
+                            const act = formatText(activityLines.join('\n'));
+                            const child = formatText(childLines.join('\n'));
+                            const support = formatText(supportLines.join('\n'));
+                            
+                            addTimelineRow(time, act, child, support);
+                        }
+                    });
+                }
+            }
+
+            // 8. 振り返り・考察 (修正版)
+            // 行頭（または改行後）にある見出しを厳密に探す
+            const reflectionStartRegex = /(?:^|\n)\s*(?:[0-9０-９]+\.?\s*)?実習生(?:として)?の(?:振り返り|考察|反省)(?:.*視点)?/;
+            const reflectionMatch = text.match(reflectionStartRegex);
+            
+            if (reflectionMatch) {
+                const startIdx = reflectionMatch.index + reflectionMatch[0].length;
+                
+                // 終了位置の探索
+                // 1. 次の番号付きセクション (例: "9.")
+                // 2. "作成・活用のポイント" などの特定セクション (作成.*ポイント で広くマッチ)
+                // 3. 文末
+                const endRegex = /(?:\n\s*[0-9０-９]+\.?\s)|(?:\n\s*作成.*ポイント)/;
+                const nextSectionMatch = text.substring(startIdx).match(endRegex);
+                
+                let endIdx = text.length;
+                if (nextSectionMatch) {
+                    endIdx = startIdx + nextSectionMatch.index;
+                }
+                
+                let content = text.substring(startIdx, endIdx).trim();
+                // 先頭の記号除去
+                content = content.replace(/^[:：\)\s]+/, '');
+                
+                if (content) {
+                    document.getElementById('field-reflection').innerText = content;
+                }
+            }
+            
+            alert("Wordファイルから以下の項目を抽出しました：\n・ねらい（主・その他）\n・基本情報（日時・クラス等）\n・環境構成（配置図自動作成）\n・領域に関する視点\n・予想される姿\n・指導過程（簡易解析）\n・実習生の振り返り\n\n※指導過程はテキスト解析のため、セル分けが正確でない場合があります。手動で調整してください。");
+        }
+
+        function updateStatus(msg) {
+            const el = document.createElement('div');
+            el.className = 'status-pill show';
+            el.innerHTML = `<span>${msg}</span>`;
+            document.getElementById('status-msg-container').appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
