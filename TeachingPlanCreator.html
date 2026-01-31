@@ -772,8 +772,49 @@
 
         function clearAll() {
             if(!confirm('全ての入力内容を消去しますか？\n（保存されたデータも削除されます）')) return;
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();
+            
+            // 自動保存を一時停止して処理
+            isRestoring = true;
+            
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+                
+                // フォーム類のクリア
+                document.querySelectorAll('.editable').forEach(el => el.innerHTML = '');
+                document.getElementById('plan-type-select').selectedIndex = 0;
+                document.getElementById('plan-mode-select').selectedIndex = 0;
+                document.getElementById('main-title').innerText = '教育実習指導案';
+                
+                // タイムライン再構築
+                const tbody = document.getElementById('timeline-body');
+                tbody.innerHTML = '';
+                for(let i=0; i<4; i++) {
+                    // ここで呼ぶaddTimelineRowはisRestoring=trueなので保存しない
+                    addTimelineRow();
+                }
+
+                // キャンバスクリア
+                canvasObjects = [];
+                selectedIndex = -1;
+                renderCanvas();
+                
+                // 画像クリア
+                const img = document.getElementById('manual-image');
+                img.src = '';
+                img.style.display = 'none';
+                document.getElementById('img-upload-input').value = '';
+
+                // ステータス更新
+                document.getElementById('auto-save-status').innerText = '🗑️ データ削除済';
+                updateStatus('全データを消去しました', 'success');
+                
+            } catch(e) {
+                console.error(e);
+                alert('削除処理中にエラーが発生しました。');
+            } finally {
+                // 処理完了後に保存再開
+                setTimeout(() => { isRestoring = false; }, 500);
+            }
         }
 
         // --- Wordエクスポート ---
