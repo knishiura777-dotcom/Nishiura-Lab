@@ -56,6 +56,16 @@
     ::-webkit-scrollbar {width: 6px;}
     ::-webkit-scrollbar-track {background: #0f172a;}
     ::-webkit-scrollbar-thumb {background: #334155; border-radius: 3px;}
+
+    /* Typewriter Cursor */
+    .typewriter-cursor::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      from, to { color: transparent }
+      50% { color: #06b6d4 }
+    }
   </style>
 </head>
 
@@ -70,7 +80,6 @@
     // ---------------------------
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-    const RANKING_KEY = "ssg_ranking_tack_v1";
 
     // ---------------------------
     // Icons
@@ -136,12 +145,12 @@
     };
 
     // TACK Model Mapping
-    // T: Togetherness (Global Variable) - Previously Trust
-    // A: Autonomy (Local Variable)
+    // T: Togetherness (Global Variable)
+    // A: Agency (Local Variable) - Formerly Autonomy
     // C: Coherence (Mapped from meaning)
     // K: Kinetics (Mapped from vitality)
     const WB_FACTORS = [
-      { id: "autonomy",   label: "Autonomy (自律)", icon: "Clock", color: "text-emerald-400", bg: "bg-emerald-500", desc: "自らの意志で決定・行動できる感覚。追われると低下。" },
+      { id: "agency",     label: "Agency (能動性)", icon: "Clock", color: "text-emerald-400", bg: "bg-emerald-500", desc: "自らの意志で決定・行動できる感覚。余白がないと低下。" },
       { id: "meaning",    label: "Coherence (一貫)", icon: "Target", color: "text-purple-400", bg: "bg-purple-500", desc: "目的と行動の一致感。首尾一貫性(SOC)。" },
       { id: "vitality",   label: "Kinetics (動性)", icon: "Activity", color: "text-yellow-400", bg: "bg-yellow-500", desc: "未来へ向かう組織の活力。停滞すると死ぬ。" },
       { id: "connection", label: "Kizuna (絆)", icon: "Users", color: "text-cyan-400", bg: "bg-cyan-500", desc: "セーフティネットとしての繋がり。孤立を防ぐ。" },
@@ -160,9 +169,9 @@
         title: "時短Kit開発 (Social Product)",
         subtitle: "時間を売る商品戦略",
         desc: "「親が子供と向き合う時間」を作るためのミールキット等を開発・普及させます。",
-        pros: "子育て世帯の精神的余白を創出（Autonomy・Kinetics↑）",
+        pros: "子育て世帯の精神的余白を創出（Agency・Kinetics↑）",
         cons: "開発・広報コストがかかり、利益率は下がる可能性",
-        eff: { b: -200, bo: -2, c: 2, wb: { autonomy: 15, vitality: 5 } },
+        eff: { b: -200, bo: -2, c: 2, wb: { agency: 15, vitality: 5 } },
       },
       hub_commons: {
         title: "拠点開放 (Commons)",
@@ -177,75 +186,119 @@
         subtitle: "効率と利益の追求",
         desc: "従来の小売・物流業務に専念し、収益性を最大化します。",
         pros: "予算の確保、現場の混乱回避",
-        cons: "【警告】現場疲弊大。TACK因子（特にAutonomy/Kinetics）が著しく低下します。",
-        // 罰則強化: 疲弊度(bo)大幅増, Autonomy/Coherence/Kinetics減少, Togetherness減少
-        eff: { b: 200, bo: 15, c: 0, wb: { autonomy: -5, meaning: -5, vitality: -5 }, t: -1 },
+        cons: "【警告】現場疲弊大。TACK因子（特にAgency/Kinetics）が著しく低下します。",
+        eff: { b: 200, bo: 15, c: 0, wb: { agency: -5, meaning: -5, vitality: -5 }, t: -1 },
       },
     };
 
     const CRITICAL_EVENTS = [
       { id: "ev1", title: "【行政】仁義なき縦割り", icon: "Alert", desc: "福祉課「移動販売車を入れて」道路課「駐禁です」。板挟みで車が出せません。",
         choices: [
-          // Good (System) Choice: Cost money, boosts TACK
-          { t: "「これは家です」", eff: { b: -100, bo: 0, c: 5, wb: { vitality: 10, autonomy: 5 } }, msg: "法務部が動いてロジックを構築。Kinetics(活力)が生まれました。", good: true },
-          // Bad (Guts) Choice: Free, Burns Autonomy/Coherence
-          { t: "調整会議で粘る", eff: { b: 0, bo: 15, c: 0, wb: { meaning: -10, autonomy: -10 } }, msg: "「検討を加速」。Coherence(一貫性)が失われました。", good: false },
-          // Risky
+          { t: "「これは家です」", eff: { b: -100, bo: 0, c: 5, wb: { vitality: 10, agency: 5 } }, msg: "法務部が動いてロジックを構築。Kinetics(活力)が生まれました。", good: true },
+          { t: "調整会議で粘る", eff: { b: 0, bo: 15, c: 0, wb: { meaning: -10, agency: -10 } }, msg: "「検討を加速」。Coherence(一貫性)が失われました。", good: false },
           { t: "強行突破", eff: { b: -20, bo: 5, c: 10, wb: { connection: 5 }, t: -10 }, msg: "住民は歓喜！しかしコンプラ違反でTogetherness低下。", good: true },
         ]
       },
       { id: "ev2", title: "【行政】ハイテク・ハンコ地獄", icon: "WifiOff", desc: "DX推進を頼まれましたが、完了画面のスクショを「印刷して実印」が必要らしいです。",
         choices: [
-           // Good (System)
-          { t: "独自アプリ開発", eff: { b: -150, bo: 0, c: 5, wb: { autonomy: 15 } }, msg: "システムで隠蔽！現場にAutonomy(余白)が戻りました。", good: true },
-           // Bad (Guts)
+          { t: "独自アプリ開発", eff: { b: -150, bo: 0, c: 5, wb: { agency: 15 } }, msg: "システムで隠蔽！現場にAgency(主体的な余白)が戻りました。", good: true },
           { t: "「規則ですので」", eff: { b: 0, bo: 10, c: 0, wb: { meaning: -15, vitality: -5 } }, msg: "思考停止。Coherence(意味)を感じられず現場は徒労感。", good: false },
           { t: "判子付きケース配布", eff: { b: -30, bo: 0, c: 2, wb: { vitality: 5 } }, msg: "ギミックが大ウケ。少しKinetics回復。", good: false },
         ]
       },
       { id: "ev3", title: "【行政】ポエムな成果指標", icon: "Target", desc: "報告書に対し、「定量的データはいいから、『地域の輝き度』を数値化して」との修正指示。",
         choices: [
-          // Bad (Guts/Lying)
           { t: "適当に120%で報告", eff: { b: 0, bo: -5, c: 0, wb: { meaning: -20 }, t: -10 }, msg: "嘘をつく仕事。CoherenceとTogethernessが大きく傷つきました。", good: false },
-          // Good (System)
           { t: "笑顔AI導入", eff: { b: -150, bo: 0, c: 0, wb: { vitality: 10, meaning: 5 } }, msg: "AIに「輝き」を測定させました。馬鹿馬鹿しいですがKineticsは維持。", good: true },
-          { t: "データで反論", eff: { b: 0, bo: 20, c: 0, t: 5, wb: { autonomy: -10 } }, msg: "3時間の説教。Autonomy(時間)を浪費しました。", good: false },
+          { t: "データで反論", eff: { b: 0, bo: 20, c: 0, t: 5, wb: { agency: -10 } }, msg: "3時間の説教。Agency(時間と意志)を浪費しました。", good: false },
         ]
       },
       { id: "ev_op1", title: "【現場】最強パート「お局様」", icon: "Zap", desc: "勤続30年の鈴木さんが「店長のやり方はぬるい！」と実権を掌握しかけています。",
         choices: [
-          // System/Cost approach
           { t: "名誉理事に祭り上げ", eff: { b: -50, bo: -5, c: 5, wb: { meaning: 10, connection: 5 } }, msg: "役割を与える設計。承認欲求が満たされCoherence回復。", good: true },
-          // Guts/Conflict
           { t: "店長vsお局", eff: { b: 0, bo: 30, c: 0, wb: { connection: -20, vitality: -10 } }, msg: "店舗が戦場に。KizunaとKineticsが崩壊。", good: false },
-          { t: "全権委任", eff: { b: 100, bo: 20, c: 0, wb: { vitality: -10, autonomy: -10 } }, msg: "効率は上がりましたが、若手のAutonomyが死にました。", good: false },
+          { t: "全権委任", eff: { b: 100, bo: 20, c: 0, wb: { vitality: -10, agency: -10 } }, msg: "効率は上がりましたが、若手のAgencyが死にました。", good: false },
         ]
       },
       { id: "ev_op2", title: "【物流】誤発注：豆腐1000丁", icon: "Truck", desc: "新人が0を1つ多く入力。トラック一杯の木綿豆腐が届きました。",
         choices: [
-          // System/Creative
           { t: "緊急「豆腐祭り」", eff: { b: -50, bo: 10, c: 10, wb: { vitality: 20, connection: 10 } }, msg: "イベント化してKinetics爆増！", good: true },
-          // Guts/Punishment
-          { t: "全廃棄＆始末書", eff: { b: -100, bo: 5, c: 0, wb: { meaning: -10, autonomy: -10 } }, msg: "豆腐と共に心も砕けました。Coherence低下。", good: false },
+          { t: "全廃棄＆始末書", eff: { b: -100, bo: 5, c: 0, wb: { meaning: -10, agency: -10 } }, msg: "豆腐と共に心も砕けました。Coherence低下。", good: false },
           { t: "「豆腐風呂」", eff: { b: -50, bo: 0, c: -10, t: -20 }, msg: "炎上しました。Togetherness低下。", good: false },
         ]
       },
       { id: "ev_soc1", title: "【教育】部活の地域移行", icon: "Users", desc: "「練習場所がない」と子供たちが生協駐車場でサッカーを始めました。",
         choices: [
-          // Guts/Rule
           { t: "追い返す", eff: { b: 0, bo: 0, c: -5, wb: { connection: -10 } }, msg: "安全管理上は正解ですが、地域とのKizunaに亀裂。", good: false },
-          // System/Investment
           { t: "場所を開放・整備", eff: { b: -100, bo: 5, c: 20, wb: { vitality: 15, connection: 10 } }, msg: "ネットを設置。KineticsとKizunaが向上。", good: true },
-          // Manual/Guts
-          { t: "店長がGK参戦", eff: { b: 0, bo: 15, c: 10, wb: { vitality: 15 } }, msg: "盛り上がりましたが、店長の仕事が終わりません(Autonomy低下)。", good: true },
+          { t: "店長がGK参戦", eff: { b: 0, bo: 15, c: 10, wb: { vitality: 15 } }, msg: "盛り上がりましたが、店長の仕事が終わりません(Agency低下)。", good: true },
         ]
-      },
-      // More events can be added here, adhering to System vs Guts logic
+      }
     ];
 
     // ---------------------------
     // Components
     // ---------------------------
+    
+    // Typewriter Story Component
+    const IntroStory = ({ onComplete }) => {
+      const fullText = `西暦2035年。
+日本の人口減少は「危険水域」を突破した。
+
+行政サービスは撤退し、
+「買い物難民」「独居老人の孤立」「子育ての孤立」……
+社会の隙間に、音もなく人々が落ちていく。
+
+あなたに課せられた使命は、
+地域に根ざした物流網を持つ「生協」を
+次世代の『社会的共通資本』へとハックすること。
+
+地域の資源（Resource）を最大化し、
+社会的負荷（Risk）を最小化せよ。
+
+これは、単なる経営シミュレーションではない。
+この国の「生存戦略」だ。`;
+
+      const [displayedText, setDisplayedText] = useState("");
+      const [index, setIndex] = useState(0);
+
+      useEffect(() => {
+        if (index < fullText.length) {
+          const timer = setTimeout(() => {
+            setDisplayedText(prev => prev + fullText[index]);
+            setIndex(prev => prev + 1);
+          }, 40); // Typing speed
+          return () => clearTimeout(timer);
+        }
+      }, [index, fullText]);
+
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-black text-cyan-400 font-mono">
+          <div className="max-w-lg w-full space-y-8">
+            <div className="text-left text-sm md:text-base leading-relaxed whitespace-pre-wrap typewriter-cursor">
+              {displayedText}
+            </div>
+            {index >= fullText.length && (
+              <div className="pt-10 flex justify-center fade-in">
+                <button 
+                  onClick={onComplete}
+                  className="px-8 py-3 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold rounded-lg hover:bg-cyan-500 hover:text-black transition-all animate-pulse"
+                >
+                  ミッションを受諾する
+                </button>
+              </div>
+            )}
+          </div>
+          <button 
+            onClick={onComplete}
+            className="fixed bottom-8 right-8 text-[10px] text-slate-700 hover:text-slate-500"
+          >
+            SKIP [ESC]
+          </button>
+        </div>
+      );
+    };
+
     const useEscToClose = (onClose, enabled = true) => {
       useEffect(() => {
         if (!enabled) return;
@@ -366,10 +419,9 @@
 
       const eff = getLevelEffect(data.eff, level);
 
-      // DiffBar Component for Forecasting
       const DiffBar = ({ current, diff, baseClass, label }) => {
         const isPositive = diff > 0;
-        if (diff === 0) return null; // Don't show if no change
+        if (diff === 0) return null;
 
         return (
           <div className="flex items-center gap-2 text-xs mb-1.5">
@@ -418,17 +470,13 @@
                    {level > 1 && <span className="text-yellow-400 text-[10px]">Lv.{level} Effect Boosted</span>}
                 </div>
                 
-                {/* Budget & Burnout */}
                 <div className="flex justify-between text-xs font-mono mb-2 border-b border-white/5 pb-2">
                   <span className={eff.b >= 0 ? "text-emerald-400" : "text-rose-400"}>予算: {eff.b > 0 ? "+" : ""}{eff.b}k</span>
                   <span className={eff.bo <= 0 ? "text-emerald-400" : "text-rose-400"}>疲弊: {eff.bo > 0 ? "+" : ""}{eff.bo}</span>
                 </div>
 
-                {/* TACK Factors */}
                 <div className="space-y-1">
-                  {/* T */}
                   <DiffBar current={currentStats.trust} diff={eff.t || 0} baseClass="bg-yellow-500" label="Togetherness" />
-                  {/* WB Factors (A, C, K, Kizuna) */}
                   {WB_FACTORS.map(f => {
                     const diff = eff.wb?.[f.id] || 0;
                     return <DiffBar key={f.id} current={currentStats.wb[f.id]} diff={diff} baseClass={f.bg} label={f.label.split(' ')[0]} />;
@@ -465,7 +513,7 @@
     // Main App
     // ---------------------------
     const App = () => {
-      const [gameState, setGameState] = useState("start");
+      const [gameState, setGameState] = useState("intro"); // Start with intro
       const [turn, setTurn] = useState(1);
       const [showHelp, setShowHelp] = useState(false);
 
@@ -478,10 +526,9 @@
       const [confirmingStrategy, setConfirmingStrategy] = useState(null);
       const [usedEventIds, setUsedEventIds] = useState([]);
 
-      const [wbStats, setWbStats] = useState({ connection: 30, autonomy: 40, meaning: 50, vitality: 40 });
+      const [wbStats, setWbStats] = useState({ connection: 30, agency: 40, meaning: 50, vitality: 40 });
       const [households, setHouseholds] = useState(() => Array.from({ length: 100 }, (_, i) => ({ id: i, status: STATUS.NORMAL, isMember: Math.random() > 0.3 })));
       const [finalScore, setFinalScore] = useState(null);
-      const [ranking, setRanking] = useState([]);
       
       const [strategyExp, setStrategyExp] = useState({ delivery_sensing: 0, product_social: 0, hub_commons: 0 });
 
@@ -520,40 +567,24 @@
         const connected = households.filter(h => h.status === STATUS.CONNECTED).length;
         const critical = households.filter(h => h.status === STATUS.CRITICAL).length;
         const percentage = Math.floor((connected / households.length) * 100);
-        let label = "五里霧中";
-        if (percentage >= 90) label = "天下泰平";
-        else if (percentage >= 70) label = "共存共栄";
-        else if (percentage >= 50) label = "一致団結";
-        else if (percentage >= 30) label = "一進一退";
-        else if (percentage >= 15) label = "孤立無援";
-        return { connect: percentage, criticalCount: critical, label };
+        return { connect: percentage, criticalCount: critical };
       }, [households]);
 
       const calculateScore = useCallback(() => {
-        const resourceScore = Math.floor(Object.values(wbStats).reduce((a, b) => a + b, 0) * 10);
-        const coverageScore = metrics.connect * 20;
-        const budgetScore = Math.floor(Math.max(0, budget) / 10);
-        const riskPenalty = Math.floor(burnout * 20);
-        const trustBonus = trust * 10;
-        const total = Math.max(0, resourceScore + coverageScore + budgetScore + trustBonus - riskPenalty);
         return {
-          total,
-          details: { resource: resourceScore, coverage: coverageScore, budget: budgetScore, trust: trustBonus, risk: riskPenalty },
           tack: {
             t: trust,
-            a: wbStats.autonomy,
+            a: wbStats.agency,
             c: wbStats.meaning,
             k: wbStats.vitality,
             kizuna: wbStats.connection
           }
         };
-      }, [wbStats, metrics.connect, budget, burnout, trust]);
+      }, [wbStats, trust]);
 
       const endIfNeeded = useCallback((nextBudget, nextBurnout, nextTrust, nextTurn) => {
         if (nextBudget <= 0 || nextBurnout >= 100 || nextTrust <= 0 || nextTurn > MAX_TURNS) {
-          const score = calculateScore();
-          if (nextBudget <= 0 || nextBurnout >= 100 || nextTrust <= 0) score.total = Math.floor(score.total * 0.5);
-          setFinalScore(score);
+          setFinalScore(calculateScore());
           setGameState("result");
           return true;
         }
@@ -580,7 +611,7 @@
           if (effect.wb) {
              for (const k of Object.keys(effect.wb)) assumedWb[k] = clamp(assumedWb[k] + effect.wb[k], 0, 100);
           }
-          const resLevel = (assumedWb.connection + assumedWb.autonomy + assumedWb.meaning + assumedWb.vitality) / 4;
+          const resLevel = (assumedWb.connection + assumedWb.agency + assumedWb.meaning + assumedWb.vitality) / 4;
           const riskProb = clamp(0.08 - (resLevel / 2000), 0.01, 0.15);
           const baseConnectChance = (effect.c || 0) / 100;
           return prevHouseholds.map(h => {
@@ -642,7 +673,7 @@
         setBudget(INITIAL_BUDGET);
         setBurnout(20);
         setTrust(100);
-        setWbStats({ connection: 30, autonomy: 40, meaning: 50, vitality: 40 });
+        setWbStats({ connection: 30, agency: 40, meaning: 50, vitality: 40 });
         setHouseholds(Array.from({ length: 100 }, (_, i) => ({ id: i, status: STATUS.NORMAL, isMember: Math.random() > 0.3 })));
         setLogs([]);
         setActiveEvent(null);
@@ -655,6 +686,12 @@
       // ---------------------------
       // Views
       // ---------------------------
+      
+      // Story Introduction
+      if (gameState === "intro") {
+        return <IntroStory onComplete={() => setGameState("start")} />;
+      }
+
       if (gameState === "start") {
         return (
           <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-900 relative overflow-hidden">
@@ -675,7 +712,7 @@
                 </p>
                 <div className="text-xs text-slate-500 mt-2 bg-slate-900 p-2 rounded grid grid-cols-2 gap-2">
                   <span className="text-yellow-400 font-bold">Togetherness (連帯)</span>
-                  <span className="text-emerald-400 font-bold">Autonomy (自律)</span>
+                  <span className="text-emerald-400 font-bold">Agency (能動性)</span>
                   <span className="text-purple-400 font-bold">Coherence (一貫)</span>
                   <span className="text-yellow-400 font-bold">Kinetics (活力)</span>
                 </div>
@@ -693,10 +730,9 @@
         const { tack } = finalScore;
         const getBarColor = (val) => val < 30 ? "bg-rose-500" : val < 60 ? "bg-yellow-500" : "bg-emerald-500";
         
-        // TACK Analysis Logic
         const getAnalysis = () => {
           if (tack.t < 30) return "【連帯の崩壊】トラブルを「現場の犠牲」で解決しようとしたため、組織のTogethernessが地に落ちました。";
-          if (tack.a < 30) return "【自律性の死】「気合」と対応業務に追われ、現場から思考する余裕(Autonomy)が奪われました。";
+          if (tack.a < 30) return "【能動性の死】「気合」と対応業務に追われ、現場から思考し行動する余白(Agency)が奪われました。";
           if (tack.c < 30) return "【意味の喪失】目的と行動が乖離しています。「なんのために頑張っているのか」が見えず、Coherenceが崩壊しました。";
           if (tack.k < 30) return "【停滞】自転車操業で精一杯です。未来への投資ができず、組織のKinetics(活力)が枯渇しました。";
           return "【A案証明完了】システムへの投資により、現場の負担を下げつつ高いTACKスコアを維持することに成功しました。これが「合理的な優しさ」です。";
@@ -728,10 +764,10 @@
                        <div className={`h-full ${getBarColor(tack.t)}`} style={{width: `${tack.t}%`}}></div>
                     </div>
                   </div>
-                  {/* A */}
+                  {/* A (Agency) */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-slate-300">
-                      <span>Autonomy (自律)</span> <span>{tack.a}</span>
+                      <span>Agency (能動性)</span> <span>{tack.a}</span>
                     </div>
                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                        <div className={`h-full ${getBarColor(tack.a)}`} style={{width: `${tack.a}%`}}></div>
@@ -885,7 +921,7 @@
                 </div>
                 <div className="text-emerald-400 mb-1"><Icon name="Clock"/></div>
                 <div className="text-[10px] font-bold text-white">時短Kit</div>
-                <div className="text-[8px] text-slate-500">Autonomy↑ Kinetics↑</div>
+                <div className="text-[8px] text-slate-500">Agency↑ Kinetics↑</div>
               </button>
               <button onClick={() => setConfirmingStrategy("hub_commons")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-purple-400 active:bg-slate-700 transition-all relative">
                 <div className="absolute top-1 right-1 text-[8px] bg-purple-900 text-purple-200 px-1 rounded border border-purple-500/30">
