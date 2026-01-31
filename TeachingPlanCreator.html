@@ -12,7 +12,7 @@
     <!-- CSP（Content Security Policy） -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習指導案作成（修正完全版）v43-beta.36</title>
+    <title>教育実習指導案作成（修正完全版）v43-beta.38</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -151,6 +151,17 @@
         .editable:empty::before { content: "[入力]"; color: #d1d5db; }
         .editable[data-required="true"]:empty { background-color: var(--error-bg); }
 
+        /* 行操作ボタン用 */
+        .process-table .action-col { width: 60px; white-space: nowrap; vertical-align: middle; text-align: center; border: none; background: transparent; }
+        .row-btn {
+            width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ccc;
+            background: #fff; cursor: pointer; margin: 0 2px; font-size: 12px;
+            line-height: 1; padding: 0; color: #555; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .row-btn:hover { background: #eee; color: #000; }
+        .row-btn.add { color: var(--accent-color); border-color: var(--accent-color); }
+        .row-btn.del { color: var(--error-text); border-color: var(--error-text); }
+
         /* 環境構成図エリア (日誌アプリと同一ロジック) */
         .env-section { border: 1px solid #e5e7eb; padding: 24px; margin-bottom: 30px; background-color: #fff; border-radius: 8px; }
         .env-drawing-container { position: relative; }
@@ -186,7 +197,7 @@
         @media print {
             body { background: #fff; padding: 0; }
             .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; }
-            .no-print, .controls, .modal-overlay { display: none !important; }
+            .no-print, .controls, .modal-overlay, .action-col { display: none !important; }
             .editable { background-color: transparent !important; padding: 0; }
             .editable:empty::before { content: ""; }
             .env-drawing-area { border: 1px solid #111; }
@@ -341,13 +352,14 @@
                     <th>活動の内容</th>
                     <th>子どもの姿（予想）</th>
                     <th>保育者の援助・配慮</th>
+                    <th class="action-col no-print"></th>
                 </tr>
             </thead>
             <tbody id="timeline-body">
                 <!-- JSで生成 -->
             </tbody>
         </table>
-        <button class="btn no-print" onclick="addTimelineRow()" style="width:100%; border:1px dashed #ccc; justify-content:center;">＋ 行を追加</button>
+        <button class="btn no-print" onclick="addTimelineRow()" style="width:100%; border:1px dashed #ccc; justify-content:center;">＋ 末尾に行を追加</button>
 
         <!-- 振り返り・備考 -->
         <div class="env-section" style="margin-top:30px;">
@@ -357,7 +369,7 @@
 
         <div class="footer-info no-print">
             <span id="auto-save-status"></span>
-            <span>App Version: v43-beta.36 (Plan)</span>
+            <span>App Version: v43-beta.38 (Plan)</span>
         </div>
     </div>
 
@@ -492,9 +504,8 @@
             debouncedSave();
         }
 
-        // --- タイムライン操作 ---
-        function addTimelineRow(t='', act='', child='', aid='') {
-            const tbody = document.getElementById('timeline-body');
+        // --- タイムライン操作 (更新) ---
+        function createTimelineRow(t='', act='', child='', aid='') {
             const tr = document.createElement('tr');
             [t, act, child, aid].forEach(text => {
                 const td = document.createElement('td');
@@ -506,7 +517,62 @@
                 td.appendChild(div);
                 tr.appendChild(td);
             });
+
+            // 操作用セルを追加
+            const tdAction = document.createElement('td');
+            tdAction.className = 'action-col no-print';
+            
+            const btnAdd = document.createElement('button');
+            btnAdd.textContent = '＋';
+            btnAdd.className = 'row-btn add';
+            btnAdd.type = 'button'; // 重要
+            btnAdd.title = '下に新しい行を追加';
+            btnAdd.addEventListener('click', function(e) {
+                e.stopPropagation();
+                insertRowAfter(tr);
+            });
+            
+            const btnDel = document.createElement('button');
+            btnDel.textContent = '×';
+            btnDel.className = 'row-btn del';
+            btnDel.type = 'button'; // 重要
+            btnDel.title = 'この行を削除';
+            btnDel.addEventListener('click', function(e) {
+                e.stopPropagation();
+                deleteRow(tr);
+            });
+
+            tdAction.appendChild(btnAdd);
+            tdAction.appendChild(btnDel);
+            tr.appendChild(tdAction);
+
+            return tr;
+        }
+
+        function addTimelineRow(t='', act='', child='', aid='') {
+            const tbody = document.getElementById('timeline-body');
+            const tr = createTimelineRow(t, act, child, aid);
             tbody.appendChild(tr);
+            debouncedSave();
+        }
+
+        function insertRowAfter(referenceRow) {
+            const newRow = createTimelineRow();
+            referenceRow.parentNode.insertBefore(newRow, referenceRow.nextSibling);
+            debouncedSave();
+        }
+
+        function deleteRow(row) {
+            const tbody = document.getElementById('timeline-body');
+            // rowsプロパティよりもchildrenプロパティで要素数をカウントする方が安全
+            if(tbody.children.length <= 1) {
+                alert('全ての行を削除することはできません');
+                return;
+            }
+            if(confirm('この行を削除しますか？')) {
+                row.remove();
+                debouncedSave();
+            }
         }
 
         // --- 保存・復元システム ---
@@ -639,7 +705,8 @@
                 el.style.border = 'none';
             });
             
-            clone.querySelectorAll('.drawing-toolbar, .no-print').forEach(el => el.remove());
+            // 操作列などを削除
+            clone.querySelectorAll('.drawing-toolbar, .no-print, .action-col').forEach(el => el.remove());
 
             const html = `
                 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'>
@@ -655,7 +722,7 @@
             const link = document.createElement('a');
             link.href = url;
             
-            // ファイル名生成ロジック変更
+            // ファイル名生成ロジック
             const title = document.getElementById('main-title').innerText.trim();
             let dateStr = document.getElementById('field-date').innerText.trim();
             
@@ -669,7 +736,7 @@
                 if (!dateStr) dateStr = new Date().toISOString().slice(0,10);
             }
 
-            // 現在時刻のタイムスタンプを生成 (例: 20260130-123045)
+            // 現在時刻のタイムスタンプを生成
             const now = new Date();
             const timestamp = now.getFullYear() +
                             (now.getMonth()+1).toString().padStart(2, '0') +
@@ -763,16 +830,11 @@
         function renderCanvas() {
             const ctx = document.getElementById('env-canvas').getContext('2d');
             ctx.clearRect(0,0,400,300);
-            
-            // 背景は透過（HTMLのimgが見えるように）
-            // ただし、画像保存時は背景白が必要なので、ここではクリアのみ
-            
             canvasObjects.forEach((obj, i) => {
                 ctx.save(); ctx.translate(obj.x, obj.y);
                 if(i === selectedIndex) {
                     ctx.shadowColor = '#2563eb'; ctx.shadowBlur = 10;
                 }
-                
                 if(obj.type === 'teacher') {
                     ctx.font='bold 20px Arial'; ctx.fillStyle=obj.color;
                     ctx.textAlign='center'; ctx.fillText('×',0,4); ctx.font='10px Arial'; ctx.fillText(obj.label,12,-5);
@@ -794,17 +856,13 @@
             });
         }
 
-        // 簡易的なテキスト解析作図（キーワード検知）
         function generateDiagramFromText() {
             const text = document.getElementById('field-env-text').innerText;
             canvasObjects = [];
-            
             if(text.includes('ピアノ')) addObj('piano');
             if(text.includes('マット')) addObj('mat');
             if(text.includes('コーン')) { addObj('cone'); canvasObjects[canvasObjects.length-1].x += 40; addObj('cone'); }
             if(text.includes('ゴール') || text.includes('サッカー')) addObj('goal');
-            
-            // デフォルト
             addObj('teacher');
             for(let i=0; i<3; i++) {
                 addObj('child');
@@ -817,18 +875,12 @@
         function saveDiagramImage() {
             const canvas = document.getElementById('env-canvas');
             const manualImg = document.getElementById('manual-image');
-            
-            // 合成用キャンバス
             const mergedCanvas = document.createElement('canvas');
             mergedCanvas.width = canvas.width;
             mergedCanvas.height = canvas.height;
             const ctx = mergedCanvas.getContext('2d');
-            
-            // 背景白
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, mergedCanvas.width, mergedCanvas.height);
-
-            // 背景画像がある場合は描画
             if (manualImg.style.display !== 'none' && manualImg.src) {
                 const hRatio = mergedCanvas.width / manualImg.naturalWidth;
                 const vRatio = mergedCanvas.height / manualImg.naturalHeight;
@@ -838,30 +890,23 @@
                 ctx.drawImage(manualImg, 0, 0, manualImg.naturalWidth, manualImg.naturalHeight,
                                        centerShift_x, centerShift_y, manualImg.naturalWidth*ratio, manualImg.naturalHeight*ratio);
             }
-            
-            // Canvasの内容
             ctx.drawImage(canvas, 0, 0);
-
             const link = document.createElement('a');
             link.href = mergedCanvas.toDataURL("image/png");
             link.download = "env_diagram.png";
             link.click();
         }
 
-        // --- Word読み込みロジック (v43-beta.10の extractRawText を維持して強化) ---
         function handleDocUpload(e) {
             const file = e.target.files[0];
             if(!file) return;
-            
             updateStatus('ファイルを解析中...');
-
             const reader = new FileReader();
             reader.onload = (event) => {
-                // 現状維持のため extractRawText を使用
                 mammoth.extractRawText({arrayBuffer: event.target.result})
                     .then(result => {
                         const text = result.value;
-                        parseAndSetData(text); // 解析関数を呼ぶ
+                        parseAndSetData(text);
                         updateStatus('読み込み完了');
                     })
                     .catch(err => {
@@ -873,116 +918,68 @@
         }
 
         function parseAndSetData(text) {
-            // 1. ねらいの抽出
             const aimMainMatch = text.match(/【主となるねらい】\s*([\s\S]*?)(?=\n\s*【その他のねらい】|\n\s*[3-9]\.|\n\s*4\.|$)/);
             const aimSubMatch = text.match(/【その他のねらい】\s*([\s\S]*?)(?=\n\s*[3-9]\.|\n\s*4\.|$)/);
-            
-            if (aimMainMatch) {
-                document.getElementById('field-aim-main').innerText = aimMainMatch[1].trim();
-            }
-            if (aimSubMatch) {
-                document.getElementById('field-aim-sub').innerText = aimSubMatch[1].trim();
-            }
+            if (aimMainMatch) document.getElementById('field-aim-main').innerText = aimMainMatch[1].trim();
+            if (aimSubMatch) document.getElementById('field-aim-sub').innerText = aimSubMatch[1].trim();
 
-            // 2. 主活動（2. 主活動 〜 3. ねらい の間）
             const activityMatch = text.match(/2\.\s*主活動[^]*?\n([\s\S]*?)(?=\n\s*3\.\s*ねらい)/);
-            if(activityMatch) {
-                 document.getElementById('field-activity').innerText = activityMatch[1].trim();
-            }
+            if(activityMatch) document.getElementById('field-activity').innerText = activityMatch[1].trim();
             
-            // 3. 基本情報の抽出 (日時、クラスなど)
             const dateMatch = text.match(/日時[:：]\s*(.*)/);
             if(dateMatch) document.getElementById('field-date').innerText = dateMatch[1].trim();
-
             const classMatch = text.match(/クラス[:：]\s*(.*)/);
             if(classMatch) document.getElementById('field-class').innerText = classMatch[1].trim();
-
             const ageMatch = text.match(/対象年齢[:：]\s*(.*)/);
             if(ageMatch) document.getElementById('field-age').innerText = ageMatch[1].trim();
             
-            // 4. 環境構成
             const envMatch = text.match(/環境構成・準備[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.|\n\s*6\.)/);
             if(envMatch) {
                 document.getElementById('field-env-text').innerText = envMatch[1].trim();
-                // 環境構成のテキストがセットされたら、自動的に図を生成する
-                // 生成前の状態を履歴に保存したいが、ここはファイル読み込み直後なので
-                // 履歴をリセットして初期状態とする方が自然かもしれない
                 historyStack = [];
                 generateDiagramFromText();
             }
 
-            // 5. 領域に関する視点・内容 (新規追加: Raw Text対応)
             const perspectiveMatch = text.match(/領域.*視点[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.)/);
-            if (perspectiveMatch) {
-                document.getElementById('field-perspective').innerText = perspectiveMatch[1].trim();
-            }
+            if (perspectiveMatch) document.getElementById('field-perspective').innerText = perspectiveMatch[1].trim();
 
-            // 6. 予想される子どもの姿 (新規追加)
             const childMatch = text.match(/予想される子どもの姿[^]*?\n([\s\S]*?)(?=\n\s*[0-9]\.|指導過程)/);
-            if (childMatch) {
-                document.getElementById('field-child-prediction').innerText = childMatch[1].trim();
-            }
+            if (childMatch) document.getElementById('field-child-prediction').innerText = childMatch[1].trim();
 
-            // 7. 指導過程（活動の展開） - テキスト解析による簡易抽出 (強化版)
             const processStartKey = "指導過程";
             const processStartIdx = text.indexOf(processStartKey);
-            
             if (processStartIdx !== -1) {
                 let processText = text.substring(processStartIdx);
                 const nextSectionMatch = processText.match(/\n\s*[8-9８-９][.．]/); 
-                if (nextSectionMatch) {
-                    processText = processText.substring(0, nextSectionMatch.index);
-                }
+                if (nextSectionMatch) processText = processText.substring(0, nextSectionMatch.index);
 
-                // 行区切り（時間が先頭に来る部分で分割）
                 const timeBlocks = processText.split(/\n+(?=\s*\d{1,2}[:：]\d{2})/);
                 const tbody = document.getElementById('timeline-body');
-                
                 const validRows = timeBlocks.filter(block => block.match(/^\s*\d{1,2}[:：]\d{2}/));
 
                 if (validRows.length > 0) {
-                    tbody.innerHTML = ''; // 既存の空行をクリア
-                    
+                    tbody.innerHTML = '';
                     validRows.forEach(block => {
                         const lines = block.split(/\n+/).map(s => s.trim()).filter(s => s);
-                        
                         if (lines.length > 0) {
                             const time = lines[0];
-                            let activityLines = [];
-                            let childLines = [];
-                            let supportLines = [];
-                            
-                            // 1. 援助・配慮 (Support) の分離
+                            let activityLines = [], childLines = [], supportLines = [];
                             let supportStartIndex = -1;
                             for (let i = 1; i < lines.length; i++) {
                                 const line = lines[i];
                                 if (line.match(/^[●○◎]/) || line.includes('【配慮') || line.includes('【援助') || line.includes('【工夫') || line.includes('【環境') || line.includes('【対応')) {
-                                    supportStartIndex = i;
-                                    break;
+                                    supportStartIndex = i; break;
                                 }
                             }
-                            
-                            let contentLines = [];
-                            if (supportStartIndex !== -1) {
-                                contentLines = lines.slice(1, supportStartIndex);
-                                supportLines = lines.slice(supportStartIndex);
-                            } else {
-                                contentLines = lines.slice(1);
-                            }
+                            let contentLines = (supportStartIndex !== -1) ? lines.slice(1, supportStartIndex) : lines.slice(1);
+                            if (supportStartIndex !== -1) supportLines = lines.slice(supportStartIndex);
 
-                            // 2. 活動 (Activity) と 子ども (Child) の分離
-                            // 「」などの会話文や感情語句があれば、そこからChildとみなす
                             let childStartIndex = -1;
                             for (let i = 0; i < contentLines.length; i++) {
                                 const line = contentLines[i];
-                                // 会話文、感情語句、または子供らしい記述
                                 if (line.includes('「') || line.includes('」') || line.includes('様子') || line.includes('姿') || line.match(/(喜ぶ|泣く|怒る|楽しむ|遊ぶ|言う|話す|集まる|たがる|出る)$/)) {
-                                    // 1行目は「導入」などの項目名の可能性が高いのでスキップ
-                                    if (i === 0 && (line.includes('導入') || line.includes('展開') || line.includes('まとめ'))) {
-                                        continue;
-                                    }
-                                    childStartIndex = i;
-                                    break;
+                                    if (i === 0 && (line.includes('導入') || line.includes('展開') || line.includes('まとめ'))) continue;
+                                    childStartIndex = i; break;
                                 }
                             }
 
@@ -990,23 +987,15 @@
                                 activityLines = contentLines.slice(0, childStartIndex);
                                 childLines = contentLines.slice(childStartIndex);
                             } else {
-                                // キーワードが見つからない場合は行数で等分
                                 const splitPoint = Math.ceil(contentLines.length / 2);
                                 activityLines = contentLines.slice(0, splitPoint);
                                 childLines = contentLines.slice(splitPoint);
                             }
 
-                            // フォーマット整形関数:
                             const formatText = (str) => {
                                 let res = str;
-                                // 1. 「導入」「展開」「事後」の後の改行処理
-                                // キーワード + (スペース) + ・ -> ・の前で改行
                                 res = res.replace(/^([ \t　]*(?:導入|展開(?:（.*?）)?|事後(?:（.*?）)?))([ \t　]*)(・)/gm, '$1\n$3');
-                                // キーワード + スペース + (・以外) -> スペースで改行
                                 res = res.replace(/^([ \t　]*(?:導入|展開(?:（.*?）)?|事後(?:（.*?）)?))([ \t　]+)([^・\n])/gm, '$1\n$3');
-                                
-                                // 2. 全ての「・」について、その前が改行でないなら改行を入れる
-                                // 直前が改行でない場合に改行を挿入。スペースがあっても無視して改行を入れる
                                 res = res.replace(/([^\n])\s*(・)/g, '$1\n$2');
                                 return res;
                             };
@@ -1014,43 +1003,26 @@
                             const act = formatText(activityLines.join('\n'));
                             const child = formatText(childLines.join('\n'));
                             const support = formatText(supportLines.join('\n'));
-                            
                             addTimelineRow(time, act, child, support);
                         }
                     });
                 }
             }
 
-            // 8. 振り返り・考察 (修正版)
-            // 行頭（または改行後）にある見出しを厳密に探す
             const reflectionStartRegex = /(?:^|\n)\s*(?:[0-9０-９]+\.?\s*)?実習生(?:として)?の(?:振り返り|考察|反省)(?:.*視点)?/;
             const reflectionMatch = text.match(reflectionStartRegex);
-            
             if (reflectionMatch) {
                 const startIdx = reflectionMatch.index + reflectionMatch[0].length;
-                
-                // 終了位置の探索
-                // 1. 次の番号付きセクション (例: "9.")
-                // 2. "作成・活用のポイント" などの特定セクション (作成.*ポイント で広くマッチ)
-                // 3. 文末
                 const endRegex = /(?:\n\s*[0-9０-９]+\.?\s)|(?:\n\s*作成.*ポイント)/;
                 const nextSectionMatch = text.substring(startIdx).match(endRegex);
-                
                 let endIdx = text.length;
-                if (nextSectionMatch) {
-                    endIdx = startIdx + nextSectionMatch.index;
-                }
-                
+                if (nextSectionMatch) endIdx = startIdx + nextSectionMatch.index;
                 let content = text.substring(startIdx, endIdx).trim();
-                // 先頭の記号除去
                 content = content.replace(/^[:：\)\s]+/, '');
-                
-                if (content) {
-                    document.getElementById('field-reflection').innerText = content;
-                }
+                if (content) document.getElementById('field-reflection').innerText = content;
             }
             
-            alert("Wordファイルから以下の項目を抽出しました：\n・ねらい（主・その他）\n・基本情報（日時・クラス等）\n・環境構成（配置図自動作成）\n・領域に関する視点\n・予想される姿\n・指導過程（簡易解析）\n・実習生の振り返り\n\n※指導過程はテキスト解析のため、セル分けが正確でない場合があります。手動で調整してください。");
+            alert("Wordファイルから以下の項目を抽出しました：\n・ねらい\n・基本情報\n・環境構成\n・領域に関する視点\n・予想される姿\n・指導過程\n・実習生の振り返り");
         }
 
         function updateStatus(msg) {
