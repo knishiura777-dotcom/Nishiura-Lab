@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.9</title>
+    <title>教育実習日誌（修正完全版）v43-beta.12</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -61,10 +61,10 @@
             
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
+            gap: 6px; /* 少し詰める */
+            padding: 6px 10px; /* 少し詰める */
             
-            background-color: rgba(255, 255, 255, 0.85);
+            background-color: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             
@@ -75,26 +75,27 @@
                 0 10px 15px -3px rgba(0, 0, 0, 0.05),
                 0 0 0 1px rgba(0,0,0,0.03);
             transition: all 0.3s ease;
+            white-space: nowrap; /* 折り返し防止 */
         }
 
         .controls:hover {
             box-shadow: 
                 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
                 0 0 0 1px rgba(0,0,0,0.05);
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: rgba(255, 255, 255, 0.98);
         }
 
         .control-group {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
         }
 
         .divider {
             width: 1px;
             height: 20px;
             background-color: #d1d5db;
-            margin: 0 8px;
+            margin: 0 4px;
         }
 
         .file-upload-wrapper {
@@ -112,7 +113,7 @@
             border: none;
             background: transparent;
             cursor: pointer;
-            padding: 8px 16px;
+            padding: 8px 12px; /* 少し詰める */
             border-radius: var(--control-radius);
             font-size: 13px;
             font-weight: 600;
@@ -154,6 +155,58 @@
         .btn-danger:hover {
             background-color: #fef2f2;
             color: #dc2626;
+        }
+
+        /* 自動保存インジケーター */
+        .save-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            transition: all 0.3s ease;
+            cursor: default;
+            margin-left: 4px;
+            font-size: 14px;
+        }
+        .save-indicator.editing {
+            color: #f59e0b;
+            background-color: #fef3c7;
+        }
+        .save-indicator.saving {
+            color: #2563eb;
+            background-color: #dbeafe;
+            animation: pulse 1.5s infinite;
+        }
+        .save-indicator.saved {
+            color: #10b981;
+            background-color: #d1fae5;
+        }
+        .save-indicator.error {
+            color: #ef4444;
+            background-color: #fee2e2;
+        }
+        @keyframes pulse { 
+            0% { opacity: 0.6; transform: scale(0.95); } 
+            50% { opacity: 1; transform: scale(1); } 
+            100% { opacity: 0.6; transform: scale(0.95); } 
+        }
+
+        /* 画面幅が狭いとき、ラベルを隠してアイコンのみにする */
+        @media (max-width: 960px) {
+            .btn .label {
+                display: none;
+            }
+            .controls {
+                padding: 6px 8px;
+                gap: 4px;
+            }
+            .btn {
+                padding: 8px;
+            }
         }
 
         /* --- ステータスインジケーター (Toast Style) --- */
@@ -379,6 +432,18 @@
             display: inline-flex; align-items: center; gap: 5px; font-family: monospace; background-color: #f3f4f6; padding: 4px 8px; border-radius: 4px;
         }
 
+        /* 行操作ボタン用 */
+        .row-action-btn {
+            width: 24px; height: 24px; border: 1px solid #d1d5db; border-radius: 50%; background: #fff; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center; font-size: 14px; padding: 0; transition: all 0.2s;
+        }
+        .row-action-btn:hover { background: #f3f4f6; color: #111; border-color: #9ca3af; }
+        .row-action-btn.add { color: #2563eb; background: #eff6ff; border-color: #bfdbfe; }
+        .row-action-btn.add:hover { background: #dbeafe; }
+        .row-action-btn.delete { color: #ef4444; background: #fef2f2; border-color: #fecaca; }
+        .row-action-btn.delete:hover { background: #fee2e2; }
+        
+        .action-cell { display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; height: 100%; border: none !important; background: transparent !important; }
+
         @media print {
             body { background: #fff; padding: 0; }
             .container { box-shadow: none; padding: 0; width: 100%; max-width: 100%; border-radius: 0; }
@@ -541,6 +606,13 @@
             </button>
         </div>
 
+        <div class="divider"></div>
+
+        <!-- 保存ステータス -->
+        <div id="header-save-status" class="save-indicator" title="自動保存待機中">
+            <span>☁️</span>
+        </div>
+
     </div>
     
     <!-- ステータスインジケーター -->
@@ -637,6 +709,13 @@
         </div>
 
         <!-- 時系列テーブル -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+            <div style="font-weight: bold; font-size: 14px; color: #374151;">活動の流れ</div>
+            <div class="no-print" style="display: flex; gap: 8px;">
+                <button id="btn-add-row" class="btn-outline" style="padding: 4px 12px; font-size: 12px; background: #fff;" title="行を末尾に追加">＋ 行追加</button>
+            </div>
+        </div>
+
         <table class="content-table">
             <thead>
                 <tr>
@@ -644,6 +723,7 @@
                     <th style="width:30%;">幼児の活動</th>
                     <th style="width:30%;">保育者の活動</th>
                     <th style="width:30%;">実習内容</th>
+                    <th class="no-print" style="width: 40px; background-color: #fff; border:none;"></th>
                 </tr>
             </thead>
             <tbody id="timeline-body">
@@ -676,7 +756,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.9</span>
+            <span>App Version: v43-beta.12</span>
         </div>
 
     </div>
@@ -782,8 +862,41 @@
             if(redoBtn) redoBtn.disabled = (historyStep >= history.length - 1);
         }
 
+        // --- ヘッダー保存インジケーターUI ---
+        function setSaveStatus(status) {
+            const el = document.getElementById('header-save-status');
+            if(!el) return;
+            
+            el.className = 'save-indicator'; // reset classes
+            let icon = '☁️';
+            let title = '自動保存待機中';
+
+            if (status === 'editing') {
+                el.classList.add('editing');
+                icon = '🖊️';
+                title = '編集内容を変更中...';
+            } else if (status === 'saving') {
+                el.classList.add('saving');
+                icon = '🔄';
+                title = '保存中...';
+            } else if (status === 'saved') {
+                el.classList.add('saved');
+                icon = '✓';
+                const time = new Date().toLocaleTimeString();
+                title = `保存済み (${time})`;
+            } else if (status === 'error') {
+                el.classList.add('error');
+                icon = '⚠️';
+                title = '保存エラーが発生しました';
+            }
+            
+            el.innerHTML = `<span>${icon}</span>`;
+            el.title = title;
+        }
+
         // --- 自動保存ロジック ---
         function saveToStorage() {
+            setSaveStatus('saving');
             const statusEl = document.getElementById('auto-save-status');
             if(statusEl) statusEl.innerText = '💾 保存中...';
 
@@ -813,14 +926,18 @@
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                 const now = new Date();
                 const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                setSaveStatus('saved');
                 if(statusEl) statusEl.innerText = `☁️ 保存済み (${timeStr})`;
             } catch(e) {
                 console.error("Storage save error", e);
+                setSaveStatus('error');
                 if(statusEl) statusEl.innerText = '⚠️ 保存エラー';
             }
         }
 
         function debouncedSave() {
+            setSaveStatus('editing');
             const statusEl = document.getElementById('auto-save-status');
             if(statusEl) statusEl.innerText = '🖊️ 保存待機中...';
             if(saveTimeout) clearTimeout(saveTimeout);
@@ -840,25 +957,18 @@
                         if (el) el.innerHTML = sanitizeHtml(html);
                     }
                 }
+                const tbody = document.getElementById('timeline-body');
+                tbody.innerHTML = '';
+                
                 if (data.timeline && Array.isArray(data.timeline)) {
-                    const tbody = document.getElementById('timeline-body');
-                    tbody.innerHTML = '';
                     data.timeline.forEach(rowData => {
-                        const tr = document.createElement('tr');
-                        rowData.forEach(cellHtml => {
-                            const td = document.createElement('td');
-                            const div = document.createElement('div');
-                            div.className = 'editable';
-                            div.contentEditable = 'true';
-                            div.innerHTML = sanitizeHtml(cellHtml);
-                            div.addEventListener('input', debouncedSave);
-                            td.appendChild(div);
-                            tr.appendChild(td);
-                        });
+                        const tr = createTimelineRow(rowData);
                         tbody.appendChild(tr);
                     });
                 }
-                const currentRows = document.getElementById('timeline-body').querySelectorAll('tr').length;
+                
+                // 行数が不足していれば補充
+                const currentRows = tbody.querySelectorAll('tr').length;
                 for(let i = currentRows; i < 6; i++) { addTimelineRow(); }
 
                 if (data.canvasObjects) {
@@ -869,6 +979,7 @@
                 } else {
                     saveState();
                 }
+                setSaveStatus('saved');
                 updateStatus('success', '自動保存データを復元しました');
             } catch (e) {
                 console.error("Load error", e);
@@ -1126,6 +1237,15 @@
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
 
+            // 行操作ボタン (New)
+            const btnAddRow = document.getElementById('btn-add-row');
+            if (btnAddRow) {
+                btnAddRow.addEventListener('click', function() {
+                    addTimelineRow();
+                    debouncedSave();
+                });
+            }
+
             const docInput = document.getElementById('docx-input');
             docInput.addEventListener('click', function() { this.value = null; });
             docInput.addEventListener('change', handleDocUpload);
@@ -1187,31 +1307,68 @@
             localStorage.removeItem(STORAGE_KEY);
             const statusEl = document.getElementById('auto-save-status');
             if(statusEl) statusEl.innerText = '';
+            setSaveStatus('saved');
             
             history = []; historyStep = -1;
             saveState();
         }
 
-        function addTimelineRow(time='', child='', teacher='', student='') {
-            const tbody = document.getElementById('timeline-body');
+        // 行のHTML要素を作成する関数 (共通化)
+        function createTimelineRow(data = ['', '', '', '']) {
             const tr = document.createElement('tr');
             
-            const createCell = (text) => {
+            // 1. データセル (4つ)
+            data.forEach(text => {
                 const td = document.createElement('td');
                 const div = document.createElement('div');
                 div.className = 'editable';
                 div.contentEditable = 'true';
-                div.innerText = text; 
+                div.innerHTML = sanitizeHtml(text);
                 div.addEventListener('input', debouncedSave);
                 td.appendChild(div);
-                return td;
+                tr.appendChild(td);
+            });
+
+            // 2. 操作用セル (追加・削除ボタン) - 右側に移動
+            const tdAction = document.createElement('td');
+            tdAction.className = 'no-print action-cell'; // no-printで印刷/Word出力時に隠す
+            
+            const btnAdd = document.createElement('button');
+            btnAdd.className = 'row-action-btn add';
+            btnAdd.innerText = '+';
+            btnAdd.title = 'この下に行を追加';
+            btnAdd.onclick = function() {
+                const newRow = createTimelineRow();
+                tr.parentNode.insertBefore(newRow, tr.nextSibling);
+                debouncedSave();
             };
 
-            tr.appendChild(createCell(time));
-            tr.appendChild(createCell(child));
-            tr.appendChild(createCell(teacher));
-            tr.appendChild(createCell(student));
-            
+            const btnDel = document.createElement('button');
+            btnDel.className = 'row-action-btn delete';
+            btnDel.innerText = '−'; // Minus sign
+            btnDel.title = 'この行を削除';
+            btnDel.onclick = function() {
+                if(tr.parentNode.rows.length > 1) {
+                    tr.remove();
+                    debouncedSave();
+                } else {
+                    // 全削除防止: 中身だけクリア
+                    tr.querySelectorAll('.editable').forEach(div => div.innerText = '');
+                    debouncedSave();
+                }
+            };
+
+            tdAction.appendChild(btnAdd);
+            tdAction.appendChild(btnDel);
+            tr.appendChild(tdAction);
+
+            return tr;
+        }
+
+        // 末尾に行を追加するラッパー関数
+        function addTimelineRow(time='', child='', teacher='', student='') {
+            const tbody = document.getElementById('timeline-body');
+            const tr = createTimelineRow([time, child, teacher, student]);
             tbody.appendChild(tr);
         }
 
@@ -1536,6 +1693,16 @@
                     }
 
                     clone.querySelectorAll('.drawing-toolbar').forEach(el => el.remove());
+                    
+                    // Word出力時に不要なコントロール（行追加・削除ボタン等）を削除
+                    // ここで .no-print クラスを持つ要素を完全に除去します
+                    clone.querySelectorAll('.no-print').forEach(el => {
+                        // テーブルの列（td/th）の場合は、列ごと消したいが、
+                        // ここでremoveするとセルだけ消えて列がずれる可能性があるため、
+                        // no-printがついたセルは中身だけでなく要素ごと削除して詰める
+                        el.remove();
+                    });
+                    
                     clone.querySelectorAll('.editable').forEach(el => {
                         el.removeAttribute('contenteditable');
                         el.style.backgroundColor = 'transparent';
