@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.14</title>
+    <title>教育実習日誌（修正完全版）v43-beta.16</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -798,7 +798,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.14</span>
+            <span>App Version: v43-beta.16</span>
         </div>
 
     </div>
@@ -1003,8 +1003,6 @@
                         // タイトルも更新 (文字のみを更新するように修正)
                         const titleEl = document.getElementById('journal-title');
                         if(titleEl) {
-                            // selectのテキストを取得して反映（絵文字を除去してもよいが、ここではそのまま使うか、または単純なテキストにするか）
-                            // ここではシンプルにselectの選択肢のテキストを使う
                             const selectedText = select.options[select.selectedIndex].text;
                             // 絵文字部分 "🏫 " "📛 " を除去してタイトルにする
                             titleEl.innerText = selectedText.replace(/^[🏫📛]\s*/, '') + "日誌";
@@ -1999,18 +1997,37 @@
                 }
             });
 
-            document.getElementById('field-class-goal').innerText = sectionContent.classGoal.join('\n');
-            document.getElementById('field-student-goal').innerText = sectionContent.studentGoal.join('\n');
-            document.getElementById('field-env-text').innerText = sectionContent.envText.join('\n');
-            document.getElementById('field-record').innerText = sectionContent.record.join('\n');
+            // 文中の「・」の前に改行を入れるフォーマッタ
+            const formatText = (text) => {
+                if (!text) return "";
+                // 行頭以外の「・」の前に改行を挿入
+                return text.replace(/([^\n])・/g, '$1\n・');
+            };
+
+            document.getElementById('field-class-goal').innerText = formatText(sectionContent.classGoal.join('\n'));
+            document.getElementById('field-student-goal').innerText = formatText(sectionContent.studentGoal.join('\n'));
+            document.getElementById('field-env-text').innerText = formatText(sectionContent.envText.join('\n'));
+            document.getElementById('field-record').innerText = formatText(sectionContent.record.join('\n'));
             
             let reflectionText = "";
             if (sectionContent.reflectionToday.length > 0) reflectionText += "【本日の振り返り】\n" + sectionContent.reflectionToday.join('\n') + "\n\n";
             if (sectionContent.reflectionTomorrow.length > 0) reflectionText += "【翌日への課題】\n" + sectionContent.reflectionTomorrow.join('\n');
-            document.getElementById('field-reflection').innerText = reflectionText;
-            document.getElementById('field-feedback').innerText = sectionContent.feedback.join('\n');
+            document.getElementById('field-reflection').innerText = formatText(reflectionText);
+            document.getElementById('field-feedback').innerText = formatText(sectionContent.feedback.join('\n'));
 
             const tables = tempDiv.querySelectorAll('table');
+            
+            // テーブルセル用のフォーマッタ（HTMLとして扱うため改行を<br>に変換）
+            const formatTableText = (text) => {
+                if (!text) return "";
+                // まず・の整形
+                let formatted = text.replace(/([^\n])・/g, '$1\n・');
+                // エスケープ処理（innerTextから来ているため）
+                formatted = formatted.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                // 改行を<br>に
+                return formatted.replace(/\n/g, '<br>');
+            };
+
             tables.forEach(table => {
                 const rows = table.querySelectorAll('tr');
                 let headerRowIndex = -1;
@@ -2024,8 +2041,10 @@
                         const cells = rows[i].querySelectorAll('td');
                         if(cells.length > 0) {
                             addTimelineRow(
-                                cells[0]?.innerText || "", cells[1]?.innerText || "",
-                                cells[2]?.innerText || "", cells[3]?.innerText || ""
+                                formatTableText(cells[0]?.innerText || ""), 
+                                formatTableText(cells[1]?.innerText || ""),
+                                formatTableText(cells[2]?.innerText || ""), 
+                                formatTableText(cells[3]?.innerText || "")
                             );
                         }
                     }
