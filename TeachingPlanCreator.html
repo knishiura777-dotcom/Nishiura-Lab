@@ -12,7 +12,7 @@
     <!-- CSP（Content Security Policy） -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習指導案作成（修正完全版）v43-beta.40</title>
+    <title>教育実習指導案作成（修正完全版）v43-beta.41</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -30,6 +30,8 @@
             --error-bg: #fff1f0;
             --error-border: #ffccc7;
             --error-text: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
         }
 
         body {
@@ -60,8 +62,8 @@
             z-index: 1000;
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
+            gap: 6px; /* gapを少し詰める */
+            padding: 6px 10px 6px 8px; /* 左パディングを微調整 */
             background-color: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
@@ -75,14 +77,37 @@
             background-color: rgba(255, 255, 255, 0.95);
         }
 
+        /* 自動保存インジケーター */
+        .save-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--success-color);
+            margin-right: 2px;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.8);
+        }
+        .save-indicator.saving {
+            background-color: var(--warning-color);
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
         .control-group { display: flex; align-items: center; gap: 4px; }
-        .divider { width: 1px; height: 20px; background-color: #d1d5db; margin: 0 8px; }
+        .divider { width: 1px; height: 18px; background-color: #d1d5db; margin: 0 4px; }
         .file-upload-wrapper { position: relative; display: inline-block; }
         #docx-input, #img-upload-input { display: none; }
 
         .btn {
             appearance: none; border: none; background: transparent; cursor: pointer;
-            padding: 8px 16px; border-radius: var(--control-radius); font-size: 13px;
+            padding: 8px 12px; /* パディングを少し詰めて面積維持 */
+            border-radius: var(--control-radius); font-size: 13px;
             font-weight: 600; color: #4b5563; display: inline-flex; align-items: center;
             gap: 6px; transition: all 0.2s ease; text-decoration: none; white-space: nowrap;
         }
@@ -96,8 +121,9 @@
         select.btn {
             background-color: rgba(255,255,255,0.5);
             border: 1px solid #e5e7eb;
-            padding-right: 28px;
-            min-width: 100px;
+            padding-right: 24px; /* 矢印スペース調整 */
+            padding-left: 8px;
+            min-width: auto; /* 幅自動 */
         }
         select.btn:focus {
             outline: none;
@@ -224,6 +250,9 @@
 
     <!-- コントロールパネル -->
     <div class="controls no-print">
+        <!-- 自動保存インジケーター -->
+        <div id="save-indicator" class="save-indicator" title="自動保存: 有効"></div>
+        
         <div class="control-group">
             <select id="plan-type-select" class="btn" title="実習の種類を選択">
                 <option value="教育実習">教育実習</option>
@@ -369,7 +398,7 @@
 
         <div class="footer-info no-print">
             <span id="auto-save-status"></span>
-            <span>App Version: v43-beta.40 (Plan)</span>
+            <span>App Version: v43-beta.41 (Plan)</span>
         </div>
     </div>
 
@@ -601,9 +630,23 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
             const now = new Date();
             document.getElementById('auto-save-status').innerText = `☁️ 保存済 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
+            
+            // インジケーターを緑に戻す
+            const ind = document.getElementById('save-indicator');
+            if(ind) {
+                ind.className = 'save-indicator';
+                ind.title = '自動保存: 保存済';
+            }
         }
 
         function debouncedSave() {
+            // インジケーターをオレンジにする
+            const ind = document.getElementById('save-indicator');
+            if(ind) {
+                ind.className = 'save-indicator saving';
+                ind.title = '自動保存: 保存中...';
+            }
+
             document.getElementById('auto-save-status').innerText = '🖊️ 保存中...';
             if(saveTimeout) clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveToStorage, 1000);
