@@ -646,9 +646,6 @@
 
         <!-- グループ3: ユーティリティ -->
         <div class="control-group">
-            <button id="btn-restore" class="btn" title="最後に保存された状態（自動保存）を復元">
-                <span class="icon">📥</span> <span class="label">復元</span>
-            </button>
             <button id="btn-clear" class="btn btn-danger" title="すべての内容をリセット">
                 <span class="icon">🗑️</span>
             </button>
@@ -1321,16 +1318,6 @@
             document.getElementById('btn-export').addEventListener('click', openSaveConfirm);
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
-            
-            // 復元ボタン (New)
-            const btnRestore = document.getElementById('btn-restore');
-            if (btnRestore) {
-                btnRestore.addEventListener('click', function() {
-                    if(confirm('最後に自動保存された内容を復元しますか？\n現在の編集内容は上書きされます。')) {
-                        loadFromStorage();
-                    }
-                });
-            }
 
             // 日誌タイプ切り替え (New)
             const journalTypeSelect = document.getElementById('journal-type-select');
