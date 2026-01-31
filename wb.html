@@ -71,7 +71,13 @@
     .text-block h3 { font-size: 28px; margin-bottom: 24px; color: var(--dark); }
     .text-block p { color: var(--muted); line-height: 1.9; margin-bottom: 24px; font-weight: 300; }
     
-    .tools-section { background: #f1f5f9; padding: 100px 0; }
+    /* Z-index adjustment for section layering */
+    .tools-section { 
+      background: #f1f5f9; padding: 100px 0;
+      /* Ensure this section is above the following section for dropdown visibility */
+      position: relative; z-index: 10;
+    }
+    
     .grid-3 {
       display: grid; grid-template-columns: 1fr; gap: 32px;
     }
@@ -105,7 +111,12 @@
       background: #f1f5f9; color: var(--muted); letter-spacing: 0.05em; font-weight: 600;
     }
     
-    .research-list-sec { padding: 100px 0; }
+    /* Lower z-index for the following section */
+    .research-list-sec { 
+      padding: 100px 0;
+      position: relative; z-index: 1;
+    }
+    
     .res-item { padding: 24px 0; border-bottom: 1px solid var(--line); }
     .res-item:first-child { border-top: 1px solid var(--line); }
     .res-title { font-weight: 700; color: var(--dark); margin-bottom: 8px; display: block; }
@@ -157,16 +168,14 @@
       display: none; 
       position: absolute; top: calc(100% + 8px); left: 0;
       min-width: 320px; /* Wider for better typography */
-      /* 背景を不透明な白にして、下のコンテンツと重ならないように修正 */
-      background: #ffffff;
-      /* ガラス効果は残したい場合は backdrop-filter はそのままでOKですが、背景色で隠します */
-      border: 1px solid rgba(226, 232, 240, 1); /* ボーダーを少しはっきりさせる */
+      background: #ffffff; /* Solid white background for readability */
+      border: 1px solid rgba(226, 232, 240, 1);
       box-shadow: 
-        0 20px 50px -10px rgba(0, 0, 0, 0.2), /* 影を強化して浮遊感を出す */
+        0 20px 50px -10px rgba(0, 0, 0, 0.2), /* Enhanced shadow */
         0 0 0 1px rgba(0, 0, 0, 0.02);
       border-radius: 16px; 
       padding: 12px; 
-      z-index: 100;
+      z-index: 9999; /* Maximize z-index locally */
       opacity: 0;
       transform-origin: top left;
       transform: scale(0.95) translateY(-10px);
