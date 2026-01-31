@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.16</title>
+    <title>教育実習日誌（修正完全版）v43-beta.17</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -646,6 +646,9 @@
 
         <!-- グループ3: ユーティリティ -->
         <div class="control-group">
+            <button id="btn-restore" class="btn" title="最後に保存された状態（自動保存）を復元">
+                <span class="icon">📥</span> <span class="label">復元</span>
+            </button>
             <button id="btn-clear" class="btn btn-danger" title="すべての内容をリセット">
                 <span class="icon">🗑️</span>
             </button>
@@ -798,7 +801,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.16</span>
+            <span>App Version: v43-beta.17</span>
         </div>
 
     </div>
@@ -1300,6 +1303,16 @@
             document.getElementById('btn-export').addEventListener('click', openSaveConfirm);
             document.getElementById('btn-save-img').addEventListener('click', saveDiagramImage);
             document.getElementById('btn-clear').addEventListener('click', clearAll);
+            
+            // 復元ボタン (New)
+            const btnRestore = document.getElementById('btn-restore');
+            if (btnRestore) {
+                btnRestore.addEventListener('click', function() {
+                    if(confirm('最後に自動保存された内容を復元しますか？\n現在の編集内容は上書きされます。')) {
+                        loadFromStorage();
+                    }
+                });
+            }
 
             // 日誌タイプ切り替え (New)
             const journalTypeSelect = document.getElementById('journal-type-select');
