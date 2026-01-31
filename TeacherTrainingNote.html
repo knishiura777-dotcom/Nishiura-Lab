@@ -846,6 +846,11 @@
             initSettingsModal(); // 追加
             loadFromStorage();
             
+            // ブラウザを閉じる/リロードする直前に現在の状態を強制保存
+            window.addEventListener('beforeunload', function() {
+                saveToStorage();
+            });
+            
             // Undo/Redo キーボードショートカット
             window.addEventListener('keydown', function(e) {
                 if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
