@@ -12,7 +12,7 @@
     <!-- 4) CSP（Content Security Policy）導入 -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習日誌（修正完全版）v43-beta.17</title>
+    <title>教育実習日誌（修正完全版）v43-beta.18</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -801,7 +801,7 @@
         <!-- バージョン情報 -->
         <div class="footer-info no-print">
             <span id="auto-save-status" class="auto-save-label"></span>
-            <span>App Version: v43-beta.17</span>
+            <span>App Version: v43-beta.18</span>
         </div>
 
     </div>
@@ -824,6 +824,9 @@
         
         let currentObjectUrl = null;
         let currentFileName = "";
+        
+        // 編集検知フラグ
+        let isModified = false;
 
         const MAX_FILE_SIZE = 10 * 1024 * 1024;
         const ALLOWED_DOC_EXT = ['.doc', '.docx'];
@@ -851,7 +854,9 @@
             
             // ブラウザを閉じる/リロードする直前に現在の状態を強制保存
             window.addEventListener('beforeunload', function() {
-                saveToStorage();
+                if(isModified) {
+                    saveToStorage(true); // 変更がある場合のみ保存
+                }
             });
             
             // Undo/Redo キーボードショートカット
@@ -945,7 +950,12 @@
         }
 
         // --- 自動保存ロジック ---
-        function saveToStorage() {
+        function saveToStorage(force = false) {
+            if (!isModified && !force) {
+                console.log("No changes detected, skipping save.");
+                return;
+            }
+
             setSaveStatus('saving');
             const statusEl = document.getElementById('auto-save-status');
             if(statusEl) statusEl.innerText = '💾 保存中...';
@@ -988,6 +998,7 @@
         }
 
         function debouncedSave() {
+            isModified = true; // 編集があったことをマーク
             setSaveStatus('editing');
             const statusEl = document.getElementById('auto-save-status');
             if(statusEl) statusEl.innerText = '🖊️ 保存待機中...';
@@ -1046,6 +1057,8 @@
                 } else {
                     saveState();
                 }
+                
+                isModified = false; // 読み込み直後は「変更なし」状態にする
                 setSaveStatus('saved');
                 updateStatus('success', '自動保存データを復元しました');
             } catch (e) {
@@ -2310,7 +2323,7 @@
                 },
                 {
                     keys: ["机", "テーブル", "座", "製作", "ランチ", "お弁当", "描画", "お絵かき"],
-                    create: (w, h) => {
+                    create: (w, h, has) => {
                         const objs = [];
                         const groups = [{x: w/2 - 60, y: h/2}, {x: w/2 + 60, y: h/2}];
                         groups.forEach(g => {
