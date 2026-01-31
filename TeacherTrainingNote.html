@@ -1009,7 +1009,11 @@
         // --- 自動復元ロジック ---
         function loadFromStorage() {
             const json = localStorage.getItem(STORAGE_KEY);
-            if (!json) { saveState(); return; }
+            if (!json) { 
+                // データがない場合は初期UIをセットアップ
+                initializeDefaultState();
+                return; 
+            }
 
             try {
                 const data = JSON.parse(json);
@@ -1063,7 +1067,8 @@
                 updateStatus('success', '自動保存データを復元しました');
             } catch (e) {
                 console.error("Load error", e);
-                saveState();
+                // エラー時は初期化
+                initializeDefaultState();
             }
         }
 
@@ -1369,10 +1374,13 @@
                 });
             }
             initCanvasEvents();
-            clearAll();
+            // initAppではデータを消去しないように変更
+            // clearAll(); 
         }
 
         function clearAll() {
+            if(!confirm("すべての入力内容を消去してリセットしますか？\n保存されていないデータは完全に失われます。")) return;
+
             document.querySelectorAll('.editable').forEach(el => {
                 if (el.id !== 'field-university' && el.id !== 'field-name') el.innerText = '';
             });
@@ -1410,7 +1418,33 @@
             if(titleEl) titleEl.innerText = '教育実習日誌';
 
             history = []; historyStep = -1;
-            saveState();
+            
+            // 明示的なクリア操作なので履歴には残すが、自動保存のトリガーとしては扱わない（削除済みのため）
+            isModified = false;
+            saveState(); // 履歴用に保存するが、isModifiedはfalseのまま
+        }
+        
+        // データがない場合の初期状態セットアップ
+        function initializeDefaultState() {
+             const tbody = document.getElementById('timeline-body');
+             if (tbody.children.length === 0) {
+                 for(let i=0; i<6; i++) addTimelineRow();
+             }
+             
+             // キャンバス初期化
+             renderCanvas();
+             
+             // 履歴初期化
+             history = []; 
+             historyStep = -1;
+             
+             // 初期状態を履歴の最初に記録するが、未編集状態とする
+             const state = JSON.stringify(canvasObjects);
+             history.push(state);
+             historyStep = 0;
+             
+             isModified = false;
+             setSaveStatus('saved');
         }
 
         // 行のHTML要素を作成する関数 (共通化)
@@ -2323,7 +2357,7 @@
                 },
                 {
                     keys: ["机", "テーブル", "座", "製作", "ランチ", "お弁当", "描画", "お絵かき"],
-                    create: (w, h, has) => {
+                    create: (w, h) => {
                         const objs = [];
                         const groups = [{x: w/2 - 60, y: h/2}, {x: w/2 + 60, y: h/2}];
                         groups.forEach(g => {
