@@ -12,7 +12,7 @@
     <!-- CSP（Content Security Policy） -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none';">
     
-    <title>教育実習指導案作成（修正完全版）v43-beta.41</title>
+    <title>教育実習指導案作成（自動復元機能付）v43-beta.42</title>
     
     <!-- Wordファイル解析用ライブラリ (Mammoth.js) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -218,6 +218,8 @@
         #status-msg-container { position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 900; }
         .status-pill { padding: 8px 16px; border-radius: 8px; font-size: 13px; background: #fff; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: none; }
         .status-pill.show { display: inline-flex; animation: fadeIn 0.3s; }
+        .status-pill.success { color: var(--success-color); border-color: var(--success-color); background: #f0fdf4; }
+        .status-pill.error { color: var(--error-text); border-color: var(--error-border); background: var(--error-bg); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
         @media print {
@@ -398,7 +400,7 @@
 
         <div class="footer-info no-print">
             <span id="auto-save-status"></span>
-            <span>App Version: v43-beta.41 (Plan)</span>
+            <span>App Version: v43-beta.42 (Plan Auto-Restore)</span>
         </div>
     </div>
 
@@ -415,6 +417,7 @@
         let selectedIndex = -1;
         let isDragging = false, dragStartX = 0, dragStartY = 0;
         let saveTimeout = null;
+        let isRestoring = false; // 復元中フラグ (重要)
         const STORAGE_KEY = 'tt_plan_data_v1';
 
         // --- 初期化 ---
@@ -484,12 +487,19 @@
             document.getElementById('img-upload-input').addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
+                
+                // 容量チェック (約2MB以上の場合は警告を出す)
+                if(file.size > 2 * 1024 * 1024) {
+                    alert('注意: 画像サイズが大きいため、ブラウザの保存容量制限を超える可能性があります。\n画像を縮小してからアップロードすることをお勧めします。');
+                }
+
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const img = document.getElementById('manual-image');
                     img.src = event.target.result;
                     img.style.display = 'block';
                     updateStatus('画像を読み込みました');
+                    debouncedSave();
                 };
                 reader.readAsDataURL(file);
                 e.target.value = '';
@@ -604,15 +614,18 @@
             }
         }
 
-        // --- 保存・復元システム ---
+        // --- 保存・復元システム (強化版) ---
         function saveToStorage() {
+            // 復元中は保存しない（重要）
+            if (isRestoring) return;
+
             const data = {
                 fields: {},
                 timeline: [],
                 canvasObjects: canvasObjects,
                 manualImageSrc: document.getElementById('manual-image').getAttribute('src'),
                 planType: document.getElementById('plan-type-select').value, 
-                planMode: document.getElementById('plan-mode-select').value, // 形態も保存
+                planMode: document.getElementById('plan-mode-select').value,
                 timestamp: Date.now()
             };
             
@@ -627,19 +640,44 @@
                 data.timeline.push(cells);
             });
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            const now = new Date();
-            document.getElementById('auto-save-status').innerText = `☁️ 保存済 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
-            
-            // インジケーターを緑に戻す
-            const ind = document.getElementById('save-indicator');
-            if(ind) {
-                ind.className = 'save-indicator';
-                ind.title = '自動保存: 保存済';
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                const now = new Date();
+                const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+                document.getElementById('auto-save-status').innerText = `☁️ 保存済 (${timeStr})`;
+                
+                // インジケーターを緑に戻す
+                const ind = document.getElementById('save-indicator');
+                if(ind) {
+                    ind.className = 'save-indicator';
+                    ind.title = `自動保存: 保存済 (${timeStr})`;
+                }
+            } catch (e) {
+                console.error("Storage save failed:", e);
+                // クォータ超過エラー（容量不足）の場合のハンドリング
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    // 画像データが重い可能性が高いため、画像を除外して再試行
+                    if (data.manualImageSrc && data.manualImageSrc.length > 1000) {
+                        data.manualImageSrc = ""; // 画像データを削除
+                        try {
+                            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                            updateStatus('画像容量過多のため、テキストのみ保存しました', 'error');
+                            document.getElementById('auto-save-status').innerText = '⚠️ テキストのみ保存';
+                            return;
+                        } catch (retryError) {
+                            document.getElementById('auto-save-status').innerText = '❌ 保存失敗(容量不足)';
+                        }
+                    } else {
+                        document.getElementById('auto-save-status').innerText = '❌ 保存失敗(容量不足)';
+                    }
+                }
             }
         }
 
         function debouncedSave() {
+            // 復元中は処理しない
+            if (isRestoring) return;
+
             // インジケーターをオレンジにする
             const ind = document.getElementById('save-indicator');
             if(ind) {
@@ -653,21 +691,26 @@
         }
 
         function loadFromStorage() {
+            // 読み込み開始フラグを立てる（保存ループ防止）
+            isRestoring = true;
+
             const json = localStorage.getItem(STORAGE_KEY);
             if(!json) {
+                // データがない場合は初期行を追加して終了
                 for(let i=0; i<4; i++) addTimelineRow();
+                isRestoring = false;
                 return;
             }
+
             try {
                 const data = JSON.parse(json);
+                
                 // 実習タイプの復元
                 if(data.planType) {
-                    const select = document.getElementById('plan-type-select');
-                    select.value = data.planType;
+                    document.getElementById('plan-type-select').value = data.planType;
                 }
                 if(data.planMode) {
-                    const select = document.getElementById('plan-mode-select');
-                    select.value = data.planMode;
+                    document.getElementById('plan-mode-select').value = data.planMode;
                 }
                 // タイトル更新
                 const type = document.getElementById('plan-type-select').value;
@@ -676,35 +719,59 @@
                 if(mode) title += `（${mode}実習）`;
                 document.getElementById('main-title').innerText = title;
 
+                // テキストフィールドの復元
                 if(data.fields) {
                     for(const [id, val] of Object.entries(data.fields)) {
                         const el = document.getElementById(id);
                         if(el) el.innerHTML = val;
                     }
                 }
-                if(data.timeline) {
-                    const tbody = document.getElementById('timeline-body');
-                    tbody.innerHTML = '';
+
+                // タイムラインの復元
+                const tbody = document.getElementById('timeline-body');
+                tbody.innerHTML = ''; // 一旦クリア
+                if(data.timeline && data.timeline.length > 0) {
                     data.timeline.forEach(row => {
                         const cleanRow = row.map(cell => cell.replace(/<br\s*\/?>/gi, '\n'));
+                        // addTimelineRowはdebouncedSaveを呼ぶが、isRestoring=trueなので保存は走らない
                         addTimelineRow(...cleanRow);
                     });
+                } else {
+                    for(let i=0; i<4; i++) addTimelineRow();
                 }
+
+                // キャンバスオブジェクトの復元
                 if(data.canvasObjects) {
                     canvasObjects = data.canvasObjects;
                     renderCanvas();
                 }
+
+                // 背景画像の復元
                 if(data.manualImageSrc) {
                     const img = document.getElementById('manual-image');
                     img.src = data.manualImageSrc;
                     img.style.display = 'block';
                 }
-                document.getElementById('auto-save-status').innerText = '自動復元完了';
-            } catch(e) { console.error(e); }
+
+                // 読み込み完了
+                isRestoring = false;
+                
+                // 成功通知
+                updateStatus('前回の続きから復元しました', 'success');
+                document.getElementById('auto-save-status').innerText = '✅ データ復元完了';
+                
+            } catch(e) { 
+                console.error("Restore failed:", e);
+                isRestoring = false;
+                // エラー時は最低限の行を追加
+                if(document.getElementById('timeline-body').children.length === 0) {
+                    for(let i=0; i<4; i++) addTimelineRow();
+                }
+            }
         }
 
         function clearAll() {
-            if(!confirm('全ての入力内容を消去しますか？')) return;
+            if(!confirm('全ての入力内容を消去しますか？\n（保存されたデータも削除されます）')) return;
             localStorage.removeItem(STORAGE_KEY);
             location.reload();
         }
@@ -950,7 +1017,7 @@
                     .then(result => {
                         const text = result.value;
                         parseAndSetData(text);
-                        updateStatus('読み込み完了');
+                        updateStatus('読み込み完了', 'success');
                     })
                     .catch(err => {
                         console.error(err);
@@ -1066,11 +1133,12 @@
             }
             
             alert("Wordファイルから以下の項目を抽出しました：\n・ねらい\n・基本情報\n・環境構成\n・領域に関する視点\n・予想される姿\n・指導過程\n・実習生の振り返り");
+            debouncedSave(); // 抽出後に保存
         }
 
-        function updateStatus(msg) {
+        function updateStatus(msg, type = 'normal') {
             const el = document.createElement('div');
-            el.className = 'status-pill show';
+            el.className = `status-pill ${type} show`;
             el.innerHTML = `<span>${msg}</span>`;
             document.getElementById('status-msg-container').appendChild(el);
             setTimeout(() => el.remove(), 3000);
