@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CoopSimulator: TACK Model Edition</title>
+  <title>CoopSimulator: TACK Model Edition (Multi-Language)</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -19,7 +19,7 @@
       --grid-line:rgba(255,255,255,.05);
     }
     body{
-      font-family:'Noto Sans JP',sans-serif;
+      font-family:'Noto Sans JP', 'Noto Sans', sans-serif;
       background-color:var(--bg-dark);
       color:#f8fafc;
       background-image:
@@ -76,6 +76,429 @@
     const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
     // ---------------------------
+    // Language Data & Text
+    // ---------------------------
+    const LANGS = {
+      ja: { name: "日本語", flag: "🇯🇵" },
+      en: { name: "English", flag: "🇺🇸" },
+      sv: { name: "Svenska", flag: "🇸🇪" }
+    };
+
+    const TEXT = {
+      ja: {
+        intro: `西暦2035年。
+日本の人口減少は「危険水域」を突破した。
+
+行政サービスは撤退し、
+「買い物難民」「独居老人の孤立」「子育ての孤立」……
+社会の隙間に、音もなく人々が落ちていく。
+
+あなたに課せられた使命は、
+地域に根ざした物流網を持つ「生協」を
+次世代の『社会的共通資本』へとハックすること。
+
+地域の資源（Resource）を最大化し、
+社会的負荷（Risk）を最小化せよ。
+
+これは、単なる経営シミュレーションではない。
+この国の「生存戦略」だ。`,
+        mission_accept: "ミッションを受諾する",
+        skip: "SKIP [ESC]",
+        title_sub: "A案：協力を「合理」へ",
+        start_desc: "講演用実験モード:\n「善意(精神論)」のみでプレイすると、TACK因子が崩壊することを確認してください。",
+        start_btn: "実験開始",
+        budget: "予算",
+        turn: "TURN",
+        burnout: "現場疲弊 (Burnout)",
+        monitoring: "MONITORING AREA",
+        coverage: "Coverage",
+        system_log: "SYSTEM LOG",
+        waiting_log: "戦略待機中...",
+        cancel: "やめる",
+        confirm: "決定・実行",
+        game_over_cond: "ゲームオーバー条件",
+        go_budget: "■ 資金枯渇",
+        go_burnout: "■ 現場疲弊度 100% (Burnout)",
+        go_t: "■ 連帯(Togetherness) 0 (崩壊・分断)",
+        close: "閉じる",
+        pros: "メリット",
+        cons: "デメリット",
+        forecast: "FORECAST (予測)",
+        lv_up: "【LvUP】{name} Lv{lv}になりました！",
+        result: {
+          title: "RESULT",
+          fail_money: "資金ショート",
+          fail_burnout: "現場崩壊 (Burnout)",
+          fail_trust: "連帯崩壊 (Division)",
+          success: "MISSION ACCOMPLISHED",
+          analysis: "TACK ANALYSIS",
+          retry: "再実験する",
+          msg_t_fail: "【連帯の崩壊】トラブルを「現場の犠牲」で解決しようとしたため、組織のTogethernessが地に落ちました。",
+          msg_a_fail: "【能動性の死】「気合」と対応業務に追われ、現場から思考し行動する余白(Agency)が奪われました。",
+          msg_c_fail: "【意味の喪失】目的と行動が乖離しています。「なんのために頑張っているのか」が見えず、Coherenceが崩壊しました。",
+          msg_k_fail: "【停滞】自転車操業で精一杯です。未来への投資ができず、組織のKinetics(活力)が枯渇しました。",
+          msg_success: "【A案証明完了】システムへの投資により、現場の負担を下げつつ高いTACKスコアを維持することに成功しました。これが「合理的な優しさ」です。"
+        },
+        tack: {
+          t: { label: "Togetherness (連帯)", desc: "組織や地域との一体感・連帯意識。" },
+          a: { label: "Agency (能動性)", desc: "自らの意志で決定・行動できる感覚。余白がないと低下。" },
+          c: { label: "Coherence (一貫)", desc: "目的と行動の一致感。首尾一貫性(SOC)。" },
+          k: { label: "Kinetics (動性)", desc: "未来へ向かう組織の活力。停滞すると死ぬ。" },
+          kizuna: { label: "Kizuna (絆)", desc: "セーフティネットとしての繋がり。孤立を防ぐ。" }
+        },
+        strategies: {
+          delivery_sensing: {
+            title: "見守り配送 (Sensing)",
+            subtitle: "物流網をセーフティネットへ",
+            desc: "配送員が「ソーシャルワーカー」的な役割を兼務し、異変を早期発見します。",
+            pros: "地域の孤立リスクを劇的に低減（Kizuna・Coherence↑）",
+            cons: "現場の負担増、配送効率の低下"
+          },
+          product_social: {
+            title: "時短Kit開発 (Social Product)",
+            subtitle: "時間を売る商品戦略",
+            desc: "「親が子供と向き合う時間」を作るためのミールキット等を開発・普及させます。",
+            pros: "子育て世帯の精神的余白を創出（Agency・Kinetics↑）",
+            cons: "開発・広報コストがかかり、利益率は下がる可能性"
+          },
+          hub_commons: {
+            title: "拠点開放 (Commons)",
+            subtitle: "店舗を地域の居場所へ",
+            desc: "店舗や配送センターの一角を、高齢者や子供が無料で過ごせる「コモンズ」として開放します。",
+            pros: "多世代交流の促進、スタッフの誇り向上（Kizuna・Kinetics↑）",
+            cons: "場所代・維持管理コストの発生、回転率の低下"
+          },
+          default: {
+            title: "通常業務 (Business as Usual)",
+            subtitle: "効率と利益の追求",
+            btn_text: "通常業務のみを行う (気合・現状維持)",
+            desc: "従来の小売・物流業務に専念し、収益性を最大化します。",
+            pros: "予算の確保、現場の混乱回避",
+            cons: "【警告】現場疲弊大。TACK因子（特にAgency/Kinetics）が著しく低下します。"
+          }
+        },
+        events: {
+          ev1: {
+            title: "【行政】仁義なき縦割り",
+            desc: "福祉課「移動販売車を入れて」道路課「駐禁です」。板挟みで車が出せません。",
+            c1: "「これは家です」", m1: "法務部が動いてロジックを構築。Kinetics(活力)が生まれました。",
+            c2: "調整会議で粘る", m2: "「検討を加速」。Coherence(一貫性)が失われました。",
+            c3: "強行突破", m3: "住民は歓喜！しかしコンプラ違反でTogetherness低下。"
+          },
+          ev2: {
+            title: "【行政】ハイテク・ハンコ地獄",
+            desc: "DX推進を頼まれましたが、完了画面のスクショを「印刷して実印」が必要らしいです。",
+            c1: "独自アプリ開発", m1: "システムで隠蔽！現場にAgency(主体的な余白)が戻りました。",
+            c2: "「規則ですので」", m2: "思考停止。Coherence(意味)を感じられず現場は徒労感。",
+            c3: "判子付きケース配布", m3: "ギミックが大ウケ。少しKinetics回復。"
+          },
+          ev3: {
+            title: "【行政】ポエムな成果指標",
+            desc: "報告書に対し、「定量的データはいいから、『地域の輝き度』を数値化して」との修正指示。",
+            c1: "適当に120%で報告", m1: "嘘をつく仕事。CoherenceとTogethernessが大きく傷つきました。",
+            c2: "笑顔AI導入", m2: "AIに「輝き」を測定させました。馬鹿馬鹿しいですがKineticsは維持。",
+            c3: "データで反論", m3: "3時間の説教。Agency(時間と意志)を浪費しました。"
+          },
+          ev_op1: {
+            title: "【現場】最強パート「お局様」",
+            desc: "勤続30年の鈴木さんが「店長のやり方はぬるい！」と実権を掌握しかけています。",
+            c1: "名誉理事に祭り上げ", m1: "役割を与える設計。承認欲求が満たされCoherence回復。",
+            c2: "店長vsお局", m2: "店舗が戦場に。KizunaとKineticsが崩壊。",
+            c3: "全権委任", m3: "効率は上がりましたが、若手のAgencyが死にました。"
+          },
+          ev_op2: {
+            title: "【物流】誤発注：豆腐1000丁",
+            desc: "新人が0を1つ多く入力。トラック一杯の木綿豆腐が届きました。",
+            c1: "緊急「豆腐祭り」", m1: "イベント化してKinetics爆増！",
+            c2: "全廃棄＆始末書", m2: "豆腐と共に心も砕けました。Coherence低下。",
+            c3: "「豆腐風呂」", m3: "炎上しました。Togetherness低下。"
+          },
+          ev_soc1: {
+            title: "【教育】部活の地域移行",
+            desc: "「練習場所がない」と子供たちが生協駐車場でサッカーを始めました。",
+            c1: "追い返す", m1: "安全管理上は正解ですが、地域とのKizunaに亀裂。",
+            c2: "場所を開放・整備", m2: "ネットを設置。KineticsとKizunaが向上。",
+            c3: "店長がGK参戦", m3: "盛り上がりましたが、店長の仕事が終わりません(Agency低下)。"
+          }
+        }
+      },
+      en: {
+        intro: `Year 2035.
+Japan's population decline has breached the "critical zone".
+
+Public services have retreated.
+"Shopping refugees," "Isolated elderly," "Lonely parenting"...
+People are silently falling into the cracks of society.
+
+Your mission is to hack the Co-op, 
+a logistics network rooted in the community, 
+into the next generation's "Social Common Capital".
+
+Maximize regional Resources.
+Minimize social Risks.
+
+This is not just a management simulation.
+It is a "Survival Strategy" for this country.`,
+        mission_accept: "Accept Mission",
+        skip: "SKIP [ESC]",
+        title_sub: "Plan A: Rationalizing Cooperation",
+        start_desc: "Lecture Experiment Mode:\nVerify that TACK factors collapse when played only with 'Goodwill' (Spirit/Guts).",
+        start_btn: "Start Experiment",
+        budget: "Budget",
+        turn: "TURN",
+        burnout: "Burnout",
+        monitoring: "MONITORING AREA",
+        coverage: "Coverage",
+        system_log: "SYSTEM LOG",
+        waiting_log: "Awaiting strategy...",
+        cancel: "Cancel",
+        confirm: "Confirm & Execute",
+        game_over_cond: "Game Over Conditions",
+        go_budget: "■ Funds Depleted",
+        go_burnout: "■ Burnout 100%",
+        go_t: "■ Togetherness 0 (Division)",
+        close: "Close",
+        pros: "Pros",
+        cons: "Cons",
+        forecast: "FORECAST",
+        lv_up: "【LvUP】{name} reached Lv{lv}!",
+        result: {
+          title: "RESULT",
+          fail_money: "Funds Depleted",
+          fail_burnout: "Team Collapse",
+          fail_trust: "Total Division",
+          success: "MISSION ACCOMPLISHED",
+          analysis: "TACK ANALYSIS",
+          retry: "Retry Experiment",
+          msg_t_fail: "[Collapse of Togetherness] Solving issues by sacrificing the team destroyed organizational Togetherness.",
+          msg_a_fail: "[Death of Agency] Overwhelmed by tasks and 'guts', the team lost the Agency to think and act.",
+          msg_c_fail: "[Loss of Coherence] Purpose and action are disconnected. Coherence collapsed as the 'Why' was lost.",
+          msg_k_fail: "[Stagnation] Barely keeping afloat. Lack of investment in the future drained Kinetics (Vitality).",
+          msg_success: "[Plan A Proven] System investment reduced burden while maintaining high TACK scores. This is 'Rational Kindness'."
+        },
+        tack: {
+          t: { label: "Togetherness", desc: "Unity and solidarity with the organization/community." },
+          a: { label: "Agency", desc: "Sense of control and will. Drops without mental margin." },
+          c: { label: "Coherence", desc: "Consistency of purpose. Sense of Coherence (SOC)." },
+          k: { label: "Kinetics", desc: "Organizational vitality towards the future." },
+          kizuna: { label: "Bonds (Kizuna)", desc: "Connection as a safety net. Prevents isolation." }
+        },
+        strategies: {
+          delivery_sensing: {
+            title: "Sensing Delivery",
+            subtitle: "Logistics as Safety Net",
+            desc: "Delivery staff double as 'social workers' to detect anomalies early.",
+            pros: "Drastically reduces isolation risk (Bonds/Coherence↑)",
+            cons: "Increased burden, lower delivery efficiency"
+          },
+          product_social: {
+            title: "Social Product Kit",
+            subtitle: "Selling Time",
+            desc: "Develop meal kits to create 'time for parents to face their children'.",
+            pros: "Creates mental margin for families (Agency/Kinetics↑)",
+            cons: "Development costs, potential lower profit margin"
+          },
+          hub_commons: {
+            title: "Commons Hub",
+            subtitle: "Store as Third Place",
+            desc: "Open parts of stores/centers as free 'Commons' for elderly and kids.",
+            pros: "Intergenerational exchange, staff pride (Bonds/Kinetics↑)",
+            cons: "Maintenance costs, lower turnover rate"
+          },
+          default: {
+            title: "Business as Usual",
+            subtitle: "Efficiency & Profit",
+            btn_text: "Business as Usual (Status Quo)",
+            desc: "Focus on traditional retail/logistics to maximize profitability.",
+            pros: "Secure budget, avoid operational confusion",
+            cons: "[WARNING] High Burnout. TACK factors (Agency/Kinetics) will drop."
+          }
+        },
+        events: {
+          ev1: {
+            title: "[Gov] Bureaucracy Wars",
+            desc: "Welfare Dept: 'Send mobile sales.' Road Dept: 'Parking violation.' You're stuck.",
+            c1: "'This is a house'", m1: "Legal team built a logic. Kinetics (Vitality) born.",
+            c2: "Endless Meetings", m2: "'Accelerate consideration'. Coherence lost.",
+            c3: "Force Breakthrough", m3: "Residents happy! But compliance violation hurt Togetherness."
+          },
+          ev2: {
+            title: "[Gov] High-Tech Stamp Hell",
+            desc: "DX promoted, but you need to 'print the screenshot and stamp it with a seal'.",
+            c1: "Dev Custom App", m1: "Masked by system! Agency returned to the field.",
+            c2: "'It's the rules'", m2: "Stopped thinking. Coherence lost, feeling futile.",
+            c3: "Stamp Case Gift", m3: "Gimmick was a hit. Kinetics slightly recovered."
+          },
+          ev3: {
+            title: "[Gov] Poetic Metrics",
+            desc: "Report rejected: 'We don't need data, quantify the *Regional Sparkle*'.",
+            c1: "Report 120%", m1: "Lying work. Coherence and Togetherness damaged.",
+            c2: "Smile AI", m2: "AI measured 'Sparkle'. Silly but Kinetics maintained.",
+            c3: "Argue with Data", m3: "3-hour lecture. Wasted Agency (Time/Will)."
+          },
+          ev_op1: {
+            title: "[Ops] The Veteran Boss",
+            desc: "Suzuki (30 years exp) says 'Manager is soft!' and is taking over.",
+            c1: "Honorary Director", m1: "Designed a role. Coherence recovered via recognition.",
+            c2: "Manager vs Veteran", m2: "Store is a battlefield. Bonds and Kinetics collapsed.",
+            c3: "Full Delegation", m3: "Efficiency up, but young staff's Agency died."
+          },
+          ev_op2: {
+            title: "[Logistics] 1000 Tofu Error",
+            desc: "New hire typed an extra 0. A truckload of firm tofu arrived.",
+            c1: "Emergency Tofu Fest", m1: "Turned into an event! Kinetics skyrocketed!",
+            c2: "Dump & Apology", m2: "Hearts broke with the tofu. Coherence down.",
+            c3: "Tofu Bath", m3: "Went viral (badly). Togetherness down."
+          },
+          ev_soc1: {
+            title: "[Edu] Club Activities",
+            desc: "Kids started playing soccer in the parking lot: 'No place to play'.",
+            c1: "Chase away", m1: "Safe, but cracks in Bonds with community.",
+            c2: "Open Space", m2: "Set up nets. Kinetics and Bonds up.",
+            c3: "Manager joins as GK", m3: "Fun, but Manager's work piled up (Agency down)."
+          }
+        }
+      },
+      sv: {
+        intro: `År 2035.
+Japans befolkningsminskning har passerat den "kritiska gränsen".
+
+Offentliga tjänster har dragit sig tillbaka.
+"Shopping-flyktingar", "Isolerade äldre", "Ensamstående föräldrar"...
+Människor faller ljudlöst ner i samhällets sprickor.
+
+Ditt uppdrag är att hacka Kooperativet,
+ett logistiknätverk rotat i lokalsamhället,
+till nästa generations "Sociala Gemensamma Kapital".
+
+Maximera regionala Resurser.
+Minimera sociala Risker.
+
+Detta är inte bara en ledningssimulation.
+Det är en "Överlevnadsstrategi" för detta land.`,
+        mission_accept: "Acceptera Uppdrag",
+        skip: "HOPPA ÖVER [ESC]",
+        title_sub: "Plan A: Rationalisera Samarbetet",
+        start_desc: "Föreläsningsexperiment:\nVerifiera att TACK-faktorer kollapsar när man spelar enbart med 'Välvilja' (Fighting Spirit).",
+        start_btn: "Starta Experiment",
+        budget: "Budget",
+        turn: "Runda",
+        burnout: "Utbrändhet (Burnout)",
+        monitoring: "ÖVERVAKNINGSOMRÅDE",
+        coverage: "Täckning",
+        system_log: "SYSTEMLOGG",
+        waiting_log: "Väntar på strategi...",
+        cancel: "Avbryt",
+        confirm: "Bekräfta & Utför",
+        game_over_cond: "Game Over-villkor",
+        go_budget: "■ Fonder uttömda",
+        go_burnout: "■ Utbrändhet 100%",
+        go_t: "■ Samhörighet 0 (Splittring)",
+        close: "Stäng",
+        pros: "Fördelar",
+        cons: "Nackdelar",
+        forecast: "PROGNOS",
+        lv_up: "【LvUP】{name} nådde Lv{lv}!",
+        result: {
+          title: "RESULTAT",
+          fail_money: "Konkurs",
+          fail_burnout: "Teamkollaps",
+          fail_trust: "Total Splittring",
+          success: "UPPDRAG SLUTFÖRT",
+          analysis: "TACK-ANALYS",
+          retry: "Försök Igen",
+          msg_t_fail: "[Samhörighetskollaps] Att lösa problem genom att offra teamet förstörde organisationens Samhörighet.",
+          msg_a_fail: "[Agensens Död] Överväldigad av uppgifter och 'kämpaglöd' förlorade teamet sin Agens att tänka och handla.",
+          msg_c_fail: "[Förlust av Sammanhang] Syfte och handling är frånkopplade. KASAM kollapsade när 'Varför' gick förlorat.",
+          msg_k_fail: "[Stagnation] Håller sig knappt flytande. Brist på investeringar i framtiden dränerade Kinetik (Vitalitet).",
+          msg_success: "[Plan A Bevisad] Systeminvesteringar minskade bördan samtidigt som höga TACK-poäng bibehölls. Detta är 'Rationell Vänlighet'."
+        },
+        tack: {
+          t: { label: "Samhörighet (Togetherness)", desc: "Enhet och solidaritet med organisationen/samhället." },
+          a: { label: "Agens (Agency)", desc: "Känsla av kontroll och vilja. Sjunker utan mentalt utrymme." },
+          c: { label: "Sammanhang (Coherence)", desc: "Konsekvent syfte. Känsla av sammanhang (KASAM)." },
+          k: { label: "Kinetik (Kinetics)", desc: "Organisatorisk vitalitet/drivkraft mot framtiden." },
+          kizuna: { label: "Band (Kizuna)", desc: "Anslutning som skyddsnät. Förhindrar isolering." }
+        },
+        strategies: {
+          delivery_sensing: {
+            title: "Sensing Delivery",
+            subtitle: "Logistik som Skyddsnät",
+            desc: "Leveranspersonal agerar även 'socialarbetare' för att upptäcka avvikelser tidigt.",
+            pros: "Minskar isoleringsrisken drastiskt (Band/Sammanhang↑)",
+            cons: "Ökad börda, lägre leveranseffektivitet"
+          },
+          product_social: {
+            title: "Social Product Kit",
+            subtitle: "Sälja Tid",
+            desc: "Utveckla måltidskit för att skapa 'tid för föräldrar att se sina barn'.",
+            pros: "Skapar mentalt utrymme för familjer (Agens/Kinetik↑)",
+            cons: "Utvecklingskostnader, potentiellt lägre vinstmarginal"
+          },
+          hub_commons: {
+            title: "Commons Hub",
+            subtitle: "Butik som Tredje Plats",
+            desc: "Öppna delar av butiker som gratis 'Allmänningar' för äldre och barn.",
+            pros: "Generationsöverskridande utbyte, personalstolthet (Band/Kinetik↑)",
+            cons: "Underhållskostnader, lägre omsättningshastighet"
+          },
+          default: {
+            title: "Business as Usual",
+            subtitle: "Effektivitet & Vinst",
+            btn_text: "Business as Usual (Status Quo)",
+            desc: "Fokusera på traditionell handel/logistik för att maximera lönsamheten.",
+            pros: "Säkra budget, undvik operativ förvirring",
+            cons: "[VARNING] Hög Utbrändhet. TACK-faktorer (Agens/Kinetik) kommer att sjunka."
+          }
+        },
+        events: {
+          ev1: {
+            title: "[Myndighet] Byråkratikrig",
+            desc: "Välfärd: 'Skicka mobil försäljning.' Vägverket: 'Parkeringsböter.' Du sitter fast.",
+            c1: "'Detta är ett hus'", m1: "Juridiska teamet byggde en logik. Kinetik (Vitalitet) föddes.",
+            c2: "Eviga Möten", m2: "'Accererera övervägandet'. Sammanhang förlorat.",
+            c3: "Tvinga Genombrott", m3: "Invånarna glada! Men regelefterlevnad skadade Samhörighet."
+          },
+          ev2: {
+            title: "[Myndighet] High-Tech Stämpel",
+            desc: "DX främjas, men du måste 'skriva ut skärmdumpen och stämpla den'.",
+            c1: "Egen App", m1: "Maskerad av systemet! Agens återvände till fältet.",
+            c2: "'Det är reglerna'", m2: "Slutade tänka. Sammanhang förlorat, känns meningslöst.",
+            c3: "Stämpel-etui Gåva", m3: "Gimmicken blev en hit. Kinetik återhämtade sig något."
+          },
+          ev3: {
+            title: "[Myndighet] Poetiska Mätvärden",
+            desc: "Rapport avvisad: 'Vi behöver inte data, kvantifiera *Regional Glans*'.",
+            c1: "Rapportera 120%", m1: "Ljugande arbete. Sammanhang och Samhörighet skadade.",
+            c2: "Leende-AI", m2: "AI mätte 'Glans'. Fånigt men Kinetik bibehölls.",
+            c3: "Argumentera med Data", m3: "3 timmars föreläsning. Slösad Agens (Tid/Vilja)."
+          },
+          ev_op1: {
+            title: "[Drift] Veteran-chefen",
+            desc: "Suzuki (30 år i tjänst) säger 'Chefen är mjuk!' och tar över.",
+            c1: "Hedersdirektör", m1: "Designade en roll. Sammanhang återhämtat via erkännande.",
+            c2: "Chef vs Veteran", m2: "Butiken är ett slagfält. Band och Kinetik kollapsade.",
+            c3: "Full Delegering", m3: "Effektivitet upp, men unga personalens Agens dog."
+          },
+          ev_op2: {
+            title: "[Logistik] 1000 Tofu-felet",
+            desc: "Nyanställd skrev en extra 0:a. En lastbil med fast tofu anlände.",
+            c1: "Nöd-Tofufest", m1: "Blev ett event! Kinetik sköt i höjden!",
+            c2: "Släng & Ursäkt", m2: "Hjärtan krossades med tofun. Sammanhang ner.",
+            c3: "Tofu-bad", m3: "Blev viralt (på dåligt sätt). Samhörighet ner."
+          },
+          ev_soc1: {
+            title: "[Utb] Klubaktiviteter",
+            desc: "Barn började spela fotboll på parkeringen: 'Ingen plats att spela'.",
+            c1: "Jaga bort", m1: "Säkert, men sprickor i Band med samhället.",
+            c2: "Öppna Yta", m2: "Satte upp nät. Kinetik och Band upp.",
+            c3: "Chefen går in som MV", m3: "Kul, men Chefens arbete hopade sig (Agens ner)."
+          }
+        }
+      }
+    };
+
+    // ---------------------------
     // Utils
     // ---------------------------
     const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -110,6 +533,7 @@
         Smile: <g><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></g>,
         Printer: <g><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></g>,
         WifiOff: <g><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></g>,
+        Globe: <g><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></g>
       };
 
       return (
@@ -132,7 +556,7 @@
     });
 
     // ---------------------------
-    // Game Data & TACK Definition
+    // Game Data Logic (Independent of Text)
     // ---------------------------
     const INITIAL_BUDGET = 5000;
     const MAX_TURNS = 24;
@@ -144,94 +568,69 @@
       CONNECTED: "connected",
     };
 
-    // TACK Model Mapping
-    // T: Togetherness (Global Variable)
-    // A: Agency (Local Variable) - Formerly Autonomy
-    // C: Coherence (Mapped from meaning)
-    // K: Kinetics (Mapped from vitality)
-    const WB_FACTORS = [
-      { id: "agency",     label: "Agency (能動性)", icon: "Clock", color: "text-emerald-400", bg: "bg-emerald-500", desc: "自らの意志で決定・行動できる感覚。余白がないと低下。" },
-      { id: "meaning",    label: "Coherence (一貫)", icon: "Target", color: "text-purple-400", bg: "bg-purple-500", desc: "目的と行動の一致感。首尾一貫性(SOC)。" },
-      { id: "vitality",   label: "Kinetics (動性)", icon: "Activity", color: "text-yellow-400", bg: "bg-yellow-500", desc: "未来へ向かう組織の活力。停滞すると死ぬ。" },
-      { id: "connection", label: "Kizuna (絆)", icon: "Users", color: "text-cyan-400", bg: "bg-cyan-500", desc: "セーフティネットとしての繋がり。孤立を防ぐ。" },
+    const WB_FACTORS_DEF = [
+      { id: "agency",     icon: "Clock", color: "text-emerald-400", bg: "bg-emerald-500" },
+      { id: "meaning",    icon: "Target", color: "text-purple-400", bg: "bg-purple-500" },
+      { id: "vitality",   icon: "Activity", color: "text-yellow-400", bg: "bg-yellow-500" },
+      { id: "connection", icon: "Users", color: "text-cyan-400", bg: "bg-cyan-500" },
     ];
 
-    const STRATEGY_DETAILS = {
+    const STRATEGY_LOGIC = {
       delivery_sensing: {
-        title: "見守り配送 (Sensing)",
-        subtitle: "物流網をセーフティネットへ",
-        desc: "配送員が「ソーシャルワーカー」的な役割を兼務し、異変を早期発見します。",
-        pros: "地域の孤立リスクを劇的に低減（Kizuna・Coherence↑）",
-        cons: "現場の負担増、配送効率の低下",
         eff: { b: -300, bo: 5, c: 5, wb: { connection: 15, meaning: 10 } },
       },
       product_social: {
-        title: "時短Kit開発 (Social Product)",
-        subtitle: "時間を売る商品戦略",
-        desc: "「親が子供と向き合う時間」を作るためのミールキット等を開発・普及させます。",
-        pros: "子育て世帯の精神的余白を創出（Agency・Kinetics↑）",
-        cons: "開発・広報コストがかかり、利益率は下がる可能性",
         eff: { b: -200, bo: -2, c: 2, wb: { agency: 15, vitality: 5 } },
       },
       hub_commons: {
-        title: "拠点開放 (Commons)",
-        subtitle: "店舗を地域の居場所へ",
-        desc: "店舗や配送センターの一角を、高齢者や子供が無料で過ごせる「コモンズ」として開放します。",
-        pros: "多世代交流の促進、スタッフの誇り向上（Kizuna・Kinetics↑）",
-        cons: "場所代・維持管理コストの発生、回転率の低下",
         eff: { b: -150, bo: 2, c: 3, wb: { connection: 10, vitality: 10 } },
       },
       default: {
-        title: "通常業務 (Business as Usual)",
-        subtitle: "効率と利益の追求",
-        desc: "従来の小売・物流業務に専念し、収益性を最大化します。",
-        pros: "予算の確保、現場の混乱回避",
-        cons: "【警告】現場疲弊大。TACK因子（特にAgency/Kinetics）が著しく低下します。",
         eff: { b: 200, bo: 15, c: 0, wb: { agency: -5, meaning: -5, vitality: -5 }, t: -1 },
       },
     };
 
-    const CRITICAL_EVENTS = [
-      { id: "ev1", title: "【行政】仁義なき縦割り", icon: "Alert", desc: "福祉課「移動販売車を入れて」道路課「駐禁です」。板挟みで車が出せません。",
+    const CRITICAL_EVENTS_LOGIC = [
+      { id: "ev1", icon: "Alert", 
         choices: [
-          { t: "「これは家です」", eff: { b: -100, bo: 0, c: 5, wb: { vitality: 10, agency: 5 } }, msg: "法務部が動いてロジックを構築。Kinetics(活力)が生まれました。", good: true },
-          { t: "調整会議で粘る", eff: { b: 0, bo: 15, c: 0, wb: { meaning: -10, agency: -10 } }, msg: "「検討を加速」。Coherence(一貫性)が失われました。", good: false },
-          { t: "強行突破", eff: { b: -20, bo: 5, c: 10, wb: { connection: 5 }, t: -10 }, msg: "住民は歓喜！しかしコンプラ違反でTogetherness低下。", good: true },
+          { id: 1, eff: { b: -100, bo: 0, c: 5, wb: { vitality: 10, agency: 5 } }, good: true },
+          { id: 2, eff: { b: 0, bo: 15, c: 0, wb: { meaning: -10, agency: -10 } }, good: false },
+          { id: 3, eff: { b: -20, bo: 5, c: 10, wb: { connection: 5 }, t: -10 }, good: true },
         ]
       },
-      { id: "ev2", title: "【行政】ハイテク・ハンコ地獄", icon: "WifiOff", desc: "DX推進を頼まれましたが、完了画面のスクショを「印刷して実印」が必要らしいです。",
+      { id: "ev2", icon: "WifiOff", 
         choices: [
-          { t: "独自アプリ開発", eff: { b: -150, bo: 0, c: 5, wb: { agency: 15 } }, msg: "システムで隠蔽！現場にAgency(主体的な余白)が戻りました。", good: true },
-          { t: "「規則ですので」", eff: { b: 0, bo: 10, c: 0, wb: { meaning: -15, vitality: -5 } }, msg: "思考停止。Coherence(意味)を感じられず現場は徒労感。", good: false },
-          { t: "判子付きケース配布", eff: { b: -30, bo: 0, c: 2, wb: { vitality: 5 } }, msg: "ギミックが大ウケ。少しKinetics回復。", good: false },
+          { id: 1, eff: { b: -150, bo: 0, c: 5, wb: { agency: 15 } }, good: true },
+          { id: 2, eff: { b: 0, bo: 10, c: 0, wb: { meaning: -15, vitality: -5 } }, good: false },
+          { id: 3, eff: { b: -30, bo: 0, c: 2, wb: { vitality: 5 } }, good: false },
         ]
       },
-      { id: "ev3", title: "【行政】ポエムな成果指標", icon: "Target", desc: "報告書に対し、「定量的データはいいから、『地域の輝き度』を数値化して」との修正指示。",
+      { id: "ev3", icon: "Target", 
         choices: [
-          { t: "適当に120%で報告", eff: { b: 0, bo: -5, c: 0, wb: { meaning: -20 }, t: -10 }, msg: "嘘をつく仕事。CoherenceとTogethernessが大きく傷つきました。", good: false },
-          { t: "笑顔AI導入", eff: { b: -150, bo: 0, c: 0, wb: { vitality: 10, meaning: 5 } }, msg: "AIに「輝き」を測定させました。馬鹿馬鹿しいですがKineticsは維持。", good: true },
-          { t: "データで反論", eff: { b: 0, bo: 20, c: 0, t: 5, wb: { agency: -10 } }, msg: "3時間の説教。Agency(時間と意志)を浪費しました。", good: false },
+          { id: 1, eff: { b: 0, bo: -5, c: 0, wb: { meaning: -20 }, t: -10 }, good: false },
+          { id: 2, eff: { b: -150, bo: 0, c: 0, wb: { vitality: 10, meaning: 5 } }, good: true },
+          { id: 3, eff: { b: 0, bo: 20, c: 0, t: 5, wb: { agency: -10 } }, good: false },
         ]
       },
-      { id: "ev_op1", title: "【現場】最強パート「お局様」", icon: "Zap", desc: "勤続30年の鈴木さんが「店長のやり方はぬるい！」と実権を掌握しかけています。",
+      { id: "ev_op1", icon: "Zap", 
         choices: [
-          { t: "名誉理事に祭り上げ", eff: { b: -50, bo: -5, c: 5, wb: { meaning: 10, connection: 5 } }, msg: "役割を与える設計。承認欲求が満たされCoherence回復。", good: true },
-          { t: "店長vsお局", eff: { b: 0, bo: 30, c: 0, wb: { connection: -20, vitality: -10 } }, msg: "店舗が戦場に。KizunaとKineticsが崩壊。", good: false },
-          { t: "全権委任", eff: { b: 100, bo: 20, c: 0, wb: { vitality: -10, agency: -10 } }, msg: "効率は上がりましたが、若手のAgencyが死にました。", good: false },
+          { id: 1, eff: { b: -50, bo: -5, c: 5, wb: { meaning: 10, connection: 5 } }, good: true },
+          { id: 2, eff: { b: 0, bo: 30, c: 0, wb: { connection: -20, vitality: -10 } }, good: false },
+          { id: 3, eff: { b: 100, bo: 20, c: 0, wb: { vitality: -10, agency: -10 } }, good: false },
         ]
       },
-      { id: "ev_op2", title: "【物流】誤発注：豆腐1000丁", icon: "Truck", desc: "新人が0を1つ多く入力。トラック一杯の木綿豆腐が届きました。",
+      { id: "ev_op2", icon: "Truck", 
         choices: [
-          { t: "緊急「豆腐祭り」", eff: { b: -50, bo: 10, c: 10, wb: { vitality: 20, connection: 10 } }, msg: "イベント化してKinetics爆増！", good: true },
-          { t: "全廃棄＆始末書", eff: { b: -100, bo: 5, c: 0, wb: { meaning: -10, agency: -10 } }, msg: "豆腐と共に心も砕けました。Coherence低下。", good: false },
-          { t: "「豆腐風呂」", eff: { b: -50, bo: 0, c: -10, t: -20 }, msg: "炎上しました。Togetherness低下。", good: false },
+          { id: 1, eff: { b: -50, bo: 10, c: 10, wb: { vitality: 20, connection: 10 } }, good: true },
+          { id: 2, eff: { b: -100, bo: 5, c: 0, wb: { meaning: -10, agency: -10 } }, good: false },
+          { id: 3, eff: { b: -50, bo: 0, c: -10, t: -20 }, good: false },
         ]
       },
-      { id: "ev_soc1", title: "【教育】部活の地域移行", icon: "Users", desc: "「練習場所がない」と子供たちが生協駐車場でサッカーを始めました。",
+      { id: "ev_soc1", icon: "Users", 
         choices: [
-          { t: "追い返す", eff: { b: 0, bo: 0, c: -5, wb: { connection: -10 } }, msg: "安全管理上は正解ですが、地域とのKizunaに亀裂。", good: false },
-          { t: "場所を開放・整備", eff: { b: -100, bo: 5, c: 20, wb: { vitality: 15, connection: 10 } }, msg: "ネットを設置。KineticsとKizunaが向上。", good: true },
-          { t: "店長がGK参戦", eff: { b: 0, bo: 15, c: 10, wb: { vitality: 15 } }, msg: "盛り上がりましたが、店長の仕事が終わりません(Agency低下)。", good: true },
+          { id: 1, eff: { b: 0, bo: 0, c: -5, wb: { connection: -10 } }, good: false },
+          { id: 2, eff: { b: -100, bo: 5, c: 20, wb: { vitality: 15, connection: 10 } }, good: true },
+          { id: 3, eff: { b: 0, bo: 15, c: 10, wb: { vitality: 15 } }, good: true },
         ]
       }
     ];
@@ -240,42 +639,52 @@
     // Components
     // ---------------------------
     
+    // Language Switcher
+    const LangSwitcher = ({ lang, setLang }) => {
+      return (
+        <div className="flex gap-2 z-50">
+          {Object.entries(LANGS).map(([k, v]) => (
+            <button
+              key={k}
+              onClick={() => setLang(k)}
+              className={`px-2 py-1 rounded text-xs font-bold transition-all border ${lang === k ? 'bg-cyan-600 border-cyan-400 text-white shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'bg-slate-800 border-slate-600 text-slate-400 hover:text-white'}`}
+            >
+              {v.flag} {v.name}
+            </button>
+          ))}
+        </div>
+      );
+    };
+
     // Typewriter Story Component
-    const IntroStory = ({ onComplete }) => {
-      const fullText = `西暦2035年。
-日本の人口減少は「危険水域」を突破した。
-
-行政サービスは撤退し、
-「買い物難民」「独居老人の孤立」「子育ての孤立」……
-社会の隙間に、音もなく人々が落ちていく。
-
-あなたに課せられた使命は、
-地域に根ざした物流網を持つ「生協」を
-次世代の『社会的共通資本』へとハックすること。
-
-地域の資源（Resource）を最大化し、
-社会的負荷（Risk）を最小化せよ。
-
-これは、単なる経営シミュレーションではない。
-この国の「生存戦略」だ。`;
-
+    const IntroStory = ({ onComplete, lang, setLang }) => {
+      const fullText = TEXT[lang].intro;
       const [displayedText, setDisplayedText] = useState("");
       const [index, setIndex] = useState(0);
+
+      // Reset when lang changes
+      useEffect(() => {
+        setDisplayedText("");
+        setIndex(0);
+      }, [lang]);
 
       useEffect(() => {
         if (index < fullText.length) {
           const timer = setTimeout(() => {
             setDisplayedText(prev => prev + fullText[index]);
             setIndex(prev => prev + 1);
-          }, 40); // Typing speed
+          }, 30); 
           return () => clearTimeout(timer);
         }
       }, [index, fullText]);
 
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-black text-cyan-400 font-mono">
+        <div className="min-h-screen flex flex-col items-center justify-center p-8 bg-black text-cyan-400 font-mono relative">
+          <div className="absolute top-4 right-4">
+            <LangSwitcher lang={lang} setLang={setLang} />
+          </div>
           <div className="max-w-lg w-full space-y-8">
-            <div className="text-left text-sm md:text-base leading-relaxed whitespace-pre-wrap typewriter-cursor">
+            <div className="text-left text-sm md:text-base leading-relaxed whitespace-pre-wrap typewriter-cursor min-h-[300px]">
               {displayedText}
             </div>
             {index >= fullText.length && (
@@ -284,7 +693,7 @@
                   onClick={onComplete}
                   className="px-8 py-3 bg-cyan-900/50 border border-cyan-500 text-cyan-400 font-bold rounded-lg hover:bg-cyan-500 hover:text-black transition-all animate-pulse"
                 >
-                  ミッションを受諾する
+                  {TEXT[lang].mission_accept}
                 </button>
               </div>
             )}
@@ -293,7 +702,7 @@
             onClick={onComplete}
             className="fixed bottom-8 right-8 text-[10px] text-slate-700 hover:text-slate-500"
           >
-            SKIP [ESC]
+            {TEXT[lang].skip}
           </button>
         </div>
       );
@@ -310,8 +719,17 @@
       }, [onClose, enabled]);
     };
 
-    const HelpModal = React.memo(({ onClose }) => {
+    const HelpModal = React.memo(({ onClose, lang }) => {
       useEscToClose(onClose);
+      const t = TEXT[lang];
+      
+      const wbData = [
+         { ...WB_FACTORS_DEF[0], ...t.tack.a },
+         { ...WB_FACTORS_DEF[1], ...t.tack.c },
+         { ...WB_FACTORS_DEF[2], ...t.tack.k },
+         { ...WB_FACTORS_DEF[3], ...t.tack.kizuna },
+      ];
+
       return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-overlay fade-in" onClick={onClose}>
           <div className="glass-panel w-full max-w-md p-0 rounded-xl overflow-hidden slide-in" onClick={e => e.stopPropagation()}>
@@ -324,26 +742,26 @@
             <div className="p-6 overflow-y-auto max-h-[70vh] space-y-6">
               
               <div className="space-y-2">
-                <h4 className="font-bold text-yellow-400 text-sm border-b border-slate-700 pb-1">ゲームオーバー条件</h4>
+                <h4 className="font-bold text-yellow-400 text-sm border-b border-slate-700 pb-1">{t.game_over_cond}</h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  <span className="text-rose-400">■ 資金枯渇</span><br/>
-                  <span className="text-rose-400">■ 現場疲弊度 100% (Burnout)</span><br/>
-                  <span className="text-rose-400">■ 連帯(Togetherness) 0 (崩壊・分断)</span><br/>
+                  <span className="text-rose-400">{t.go_budget}</span><br/>
+                  <span className="text-rose-400">{t.go_burnout}</span><br/>
+                  <span className="text-rose-400">{t.go_t}</span><br/>
                 </p>
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-emerald-400 text-sm border-b border-slate-700 pb-1">TACK因子 (Well-being Factors)</h4>
+                <h4 className="font-bold text-emerald-400 text-sm border-b border-slate-700 pb-1">TACK Factors</h4>
                 <div className="grid grid-cols-1 gap-2">
                   <div className="flex gap-2 items-start bg-slate-900/50 p-2 rounded">
                     <div className="mt-0.5 text-yellow-400"><Icon name="Scale" size={16}/></div>
                     <div>
-                       <div className="text-xs font-bold text-yellow-400">Togetherness (連帯)</div>
-                       <div className="text-[10px] text-slate-400">組織や地域との一体感・連帯意識。</div>
+                       <div className="text-xs font-bold text-yellow-400">{t.tack.t.label}</div>
+                       <div className="text-[10px] text-slate-400">{t.tack.t.desc}</div>
                     </div>
                   </div>
-                  {WB_FACTORS.map(f => (
-                    <div key={f.id} className="flex gap-2 items-start bg-slate-900/50 p-2 rounded">
+                  {wbData.map((f, i) => (
+                    <div key={i} className="flex gap-2 items-start bg-slate-900/50 p-2 rounded">
                       <div className={`mt-0.5 ${f.color}`}><Icon name={f.icon} size={16}/></div>
                       <div>
                         <div className={`text-xs font-bold ${f.color}`}>{f.label}</div>
@@ -355,39 +773,44 @@
               </div>
             </div>
             <div className="p-4 bg-slate-900 border-t border-slate-700 text-center">
-              <button onClick={onClose} className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded text-white text-sm font-bold">閉じる</button>
+              <button onClick={onClose} className="px-6 py-2 bg-slate-700 hover:bg-slate-600 rounded text-white text-sm font-bold">{t.close}</button>
             </div>
           </div>
         </div>
       );
     });
 
-    const EventModal = React.memo(({ event, onResolve, onClose }) => {
-      useEscToClose(onClose, !!event);
+    const EventModal = React.memo(({ eventLogic, onResolve, onClose, lang }) => {
+      useEscToClose(onClose, !!eventLogic);
+      const t = TEXT[lang].events[eventLogic.id];
 
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={event.title} onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={t.title} onClick={onClose}>
           <div className="glass-panel w-full max-w-sm p-0 rounded-xl overflow-hidden slide-in border-l-4 border-rose-500 shadow-2xl" onClick={(e)=>e.stopPropagation()}>
             <div className="bg-rose-950/90 p-4 flex items-center gap-2 text-white font-bold border-b border-rose-900">
-              <Icon name={event.icon} className="text-rose-400"/> {event.title}
+              <Icon name={eventLogic.icon} className="text-rose-400"/> {t.title}
             </div>
             <div className="p-6 bg-slate-900/95">
-              <p className="text-slate-200 text-sm mb-6 leading-relaxed bg-slate-950/50 p-3 rounded border border-white/5">{event.desc}</p>
+              <p className="text-slate-200 text-sm mb-6 leading-relaxed bg-slate-950/50 p-3 rounded border border-white/5">{t.desc}</p>
               <div className="space-y-3">
-                {event.choices.map((c, i) => (
-                  <button
-                    key={i}
-                    onClick={() => onResolve(c)}
-                    className="w-full text-left bg-slate-800 hover:bg-slate-700 p-3 rounded border border-slate-600 hover:border-cyan-400 transition-colors group relative overflow-hidden"
-                  >
-                    <div className="font-bold text-white text-sm mb-1 group-hover:text-cyan-300 relative z-10">{c.t}</div>
-                    <div className="text-xs text-slate-400 font-mono flex flex-wrap gap-2 relative z-10">
-                      {c.eff.b !== 0 && <span className={c.eff.b > 0 ? "text-emerald-400" : "text-rose-400"}>予算{c.eff.b > 0 ? "+" : ""}{c.eff.b}</span>}
-                      {c.eff.bo !== 0 && <span className={c.eff.bo < 0 ? "text-emerald-400" : "text-rose-400"}>疲弊{c.eff.bo > 0 ? "+" : ""}{c.eff.bo}</span>}
-                      {c.eff.t && <span className={c.eff.t > 0 ? "text-yellow-400" : "text-rose-500 font-bold"}>連帯{c.eff.t > 0 ? "+" : ""}{c.eff.t}</span>}
-                    </div>
-                  </button>
-                ))}
+                {eventLogic.choices.map((c, i) => {
+                  const choiceText = t[`c${c.id}`];
+                  const resultMsg = t[`m${c.id}`];
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => onResolve(c, resultMsg)}
+                      className="w-full text-left bg-slate-800 hover:bg-slate-700 p-3 rounded border border-slate-600 hover:border-cyan-400 transition-colors group relative overflow-hidden"
+                    >
+                      <div className="font-bold text-white text-sm mb-1 group-hover:text-cyan-300 relative z-10">{choiceText}</div>
+                      <div className="text-xs text-slate-400 font-mono flex flex-wrap gap-2 relative z-10">
+                        {c.eff.b !== 0 && <span className={c.eff.b > 0 ? "text-emerald-400" : "text-rose-400"}>${c.eff.b > 0 ? "+" : ""}{c.eff.b}</span>}
+                        {c.eff.bo !== 0 && <span className={c.eff.bo < 0 ? "text-emerald-400" : "text-rose-400"}>{TEXT[lang].burnout.split(' ')[0]} {c.eff.bo > 0 ? "+" : ""}{c.eff.bo}</span>}
+                        {c.eff.t && <span className={c.eff.t > 0 ? "text-yellow-400" : "text-rose-500 font-bold"}>T {c.eff.t > 0 ? "+" : ""}{c.eff.t}</span>}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -395,9 +818,10 @@
       );
     });
 
-    const StrategyConfirmModal = React.memo(({ strategyId, currentStats, level, onConfirm, onCancel }) => {
+    const StrategyConfirmModal = React.memo(({ strategyId, currentStats, level, onConfirm, onCancel, lang }) => {
       useEscToClose(onCancel, !!strategyId);
-      const data = STRATEGY_DETAILS[strategyId];
+      const logic = STRATEGY_LOGIC[strategyId];
+      const text = TEXT[lang].strategies[strategyId];
       
       const getLevelEffect = (baseEff, lv) => {
         if (!baseEff) return {};
@@ -417,7 +841,7 @@
         return newEff;
       };
 
-      const eff = getLevelEffect(data.eff, level);
+      const eff = getLevelEffect(logic.eff, level);
 
       const DiffBar = ({ current, diff, baseClass, label }) => {
         const isPositive = diff > 0;
@@ -425,7 +849,7 @@
 
         return (
           <div className="flex items-center gap-2 text-xs mb-1.5">
-            <div className="w-20 text-right font-mono text-slate-400 truncate text-[10px]">{label}</div>
+            <div className="w-24 text-right font-mono text-slate-400 truncate text-[10px]">{label}</div>
             <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden flex relative">
               <div className={`h-full ${baseClass} opacity-50`} style={{ width: `${clamp(current, 0, 100)}%` }} />
               {diff !== 0 && (
@@ -446,62 +870,69 @@
         );
       };
 
+      const wbLabels = {
+        agency: TEXT[lang].tack.a.label.split('(')[0],
+        meaning: TEXT[lang].tack.c.label.split('(')[0],
+        vitality: TEXT[lang].tack.k.label.split('(')[0],
+        connection: TEXT[lang].tack.kizuna.label.split('(')[0],
+      };
+
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={`${data.title}の確認`} onClick={onCancel}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay fade-in" role="dialog" aria-modal="true" aria-label={`${text.title}`} onClick={onCancel}>
           <div className="glass-panel w-full max-w-md p-0 rounded-xl overflow-hidden slide-in border border-cyan-500/30 shadow-2xl" onClick={e=>e.stopPropagation()}>
             <div className="bg-slate-900 p-4 border-b border-white/10 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-cyan-400">>></span> {data.title} 
+                  <span className="text-cyan-400">>></span> {text.title} 
                   {level > 1 && <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded border border-yellow-500/50">Lv.{level}</span>}
                 </h3>
-                <p className="text-xs text-slate-400 font-mono mt-1">{data.subtitle}</p>
+                <p className="text-xs text-slate-400 font-mono mt-1">{text.subtitle}</p>
               </div>
             </div>
 
             <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
               <p className="text-sm text-slate-200 leading-relaxed font-bold border-l-2 border-cyan-500 pl-3">
-                {data.desc}
+                {text.desc}
               </p>
               
               <div className="bg-slate-950 p-3 rounded-lg border border-white/5 space-y-3">
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider flex justify-between">
-                   <span>FORECAST (予測)</span>
-                   {level > 1 && <span className="text-yellow-400 text-[10px]">Lv.{level} Effect Boosted</span>}
+                   <span>{TEXT[lang].forecast}</span>
+                   {level > 1 && <span className="text-yellow-400 text-[10px]">Lv.{level} Boosted</span>}
                 </div>
                 
                 <div className="flex justify-between text-xs font-mono mb-2 border-b border-white/5 pb-2">
-                  <span className={eff.b >= 0 ? "text-emerald-400" : "text-rose-400"}>予算: {eff.b > 0 ? "+" : ""}{eff.b}k</span>
-                  <span className={eff.bo <= 0 ? "text-emerald-400" : "text-rose-400"}>疲弊: {eff.bo > 0 ? "+" : ""}{eff.bo}</span>
+                  <span className={eff.b >= 0 ? "text-emerald-400" : "text-rose-400"}>{TEXT[lang].budget}: {eff.b > 0 ? "+" : ""}{eff.b}k</span>
+                  <span className={eff.bo <= 0 ? "text-emerald-400" : "text-rose-400"}>{TEXT[lang].burnout.split(' ')[0]}: {eff.bo > 0 ? "+" : ""}{eff.bo}</span>
                 </div>
 
                 <div className="space-y-1">
-                  <DiffBar current={currentStats.trust} diff={eff.t || 0} baseClass="bg-yellow-500" label="Togetherness" />
-                  {WB_FACTORS.map(f => {
+                  <DiffBar current={currentStats.trust} diff={eff.t || 0} baseClass="bg-yellow-500" label={TEXT[lang].tack.t.label.split('(')[0]} />
+                  {WB_FACTORS_DEF.map(f => {
                     const diff = eff.wb?.[f.id] || 0;
-                    return <DiffBar key={f.id} current={currentStats.wb[f.id]} diff={diff} baseClass={f.bg} label={f.label.split(' ')[0]} />;
+                    return <DiffBar key={f.id} current={currentStats.wb[f.id]} diff={diff} baseClass={f.bg} label={wbLabels[f.id]} />;
                   })}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="bg-emerald-950/30 p-2 rounded border border-emerald-500/20">
-                  <div className="font-bold text-emerald-400 mb-1 flex items-center gap-1"><Icon name="Shield" size={12}/> メリット</div>
-                  <div className="text-slate-300 text-[10px] leading-tight">{data.pros}</div>
+                  <div className="font-bold text-emerald-400 mb-1 flex items-center gap-1"><Icon name="Shield" size={12}/> {TEXT[lang].pros}</div>
+                  <div className="text-slate-300 text-[10px] leading-tight">{text.pros}</div>
                 </div>
                 <div className="bg-rose-950/30 p-2 rounded border border-rose-500/20">
-                  <div className="font-bold text-rose-400 mb-1 flex items-center gap-1"><Icon name="Zap" size={12}/> デメリット</div>
-                  <div className="text-slate-300 text-[10px] leading-tight">{data.cons}</div>
+                  <div className="font-bold text-rose-400 mb-1 flex items-center gap-1"><Icon name="Zap" size={12}/> {TEXT[lang].cons}</div>
+                  <div className="text-slate-300 text-[10px] leading-tight">{text.cons}</div>
                 </div>
               </div>
             </div>
 
             <div className="p-4 bg-slate-900/80 flex gap-3 border-t border-white/10">
               <button onClick={onCancel} className="flex-1 py-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-colors text-sm">
-                やめる
+                {TEXT[lang].cancel}
               </button>
               <button onClick={onConfirm} className="flex-[2] py-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all active:scale-95 text-sm flex justify-center items-center gap-2">
-                決定・実行 <Icon name="ArrowRight" size={16}/>
+                {TEXT[lang].confirm} <Icon name="ArrowRight" size={16}/>
               </button>
             </div>
           </div>
@@ -513,7 +944,8 @@
     // Main App
     // ---------------------------
     const App = () => {
-      const [gameState, setGameState] = useState("intro"); // Start with intro
+      const [lang, setLang] = useState("ja");
+      const [gameState, setGameState] = useState("intro"); 
       const [turn, setTurn] = useState(1);
       const [showHelp, setShowHelp] = useState(false);
 
@@ -543,7 +975,7 @@
       }, []);
       
       const getStrategyEffect = useCallback((id, exp) => {
-        const baseEff = STRATEGY_DETAILS[id].eff;
+        const baseEff = STRATEGY_LOGIC[id].eff;
         if (!baseEff) return {};
         
         const lv = getStrategyLevel(exp);
@@ -638,27 +1070,30 @@
             const nextExp = currentExp + 1;
             const prevLevel = getStrategyLevel(currentExp);
             const nextLevel = getStrategyLevel(nextExp);
-            if (nextLevel > prevLevel) addLog(`【LvUP】${STRATEGY_DETAILS[strategyId].title} Lv${nextLevel}になりました！`);
+            if (nextLevel > prevLevel) {
+              const msg = TEXT[lang].lv_up.replace('{name}', TEXT[lang].strategies[strategyId].title).replace('{lv}', nextLevel);
+              addLog(msg);
+            }
             return { ...prev, [strategyId]: nextExp };
           });
         }
 
         if (Math.random() < 0.45) {
-          const available = CRITICAL_EVENTS.filter(e => !usedEventIds.includes(e.id));
-          const pool = available.length ? available : CRITICAL_EVENTS;
+          const available = CRITICAL_EVENTS_LOGIC.filter(e => !usedEventIds.includes(e.id));
+          const pool = available.length ? available : CRITICAL_EVENTS_LOGIC;
           const evt = pick(pool);
           setActiveEvent(evt);
           setUsedEventIds(prev => [...prev, evt.id]);
           return;
         }
 
-        let eff = STRATEGY_DETAILS[strategyId].eff;
+        let eff = STRATEGY_LOGIC[strategyId].eff;
         if (strategyId !== 'default') eff = getStrategyEffect(strategyId, strategyExp[strategyId]);
         processTurn(eff);
-      }, [processTurn, usedEventIds, strategyExp, getStrategyLevel, getStrategyEffect, addLog]);
+      }, [processTurn, usedEventIds, strategyExp, getStrategyLevel, getStrategyEffect, addLog, lang]);
 
-      const handleEventResolve = useCallback((choice) => {
-        addLog(choice.msg);
+      const handleEventResolve = useCallback((choice, msg) => {
+        addLog(msg);
         setActiveEvent(null);
         processTurn(choice.eff);
       }, [addLog, processTurn]);
@@ -689,16 +1124,21 @@
       
       // Story Introduction
       if (gameState === "intro") {
-        return <IntroStory onComplete={() => setGameState("start")} />;
+        return <IntroStory onComplete={() => setGameState("start")} lang={lang} setLang={setLang} />;
       }
 
       if (gameState === "start") {
         return (
           <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center bg-slate-900 relative overflow-hidden">
              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{background: 'radial-gradient(circle at 50% 50%, #06b6d4 0%, transparent 50%)'}}></div>
+            
+            <div className="absolute top-4 right-4">
+               <LangSwitcher lang={lang} setLang={setLang} />
+            </div>
+
             <div className="space-y-8 max-w-sm w-full relative z-10 fade-in">
               <div>
-                <div className="text-cyan-400 font-mono text-xs mb-2 tracking-widest">A案：協力を「合理」へ</div>
+                <div className="text-cyan-400 font-mono text-xs mb-2 tracking-widest">{TEXT[lang].title_sub}</div>
                 <h1 className="text-4xl font-black text-white leading-tight">
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">CoopSimulator</span><br/>
                   <span className="text-2xl text-slate-400">TACK Model Edition</span>
@@ -706,20 +1146,19 @@
               </div>
 
               <div className="glass-panel p-6 rounded-xl text-left space-y-4 border-l-4 border-cyan-500">
-                <p className="text-sm text-slate-300 leading-relaxed">
-                  <strong>講演用実験モード:</strong><br/>
-                  「善意(精神論)」のみでプレイすると、TACK因子が崩壊することを確認してください。
+                <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                  {TEXT[lang].start_desc}
                 </p>
                 <div className="text-xs text-slate-500 mt-2 bg-slate-900 p-2 rounded grid grid-cols-2 gap-2">
-                  <span className="text-yellow-400 font-bold">Togetherness (連帯)</span>
-                  <span className="text-emerald-400 font-bold">Agency (能動性)</span>
-                  <span className="text-purple-400 font-bold">Coherence (一貫)</span>
-                  <span className="text-yellow-400 font-bold">Kinetics (活力)</span>
+                  <span className="text-yellow-400 font-bold">{TEXT[lang].tack.t.label.split('(')[0]}</span>
+                  <span className="text-emerald-400 font-bold">{TEXT[lang].tack.a.label.split('(')[0]}</span>
+                  <span className="text-purple-400 font-bold">{TEXT[lang].tack.c.label.split('(')[0]}</span>
+                  <span className="text-yellow-400 font-bold">{TEXT[lang].tack.k.label.split('(')[0]}</span>
                 </div>
               </div>
 
               <button onClick={() => setGameState("playing")} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all active:scale-95 flex items-center justify-center gap-2 group">
-                実験開始 <span className="group-hover:translate-x-1 transition-transform">→</span>
+                {TEXT[lang].start_btn} <span className="group-hover:translate-x-1 transition-transform">→</span>
               </button>
             </div>
           </div>
@@ -729,13 +1168,14 @@
       if (gameState === "result") {
         const { tack } = finalScore;
         const getBarColor = (val) => val < 30 ? "bg-rose-500" : val < 60 ? "bg-yellow-500" : "bg-emerald-500";
+        const t = TEXT[lang].result;
         
         const getAnalysis = () => {
-          if (tack.t < 30) return "【連帯の崩壊】トラブルを「現場の犠牲」で解決しようとしたため、組織のTogethernessが地に落ちました。";
-          if (tack.a < 30) return "【能動性の死】「気合」と対応業務に追われ、現場から思考し行動する余白(Agency)が奪われました。";
-          if (tack.c < 30) return "【意味の喪失】目的と行動が乖離しています。「なんのために頑張っているのか」が見えず、Coherenceが崩壊しました。";
-          if (tack.k < 30) return "【停滞】自転車操業で精一杯です。未来への投資ができず、組織のKinetics(活力)が枯渇しました。";
-          return "【A案証明完了】システムへの投資により、現場の負担を下げつつ高いTACKスコアを維持することに成功しました。これが「合理的な優しさ」です。";
+          if (tack.t < 30) return t.msg_t_fail;
+          if (tack.a < 30) return t.msg_a_fail;
+          if (tack.c < 30) return t.msg_c_fail;
+          if (tack.k < 30) return t.msg_k_fail;
+          return t.msg_success;
         };
 
         return (
@@ -744,21 +1184,21 @@
               <div className={`h-2 ${budget <= 0 || burnout >= 100 || trust <= 0 ? "bg-rose-500" : "bg-emerald-500"}`}></div>
               
               <div className="p-6 text-center space-y-4">
-                <h2 className="text-2xl font-bold text-white tracking-widest">RESULT</h2>
+                <h2 className="text-2xl font-bold text-white tracking-widest">{t.title}</h2>
                 <div>
-                   {budget <= 0 ? <div className="text-rose-400 font-bold"><Icon name="AlertTriangle" className="inline"/> 資金ショート</div>
-                   : burnout >= 100 ? <div className="text-rose-400 font-bold"><Icon name="Zap" className="inline"/> 現場崩壊 (Burnout)</div>
-                   : trust <= 0 ? <div className="text-rose-400 font-bold"><Icon name="Lock" className="inline"/> 連帯崩壊 (Division)</div>
-                   : <div className="text-emerald-400 font-bold"><Icon name="Trophy" className="inline"/> MISSION ACCOMPLISHED</div>}
+                   {budget <= 0 ? <div className="text-rose-400 font-bold"><Icon name="AlertTriangle" className="inline"/> {t.fail_money}</div>
+                   : burnout >= 100 ? <div className="text-rose-400 font-bold"><Icon name="Zap" className="inline"/> {t.fail_burnout}</div>
+                   : trust <= 0 ? <div className="text-rose-400 font-bold"><Icon name="Lock" className="inline"/> {t.fail_trust}</div>
+                   : <div className="text-emerald-400 font-bold"><Icon name="Trophy" className="inline"/> {t.success}</div>}
                 </div>
 
                 <div className="bg-slate-950/80 p-4 rounded-lg border border-white/10 text-left space-y-3">
-                  <div className="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-2">TACK ANALYSIS</div>
+                  <div className="text-xs font-bold text-slate-400 border-b border-slate-800 pb-1 mb-2">{t.analysis}</div>
                   
                   {/* T */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-slate-300">
-                      <span>Togetherness (連帯)</span> <span>{tack.t}</span>
+                      <span>{TEXT[lang].tack.t.label.split('(')[0]}</span> <span>{tack.t}</span>
                     </div>
                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                        <div className={`h-full ${getBarColor(tack.t)}`} style={{width: `${tack.t}%`}}></div>
@@ -767,7 +1207,7 @@
                   {/* A (Agency) */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-slate-300">
-                      <span>Agency (能動性)</span> <span>{tack.a}</span>
+                      <span>{TEXT[lang].tack.a.label.split('(')[0]}</span> <span>{tack.a}</span>
                     </div>
                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                        <div className={`h-full ${getBarColor(tack.a)}`} style={{width: `${tack.a}%`}}></div>
@@ -776,7 +1216,7 @@
                   {/* C */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-slate-300">
-                      <span>Coherence (一貫)</span> <span>{tack.c}</span>
+                      <span>{TEXT[lang].tack.c.label.split('(')[0]}</span> <span>{tack.c}</span>
                     </div>
                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                        <div className={`h-full ${getBarColor(tack.c)}`} style={{width: `${tack.c}%`}}></div>
@@ -785,7 +1225,7 @@
                   {/* K */}
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold text-slate-300">
-                      <span>Kinetics (活力)</span> <span>{tack.k}</span>
+                      <span>{TEXT[lang].tack.k.label.split('(')[0]}</span> <span>{tack.k}</span>
                     </div>
                     <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                        <div className={`h-full ${getBarColor(tack.k)}`} style={{width: `${tack.k}%`}}></div>
@@ -801,7 +1241,7 @@
 
               <div className="p-4 bg-slate-900/80 border-t border-slate-800 flex gap-3">
                 <button onClick={restart} className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-lg text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95">
-                  再実験する
+                  {t.retry}
                 </button>
               </div>
             </div>
@@ -810,24 +1250,31 @@
       }
 
       // playing
+      const tackLabels = {
+        agency: TEXT[lang].tack.a.label.split('(')[0],
+        meaning: TEXT[lang].tack.c.label.split('(')[0],
+        vitality: TEXT[lang].tack.k.label.split('(')[0],
+        connection: TEXT[lang].tack.kizuna.label.split('(')[0],
+      };
+
       return (
         <div className="min-h-screen max-w-md mx-auto flex flex-col relative pb-32 fade-in">
-          {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-          {activeEvent && <EventModal event={activeEvent} onResolve={handleEventResolve} onClose={() => setActiveEvent(null)} />}
-          {confirmingStrategy && <StrategyConfirmModal strategyId={confirmingStrategy} currentStats={{ wb: wbStats, budget, burnout, trust }} level={confirmingStrategy !== 'default' ? getStrategyLevel(strategyExp[confirmingStrategy]) : 1} onConfirm={() => executeTurn(confirmingStrategy)} onCancel={() => setConfirmingStrategy(null)} />}
+          {showHelp && <HelpModal onClose={() => setShowHelp(false)} lang={lang} />}
+          {activeEvent && <EventModal eventLogic={activeEvent} onResolve={handleEventResolve} onClose={() => setActiveEvent(null)} lang={lang} />}
+          {confirmingStrategy && <StrategyConfirmModal strategyId={confirmingStrategy} currentStats={{ wb: wbStats, budget, burnout, trust }} level={confirmingStrategy !== 'default' ? getStrategyLevel(strategyExp[confirmingStrategy]) : 1} onConfirm={() => executeTurn(confirmingStrategy)} onCancel={() => setConfirmingStrategy(null)} lang={lang} />}
 
           {/* Header */}
           <div className="glass-panel p-4 m-4 rounded-xl sticky top-4 z-30 shadow-xl">
             <div className="flex justify-between items-start mb-4">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-slate-400 tracking-wider mb-1">BUDGET</span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider mb-1">{TEXT[lang].budget}</span>
                 <div className={`text-2xl font-mono font-bold leading-none ${budget < 1000 ? "text-rose-500 animate-pulse" : "text-white"}`}>
                   ¥{budget.toLocaleString()}k
                 </div>
               </div>
               <div className="flex items-center gap-2">
                  <div className="flex flex-col items-end mr-2">
-                    <span className="text-[10px] font-bold text-slate-400 tracking-wider">TURN</span>
+                    <span className="text-[10px] font-bold text-slate-400 tracking-wider">{TEXT[lang].turn}</span>
                     <span className="text-lg font-bold text-cyan-400 leading-none">{turn}<span className="text-sm text-slate-500">/{MAX_TURNS}</span></span>
                  </div>
                  <button onClick={() => setShowHelp(true)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-300 transition-colors">
@@ -839,7 +1286,7 @@
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-[10px] mb-1">
-                   <span className="text-rose-400 font-bold flex items-center gap-1"><Icon name="Zap" size={10}/> 現場疲弊 (Burnout)</span>
+                   <span className="text-rose-400 font-bold flex items-center gap-1"><Icon name="Zap" size={10}/> {TEXT[lang].burnout}</span>
                    <span className="text-white font-mono">{burnout}%</span>
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -848,7 +1295,7 @@
               </div>
               <div>
                 <div className="flex justify-between text-[10px] mb-1">
-                   <span className="text-yellow-400 font-bold flex items-center gap-1"><Icon name="Scale" size={10}/> Togetherness (連帯)</span>
+                   <span className="text-yellow-400 font-bold flex items-center gap-1"><Icon name="Scale" size={10}/> {TEXT[lang].tack.t.label}</span>
                    <span className="text-white font-mono">{trust}%</span>
                 </div>
                 <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
@@ -858,7 +1305,7 @@
             </div>
 
             <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t border-white/5">
-              {WB_FACTORS.map(f => (
+              {WB_FACTORS_DEF.map(f => (
                 <div key={f.id} className="flex flex-col items-center p-1.5 rounded bg-slate-800/50 border border-white/5 cursor-help active:scale-95 transition-transform" onClick={() => setShowHelp(true)}>
                   <Icon name={f.icon} size={14} className={f.color}/>
                   <div className="text-[10px] font-bold text-slate-300 mt-1">{Math.floor(wbStats[f.id])}</div>
@@ -871,9 +1318,9 @@
           <div className="px-4 mb-4">
             <div className="glass-panel p-3 rounded-xl">
               <div className="text-[10px] text-slate-500 mb-2 font-bold tracking-widest flex justify-between items-center">
-                <span>MONITORING AREA</span>
+                <span>{TEXT[lang].monitoring}</span>
                 <span className="text-cyan-400 bg-cyan-950/50 px-2 py-0.5 rounded flex items-center gap-1 border border-cyan-500/20 text-[10px]">
-                  <Icon name="Target" size={10}/> Coverage: {metrics.connect}%
+                  <Icon name="Target" size={10}/> {TEXT[lang].coverage}: {metrics.connect}%
                 </span>
               </div>
               <div className="grid grid-cols-10 gap-1 aspect-[10/5] bg-slate-900/50 p-1 rounded">
@@ -893,9 +1340,9 @@
 
           {/* Logs */}
           <div className="px-4 mb-20 flex-1">
-             <div className="text-[10px] font-bold text-slate-500 mb-1 ml-1">SYSTEM LOG</div>
+             <div className="text-[10px] font-bold text-slate-500 mb-1 ml-1">{TEXT[lang].system_log}</div>
              <div className="space-y-1.5 min-h-[100px]">
-              {logs.length === 0 && <div className="text-[10px] text-slate-600 pl-2 italic">Waiting for strategy...</div>}
+              {logs.length === 0 && <div className="text-[10px] text-slate-600 pl-2 italic">{TEXT[lang].waiting_log}</div>}
               {logs.map((log, i) => (
                 <div key={i} className="text-[11px] text-slate-300 bg-slate-800/40 p-2 rounded border-l-2 border-cyan-500/50 fade-in">
                   <span className="text-cyan-500 mr-1">></span> {log}
@@ -912,28 +1359,28 @@
                   Lv.{getStrategyLevel(strategyExp.delivery_sensing)}
                 </div>
                 <div className="text-cyan-400 mb-1"><Icon name="Truck"/></div>
-                <div className="text-[10px] font-bold text-white">見守り配送</div>
-                <div className="text-[8px] text-slate-500">Kizuna↑ Coherence↑</div>
+                <div className="text-[10px] font-bold text-white leading-tight">{TEXT[lang].strategies.delivery_sensing.title.split(' ')[0]}</div>
+                <div className="text-[8px] text-slate-500 truncate w-full text-center">T↑ C↑</div>
               </button>
               <button onClick={() => setConfirmingStrategy("product_social")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-emerald-400 active:bg-slate-700 transition-all relative">
                 <div className="absolute top-1 right-1 text-[8px] bg-emerald-900 text-emerald-200 px-1 rounded border border-emerald-500/30">
                   Lv.{getStrategyLevel(strategyExp.product_social)}
                 </div>
                 <div className="text-emerald-400 mb-1"><Icon name="Clock"/></div>
-                <div className="text-[10px] font-bold text-white">時短Kit</div>
-                <div className="text-[8px] text-slate-500">Agency↑ Kinetics↑</div>
+                <div className="text-[10px] font-bold text-white leading-tight">{TEXT[lang].strategies.product_social.title.split(' ')[0]}</div>
+                <div className="text-[8px] text-slate-500 truncate w-full text-center">A↑ K↑</div>
               </button>
               <button onClick={() => setConfirmingStrategy("hub_commons")} className="flex flex-col items-center justify-center p-2 rounded-lg bg-slate-800 border border-slate-600 hover:border-purple-400 active:bg-slate-700 transition-all relative">
                 <div className="absolute top-1 right-1 text-[8px] bg-purple-900 text-purple-200 px-1 rounded border border-purple-500/30">
                   Lv.{getStrategyLevel(strategyExp.hub_commons)}
                 </div>
                 <div className="text-purple-400 mb-1"><Icon name="Users"/></div>
-                <div className="text-[10px] font-bold text-white">拠点開放</div>
-                <div className="text-[8px] text-slate-500">Kizuna↑ Kinetics↑</div>
+                <div className="text-[10px] font-bold text-white leading-tight">{TEXT[lang].strategies.hub_commons.title.split(' ')[0]}</div>
+                <div className="text-[8px] text-slate-500 truncate w-full text-center">Kizuna↑ K↑</div>
               </button>
             </div>
             <button onClick={() => setConfirmingStrategy("default")} className="w-full bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs py-2.5 rounded border border-slate-600 font-bold transition-colors">
-              通常業務のみを行う (気合・現状維持)
+              {TEXT[lang].strategies.default.btn_text}
             </button>
           </div>
         </div>
