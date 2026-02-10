@@ -127,24 +127,36 @@
                   日本文化の美学。<br/>
                   そして、ICTの最先端実装。
                 </p>
-                <p class="font-mono-light text-sm text-[#78716c] pt-4 border-t border-[#44403c] inline-block">
-                  Kazuki Nishiura, Ph.D. <br/>
-                  Psychologist / Full-stack Developer / Cultural Architect
-                </p>
+                <div>
+                    <p class="font-mono-light text-sm text-[#78716c] pt-4 border-t border-[#44403c] inline-block">
+                      Kazuki Nishiura, Ph.D. <br/>
+                      Psychologist / Full-stack Developer / Cultural Architect
+                    </p>
+                </div>
             </div>
+        </div>
+
+        <!-- Scroll Indicator to Next Section (Moved to center bottom) -->
+        <div class="flex justify-center mt-24 animate-bounce opacity-40 cursor-pointer hover:opacity-100 transition-opacity" 
+             onclick="document.getElementById('pillars').scrollIntoView({ behavior: 'smooth' })">
+            <i data-lucide="chevron-down" width="24" height="24"></i>
         </div>
     </div>
 
     <!-- The Trinity: Three Pillars -->
-    <div class="bg-[#171513] py-32 border-t border-[#292524]">
+    <div id="pillars" class="bg-[#171513] py-32 border-t border-[#292524]">
         <div class="max-w-6xl mx-auto px-6">
             <div class="fade-in-section">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#44403c]">
                   
                     <!-- Pillar 1: Psychology -->
-                    <div class="bg-[#1c1917] p-12 h-96 flex flex-col justify-between group hover:bg-[#262321] transition-colors duration-500">
+                    <div class="bg-[#1c1917] p-12 h-96 flex flex-col justify-between group hover:bg-[#262321] transition-colors duration-500 relative overflow-hidden">
+                        <!-- Background Kanji: 心 (Mind/Heart) -->
+                        <div class="absolute top-4 right-4 text-6xl opacity-5 font-mincho select-none">心</div>
+                        
                         <i data-lucide="brain" class="w-8 h-8 text-[#57534e] group-hover:text-[#a8a29e] transition-colors" stroke-width="1"></i>
-                        <div>
+                        <!-- Text Container: Fixed height h-48 to ensure alignment across pillars -->
+                        <div class="relative z-10 h-48">
                             <h3 class="font-mincho text-2xl mb-4 tracking-widest">心理学</h3>
                             <p class="font-mono-light text-xs text-[#78716c] mb-2">BEHAVIORAL SCIENCE</p>
                             <p class="text-[#a8a29e] text-sm leading-7 font-shippori">
@@ -157,9 +169,12 @@
     
                     <!-- Pillar 2: Japanese Culture -->
                     <div class="bg-[#1c1917] p-12 h-96 flex flex-col justify-between group hover:bg-[#262321] transition-colors duration-500 relative overflow-hidden">
+                        <!-- Background Kanji: 間 (Ma/Space) -->
                         <div class="absolute top-4 right-4 text-6xl opacity-5 font-mincho select-none">間</div>
+                        
                         <i data-lucide="pen-tool" class="w-8 h-8 text-[#57534e] group-hover:text-[#a8a29e] transition-colors" stroke-width="1"></i>
-                        <div>
+                        <!-- Text Container: Fixed height h-48 -->
+                        <div class="relative z-10 h-48">
                             <h3 class="font-mincho text-2xl mb-4 tracking-widest">日本文化</h3>
                             <p class="font-mono-light text-xs text-[#78716c] mb-2">CULTURAL OS</p>
                             <p class="text-[#a8a29e] text-sm leading-7 font-shippori">
@@ -171,9 +186,13 @@
                     </div>
     
                     <!-- Pillar 3: ICT -->
-                    <div class="bg-[#1c1917] p-12 h-96 flex flex-col justify-between group hover:bg-[#262321] transition-colors duration-500">
+                    <div class="bg-[#1c1917] p-12 h-96 flex flex-col justify-between group hover:bg-[#262321] transition-colors duration-500 relative overflow-hidden">
+                        <!-- Background Kanji: 術 (Jutsu/Art/Technique) -->
+                        <div class="absolute top-4 right-4 text-6xl opacity-5 font-mincho select-none">術</div>
+
                         <i data-lucide="code" class="w-8 h-8 text-[#57534e] group-hover:text-[#a8a29e] transition-colors" stroke-width="1"></i>
-                        <div>
+                        <!-- Text Container: Fixed height h-48 -->
+                        <div class="relative z-10 h-48">
                             <h3 class="font-mincho text-2xl mb-4 tracking-widest">実装</h3>
                             <p class="font-mono-light text-xs text-[#78716c] mb-2">FULL-STACK DEV</p>
                             <p class="text-[#a8a29e] text-sm leading-7 font-shippori">
@@ -185,12 +204,18 @@
                     </div>
     
                 </div>
+
+                <!-- Scroll Indicator to Next Section -->
+                <div class="flex justify-center mt-16 animate-bounce opacity-40 cursor-pointer hover:opacity-100 transition-opacity"
+                     onclick="document.getElementById('works').scrollIntoView({ behavior: 'smooth' })">
+                    <i data-lucide="chevron-down" width="24" height="24"></i>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Projects Overview (Abstract) -->
-    <div class="py-32 max-w-4xl mx-auto px-6">
+    <div id="works" class="py-32 max-w-4xl mx-auto px-6">
         <div class="fade-in-section">
             <div class="flex items-center gap-4 mb-16">
                 <span class="h-px w-12 bg-[#44403c]"></span>
@@ -207,11 +232,17 @@
                     <p class="font-shippori text-[#78716c] text-sm">暗黙知のデータ化 / 教育DX</p>
                 </div>
             </div>
+
+            <!-- Scroll Indicator to Next Section -->
+            <div class="flex justify-center mt-24 animate-bounce opacity-40 cursor-pointer hover:opacity-100 transition-opacity"
+                 onclick="document.getElementById('gateway').scrollIntoView({ behavior: 'smooth' })">
+                <i data-lucide="chevron-down" width="24" height="24"></i>
+            </div>
         </div>
     </div>
 
     <!-- The Gateway (Link to Current Site) -->
-    <div class="h-screen w-full flex items-center justify-center bg-[#1c1917] relative">
+    <div id="gateway" class="h-screen w-full flex items-center justify-center bg-[#1c1917] relative">
         <div class="fade-in-section w-full max-w-md mx-auto px-6 text-center">
             <p class="font-mincho text-[#78716c] mb-12 tracking-widest text-sm">
                 より詳細な研究、実績、および実装へ
