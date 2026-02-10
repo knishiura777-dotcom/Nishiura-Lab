@@ -84,8 +84,9 @@
             </div>
         </div>
 
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-12 animate-bounce opacity-40">
+        <!-- Scroll Indicator (Clickable) -->
+        <div class="absolute bottom-12 animate-bounce opacity-40 cursor-pointer hover:opacity-100 transition-opacity" 
+             onclick="document.getElementById('narrative').scrollIntoView({ behavior: 'smooth' })">
             <i data-lucide="chevron-down" width="24" height="24"></i>
         </div>
 
@@ -96,7 +97,7 @@
     </div>
 
     <!-- Narrative Section -->
-    <div class="max-w-4xl mx-auto px-6 py-32 md:py-48">
+    <div id="narrative" class="max-w-4xl mx-auto px-6 py-32 md:py-48">
         <div class="fade-in-section flex flex-col md:flex-row gap-12 md:gap-24 items-start md:items-center justify-center">
             <!-- Vertical Narrative -->
             <div class="hidden md:block h-64 border-r border-[#44403c] pr-12">
