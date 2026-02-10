@@ -1,123 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 
+    サイトマップ設定
+    1. <loc>の中の "https://your-domain.com" を実際のURLにすべて置換してください。
+    2. priority（優先度）は、草庵(1.0)とメインホーム(0.8)を高く設定しています。
+  -->
 
+  <!-- 表玄関：草庵 (New Top) -->
   <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/</loc>
-    <lastmod>2026-01-14</lastmod>
+    <loc>https://your-domain.com/</loc>
+    <lastmod>2024-03-20</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
-  
+
+  <!-- メインホーム (Original Top) -->
   <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/wb.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/creativity_learning.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/TeacherTrainingNote.html</loc>
-    <lastmod>2026-01-19</lastmod>
+    <loc>https://your-domain.com/home.html</loc>
+    <lastmod>2024-03-20</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
+  <!-- Works / 実績 -->
   <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Stroop.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
+    <loc>https://your-domain.com/works.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
+
+  <!-- About / 研究室・プロフィールについて -->
   <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Mental_rotation.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Muller-Lyer_illusion.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Short_term_memory.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Change_blindness.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Posner.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Ash_conformity.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Face_recognition.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Hobit_and%20orc.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_NumberPlace.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/AI_counceling_roleplay.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Working_memory.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_GoNoGo.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_BW88.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_Apparent_motion.html</loc>
-    <lastmod>2026-01-12</lastmod>
+    <loc>https://your-domain.com/about.html</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
+  <!-- Contact / お問い合わせ -->
   <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Frame_rate_measurement.html</loc>
-    <lastmod>2026-01-12</lastmod>
+    <loc>https://your-domain.com/contact.html</loc>
+    <changefreq>yearly</changefreq>
     <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Key_response_measurement.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_About.html</loc>
-    <lastmod>2026-01-12</lastmod>
-    <priority>0.6</priority>
   </url>
 
 </urlset>
