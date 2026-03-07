@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cosmic Fruit Invaders | Premium Edition</title>
+    <title>Cosmic Fruit Invaders | Formula Hero Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=Fira+Code:wght@300;500&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-deep: #05070a;
             --accent-pink: #ff2d55;
             --accent-blue: #007aff;
-            --accent-gold: #ffcc00;
+            --accent-green: #00ff41;
             --glass: rgba(255, 255, 255, 0.05);
             --glass-border: rgba(255, 255, 255, 0.1);
         }
@@ -21,7 +21,7 @@
             padding: 0;
             background-color: var(--bg-deep);
             color: #ffffff;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', sans-serif;
             overflow: hidden;
             touch-action: none;
         }
@@ -33,17 +33,18 @@
         }
 
         .glass-panel {
-            background: rgba(10, 10, 25, 0.9);
+            background: rgba(5, 10, 5, 0.95);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid var(--glass-border);
             border-radius: 28px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.1);
         }
 
         .btn-premium {
             background: linear-gradient(135deg, #1e1e1e, #000);
-            border: 1px solid var(--glass-border);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
@@ -57,7 +58,7 @@
             gap: 8px;
             justify-content: center;
             padding: 20px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(0, 255, 65, 0.05);
             border-radius: 20px;
         }
 
@@ -80,28 +81,53 @@
             75% { transform: translateX(8px); }
         }
 
-        input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        
+        #story-text {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            color: var(--accent-green);
+            text-shadow: 0 0 8px rgba(0, 255, 65, 0.5);
+            line-height: 1.8;
+        }
+
+        .cursor::after {
+            content: '_';
+            animation: blink 0.7s infinite;
+            color: var(--accent-green);
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         .hurry-up {
             animation: text-blink 0.5s infinite alternate;
             color: var(--accent-pink);
         }
-        
         @keyframes text-blink {
             from { opacity: 1; }
             to { opacity: 0.3; }
         }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
 
 <div id="overlay" class="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-6">
+    <!-- Intro Interface -->
+    <div id="intro-ui" class="glass-panel pointer-events-auto p-12 w-full max-w-2xl flex flex-col gap-8 text-left transform transition-all duration-700">
+        <div class="space-y-4">
+            <h2 class="text-xs font-black tracking-[0.5em] text-green-500 uppercase border-b border-green-900 pb-2">Login: Formula_Hero_Omega... Success.</h2>
+            <div id="story-text" class="text-lg font-medium min-h-[180px] cursor whitespace-pre-wrap"></div>
+        </div>
+        <button id="btn-skip-intro" class="btn-premium py-4 px-8 rounded-xl text-sm font-bold tracking-widest uppercase opacity-0 transition-opacity duration-1000">反撃を開始する</button>
+    </div>
+
     <!-- Quiz Interface -->
-    <div id="quiz-ui" class="glass-panel pointer-events-auto p-10 w-full max-w-md flex flex-col gap-6 text-center transform transition-all duration-500 opacity-100">
+    <div id="quiz-ui" class="hidden glass-panel pointer-events-auto p-10 w-full max-w-md flex flex-col gap-6 text-center transform transition-all duration-500 opacity-0">
         <div class="space-y-1">
             <h2 id="stage-badge" class="text-xs font-black tracking-[0.3em] text-blue-400 uppercase">Mission 001</h2>
-            <h1 class="text-xl font-light tracking-tight opacity-70">Grid Calculation</h1>
+            <h1 class="text-xl font-light tracking-tight opacity-70">方程式の解を求めよ</h1>
         </div>
 
         <div id="hint-area" class="py-4 min-h-[200px] flex items-center justify-center bg-black/40 rounded-2xl border border-white/5 overflow-auto">
@@ -112,23 +138,23 @@
             <div id="math-formula" class="text-6xl font-black tracking-tighter text-white">7 × 8</div>
             <div class="relative">
                 <input type="number" id="ans-input" 
-                    class="w-full bg-white/10 border border-white/10 rounded-2xl py-5 text-4xl text-center font-bold focus:outline-none focus:border-blue-500 transition-all"
+                    class="w-full bg-white/10 border border-white/10 rounded-2xl py-5 text-4xl text-center font-bold focus:outline-none focus:border-blue-500 transition-all text-white"
                     placeholder="?" inputmode="numeric">
             </div>
-            <button id="btn-launch" class="btn-premium w-full py-5 rounded-2xl text-lg font-bold tracking-widest uppercase">Launch Counter-Attack</button>
+            <button id="btn-launch" class="btn-premium w-full py-5 rounded-2xl text-lg font-bold tracking-widest uppercase">証明完了（攻撃開始）</button>
         </div>
     </div>
 
     <!-- Results Interface -->
     <div id="result-ui" class="hidden glass-panel pointer-events-auto p-12 text-center flex flex-col gap-8">
         <h1 id="result-title" class="text-6xl font-black italic tracking-tighter text-blue-400">SUCCESS</h1>
-        <button id="btn-next" class="btn-premium px-12 py-5 rounded-2xl text-xl font-bold tracking-widest uppercase">Next Wave</button>
+        <button id="btn-next" class="btn-premium px-12 py-5 rounded-2xl text-xl font-bold tracking-widest uppercase">次の数式へ</button>
     </div>
 </div>
 
 <!-- Stats -->
 <div class="fixed top-8 left-8 z-40 space-y-1 pointer-events-none">
-    <div class="text-[10px] font-black tracking-[0.4em] text-white/30 uppercase">Health Status</div>
+    <div class="text-[10px] font-black tracking-[0.4em] text-white/30 uppercase">IQ Power</div>
     <div id="life-bar" class="flex gap-2 text-xl"></div>
 </div>
 
@@ -140,10 +166,10 @@
 <!-- Mobile Controls -->
 <div class="fixed bottom-10 inset-x-0 z-40 flex justify-between px-10 pointer-events-none md:hidden">
     <div class="flex gap-4">
-        <div id="ctrl-left" class="glass-panel pointer-events-auto w-20 h-20 flex items-center justify-center text-2xl active:scale-90 transition-transform">←</div>
-        <div id="ctrl-right" class="glass-panel pointer-events-auto w-20 h-20 flex items-center justify-center text-2xl active:scale-90 transition-transform">→</div>
+        <div id="ctrl-left" class="glass-panel pointer-events-auto w-20 h-20 flex items-center justify-center text-2xl active:scale-90 transition-transform text-green-500">←</div>
+        <div id="ctrl-right" class="glass-panel pointer-events-auto w-20 h-20 flex items-center justify-center text-2xl active:scale-90 transition-transform text-green-500">→</div>
     </div>
-    <div id="ctrl-fire" class="glass-panel pointer-events-auto w-24 h-24 flex items-center justify-center text-4xl bg-blue-500/20 active:scale-90 transition-transform">⚡</div>
+    <div id="ctrl-fire" class="glass-panel pointer-events-auto w-24 h-24 flex items-center justify-center text-4xl bg-green-500/20 active:scale-90 transition-transform text-green-500">⚡</div>
 </div>
 
 <canvas id="gameCanvas"></canvas>
@@ -165,7 +191,7 @@
             this.ctx = this.canvas.getContext('2d');
             this.resize();
             
-            this.state = 'QUIZ';
+            this.state = 'INTRO';
             this.mission = 1;
             this.score = 0;
             this.lives = 3;
@@ -185,7 +211,7 @@
             this.enemyStep = 0;
 
             this.initListeners();
-            this.setupMission();
+            this.startIntro();
             this.loop();
         }
 
@@ -202,6 +228,7 @@
             window.addEventListener('keydown', e => this.keys[e.code] = true);
             window.addEventListener('keyup', e => this.keys[e.code] = false);
 
+            document.getElementById('btn-skip-intro').onclick = () => this.setupMission();
             document.getElementById('btn-launch').onclick = () => this.tryStart();
             document.getElementById('ans-input').onkeydown = (e) => { if(e.key === 'Enter') this.tryStart(); };
             document.getElementById('btn-next').onclick = () => this.setupMission();
@@ -219,12 +246,47 @@
             if(fire) fire.onpointerdown = (e) => { e.preventDefault(); this.fire(); };
         }
 
+        async startIntro() {
+            const storyElement = document.getElementById('story-text');
+            const skipBtn = document.getElementById('btn-skip-intro');
+            const story = [
+                "> 警告：銀河フルーツ連合の超巨大ミキサーが地球に接近中。",
+                "> 彼らの目的は、全人類を『健康的な朝のミックスジュース』に変えること。",
+                "> だが、奴らは最大の計算ミスを犯した。この街には数学オタクの変態ヒーローがいることを。",
+                "> 主人公：数式超人・オメガ。趣味は『素数の暗唱』と『円周率との文通』。",
+                "> 「フン、無理数な奴らめ。お前たちの不規則な配列、私が美しく解（ほど）いてやろう！」"
+            ];
+
+            let charIndex = 0;
+            let lineIndex = 0;
+
+            const type = () => {
+                if (lineIndex < story.length) {
+                    if (charIndex < story[lineIndex].length) {
+                        storyElement.textContent += story[lineIndex].charAt(charIndex);
+                        charIndex++;
+                        setTimeout(type, 30);
+                    } else {
+                        storyElement.textContent += "\n";
+                        lineIndex++;
+                        charIndex = 0;
+                        setTimeout(type, 500);
+                    }
+                } else {
+                    storyElement.classList.remove('cursor');
+                    skipBtn.classList.remove('opacity-0');
+                    skipBtn.classList.add('opacity-100');
+                }
+            };
+
+            type();
+        }
+
         setupMission() {
             this.state = 'QUIZ';
             this.oniMode = this.mission >= 3;
             this.elapsedSeconds = 0;
             
-            // リセット処理
             this.bullets = [];
             this.enemyBullets = [];
             this.particles = [];
@@ -232,9 +294,14 @@
             this.enemyDir = 1;
             this.score = 0;
 
+            document.getElementById('intro-ui').classList.add('hidden');
             const quizUi = document.getElementById('quiz-ui');
-            quizUi.classList.remove('hidden', 'opacity-0');
-            quizUi.style.opacity = "1";
+            quizUi.classList.remove('hidden');
+            setTimeout(() => {
+                quizUi.classList.remove('opacity-0');
+                quizUi.classList.add('opacity-100');
+            }, 50);
+
             document.getElementById('result-ui').classList.add('hidden');
             document.getElementById('hud-label').classList.remove('hurry-up');
             
@@ -360,12 +427,11 @@
                 lifeEl.innerHTML = '';
                 for(let i=0; i<this.lives; i++) {
                     const s = document.createElement('span');
-                    s.textContent = '❤️';
+                    s.textContent = '🧠'; 
                     lifeEl.appendChild(s);
                 }
             }
             
-            // 30秒を過ぎたら警告
             if (this.elapsedSeconds >= 30) {
                 document.getElementById('hud-label').classList.add('hurry-up');
             }
@@ -421,7 +487,6 @@
                 }
 
                 this.enemyStep++;
-                // 経過時間に応じて敵が加速するように修正（長くしすぎない工夫）
                 const timeFactor = Math.floor(this.elapsedSeconds / 10);
                 const moveDelay = Math.max(1, 40 - (this.mission * 2) - (timeFactor * 5));
                 
@@ -436,7 +501,6 @@
                         this.enemies.forEach(e => e.y += 20);
                     }
                     
-                    // 攻撃頻度も時間とともに上昇
                     let attackChance = 0.12 + (this.mission * 0.02) + (timeFactor * 0.05);
                     if(this.oniMode && Math.random() < attackChance) {
                         const visibleEnemies = this.enemies.filter(e => e.y > 0);
@@ -486,7 +550,7 @@
         win() {
             this.state = 'RESULT';
             const rt = document.getElementById('result-title');
-            rt.textContent = "SUCCESS";
+            rt.textContent = "Q.E.D."; 
             rt.className = "text-6xl font-black italic text-blue-400";
             document.getElementById('result-ui').classList.remove('hidden');
             this.mission++;
@@ -495,7 +559,7 @@
         gameOver() {
             this.state = 'RESULT';
             const rt = document.getElementById('result-title');
-            rt.textContent = "FAILED";
+            rt.textContent = "不可説不可説転"; 
             rt.className = "text-6xl font-black italic text-red-500";
             document.getElementById('result-ui').classList.remove('hidden');
         }
@@ -503,37 +567,32 @@
         draw() {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-            // 背景グリッド
             this.ctx.strokeStyle = 'rgba(255,255,255,0.02)';
             this.ctx.lineWidth = 1;
             for(let x=0; x<this.canvas.width; x+=60) {
                 this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke();
             }
 
-            // 画面外警告
             const offScreenCount = this.enemies.filter(e => e.y < -20).length;
             if (offScreenCount > 0 && this.state === 'PLAYING') {
-                this.ctx.fillStyle = 'rgba(255, 45, 85, 0.4)';
-                this.ctx.font = 'bold 12px sans-serif';
+                this.ctx.fillStyle = 'rgba(0, 255, 65, 0.4)';
+                this.ctx.font = 'bold 12px "Fira Code"';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillText(`▲ LURKING: ${offScreenCount} ▲`, this.canvas.width/2, 30);
+                this.ctx.fillText(`▲ 外れ値検出: ${offScreenCount} ▲`, this.canvas.width/2, 30);
             }
             
-            // HURRY UP警告
             if (this.elapsedSeconds >= 30 && this.state === 'PLAYING' && Math.floor(Date.now() / 500) % 2 === 0) {
                 this.ctx.fillStyle = 'rgba(255, 45, 85, 0.8)';
                 this.ctx.font = '900 24px Inter';
                 this.ctx.textAlign = 'center';
-                this.ctx.fillText('HURRY UP!', this.canvas.width/2, this.canvas.height/2);
+                this.ctx.fillText('LIMIT APPROACHING!', this.canvas.width/2, this.canvas.height/2);
             }
 
-            // プレイヤー
             this.ctx.font = '50px serif';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
             this.ctx.fillText('🧺', this.player.x, this.player.y);
 
-            // 敵
             this.enemies.forEach(e => {
                 if (e.y > -50) {
                     this.ctx.font = `30px serif`;
@@ -541,13 +600,11 @@
                 }
             });
 
-            // 弾
             this.ctx.fillStyle = '#fff';
             this.bullets.forEach(b => {
                 this.ctx.fillRect(b.x-2, b.y-10, 4, 20);
             });
 
-            // 敵の弾
             this.enemyBullets.forEach(b => {
                 this.ctx.fillStyle = '#ff2d55';
                 this.ctx.beginPath();
@@ -555,7 +612,6 @@
                 this.ctx.fill();
             });
 
-            // パーティクル
             this.particles.forEach(p => {
                 this.ctx.globalAlpha = p.life;
                 this.ctx.fillStyle = p.color;
