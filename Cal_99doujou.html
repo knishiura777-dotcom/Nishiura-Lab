@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>爆笑！九九お笑い道場</title>
+    <title>爆笑！九九お笑い道場 / Funny Multiplication Dojo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
@@ -27,12 +27,11 @@
         .animate-wiggle { animation: wiggle 0.5s infinite ease-in-out; }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .animate-bounce-short { animation: bounce-short 0.3s infinite ease-in-out; }
-        .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
         @keyframes bounce-slow {
             0%, 100% { transform: translateY(-15%) rotate(10deg); }
             50% { transform: translateY(0) rotate(-10deg); }
         }
-        .perspective-1000 { perspective: 1000px; }
+        .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
         .btn-pushable {
             transition: all 0.1s;
             border-bottom-width: 8px;
@@ -48,13 +47,18 @@
     <div id="app" class="w-full max-w-2xl flex flex-col items-center">
         <!-- Header -->
         <header class="w-full flex justify-between items-center mb-6">
-            <h1 class="text-2xl md:text-3xl font-black text-purple-600 flex items-center gap-2 transform -rotate-2">
+            <h1 id="app-title" class="text-xl md:text-3xl font-black text-purple-600 flex items-center gap-2 transform -rotate-2">
                 <i data-lucide="laugh" class="text-yellow-500 animate-bounce"></i>
                 九九お笑い道場
             </h1>
-            <button id="home-btn" class="hidden p-2 bg-white rounded-full shadow-lg hover:rotate-12 transition-transform">
-                <i data-lucide="home" class="text-purple-600"></i>
-            </button>
+            <div class="flex gap-2">
+                <button id="lang-toggle" class="px-4 py-2 bg-white rounded-full shadow-lg font-bold text-purple-600 hover:bg-purple-50 transition-colors border-2 border-purple-100">
+                    EN / JP
+                </button>
+                <button id="home-btn" class="hidden p-2 bg-white rounded-full shadow-lg hover:rotate-12 transition-transform border-2 border-purple-100">
+                    <i data-lucide="home" class="text-purple-600"></i>
+                </button>
+            </div>
         </header>
 
         <!-- Main Card -->
@@ -62,39 +66,104 @@
             <!-- Content will be injected here by JavaScript -->
         </main>
 
-        <footer class="mt-8 text-purple-400 font-bold flex items-center gap-2">
+        <footer id="app-footer" class="mt-8 text-purple-400 font-bold flex items-center gap-2">
             <i data-lucide="camera" class="w-4 h-4"></i> 変な写真をコンプリートしよう！
         </footer>
     </div>
 
     <script>
-        // --- Data ---
-        const KUKU_DATA = {
-            1: { name: '1の段', readings: ['いんいちが', 'いんにが', 'いんさんが', 'いんしが', 'いんごが', 'いんろくが', 'いんしちが', 'いんはちが', 'いんくが'], style: 'ロボットみたいに' },
-            2: { name: '2の段', readings: ['にいちが', 'ににんが', 'にさんが', 'にしが', 'にご', 'にろく', 'にしち', 'にはち', 'にく'], style: '忍者っぽくささやいて' },
-            3: { name: '3の段', readings: ['さんいちが', 'さんにが', 'さざんが', 'さんし', 'さんご', 'さぶろく', 'さんしち', 'さんぱ', 'さんく'], style: 'オペラ歌手のように' },
-            4: { name: '4の段', readings: ['しいちが', 'しにが', 'しさんが', 'しし', 'しご', 'しろく', 'ししち', 'しは', 'しく'], style: '怒ってる人みたいに' },
-            5: { name: '5の段', readings: ['ごいちが', 'ごに', 'ごさん', 'ごし', 'ごご', 'ごろく', 'ごしち', 'ごは', 'ごく'], style: '赤ちゃん言葉で' },
-            6: { name: '6の段', readings: ['ろくいちが', 'ろくに', 'ろくさん', 'ろくし', 'ろくご', 'ろくろく', 'ろくしち', 'ろくは', 'ろっく'], style: 'ヒップホップのリズムで' },
-            7: { name: '7の段', readings: ['しちいちが', 'しちに', 'しちさん', 'しちし', 'しちご', 'しちろく', 'しちしち', 'しちは', 'しちく'], style: 'カラスの鳴き声まじりで' },
-            8: { name: '8の段', readings: ['はちいちが', 'はちに', 'はちさん', 'はちし', 'はちご', 'はちろく', 'はちしち', 'はっぱ', 'はっく'], style: '寝起きでボーッとしながら' },
-            9: { name: '9の段', readings: ['くいちが', 'くに', 'くさん', 'くし', 'くご', 'くろく', 'くしち', 'くは', 'くく'], style: 'ものすごく格好つけて' },
+        // --- Translations ---
+        const I18N = {
+            ja: {
+                title: "九九お笑い道場",
+                footer: "変な写真をコンプリートしよう！",
+                menuPrompt: "どのネタ（段）で遊ぶ？",
+                levelLabel: "ネタNo.",
+                miniGame: "ミニゲーム",
+                challenge: "ムチャ振り",
+                readPrompt: "読んでみて！",
+                next: "つぎ！",
+                prev: "まえ",
+                goPlay: "遊びに行くぜ！",
+                stage: "ステージ",
+                successTitle: "お笑い大成功！",
+                starsLabel: "あつめた星",
+                rewardLabel: "🎉 激レア・ヘンテコ写真 ゲット！",
+                playAgain: "もう一回！",
+                back: "戻る",
+                readings: {
+                    1: ['いんいちが', 'いんにが', 'いんさんが', 'いんしが', 'いんごが', 'いんろくが', 'いんしちが', 'いんはちが', 'いんくが'],
+                    2: ['にいちが', 'ににんが', 'にさんが', 'にしが', 'にご', 'にろく', 'にしち', 'にはち', 'にく'],
+                    3: ['さんいちが', 'さんにが', 'さざんが', 'さんし', 'さんご', 'さぶろく', 'さんしち', 'さんぱ', 'さんく'],
+                    4: ['しいちが', 'しにが', 'しさんが', 'しし', 'しご', 'しろく', 'ししち', 'しは', 'しく'],
+                    5: ['ごいちが', 'ごに', 'ごさん', 'ごし', 'ごご', 'ごろく', 'ごしち', 'ごは', 'ごく'],
+                    6: ['ろくいちが', 'ろくに', 'ろくさん', 'ろくし', 'ろくご', 'ろくろく', 'ろくしち', 'ろくは', 'ろっく'],
+                    7: ['しちいちが', 'しちに', 'しちさん', 'しちし', 'しちご', 'しちろく', 'しちしち', 'しちは', 'しちく'],
+                    8: ['はちいちが', 'はちに', 'はちさん', 'はちし', 'はちご', 'はちろく', 'はちしち', 'はっぱ', 'はっく'],
+                    9: ['くいちが', 'くに', 'くさん', 'くし', 'くご', 'くろく', 'くしち', 'くは', 'くく']
+                },
+                styles: [
+                    'ロボットみたいに', '忍者っぽくささやいて', 'オペラ歌手のように', 
+                    '怒ってる人みたいに', '赤ちゃん言葉で', 'ヒップホップのリズムで', 
+                    'カラスの鳴き声まじりで', '寝起きでボーッとしながら', 'ものすごく格好つけて'
+                ],
+                feedbacks: {
+                    correct: ["ギガ正解！", "脳が震える〜！", "天才すぎて草", "全米が泣いた！", "神の領域！"],
+                    wrong: ["ズコーッ！", "おっとっと！", "時空が歪んだ！", "惜しすぎて涙が出るぜ"]
+                },
+                rewards: [
+                    { name: "二足歩行するイカ", emoji: "🦑", desc: "たまにコンビニで見かけるタイプ" },
+                    { name: "リーゼントの犬", emoji: "🐕", desc: "夜の公園をパトロールしているよ" },
+                    { name: "筋肉ムキムキのウサギ", emoji: "🐰", desc: "にんじんよりプロテインが好き" },
+                    { name: "サングラスをかけた大仏", emoji: "🗿", desc: "実はダンスが得意" },
+                    { name: "空飛ぶおにぎり", emoji: "🍙", desc: "中身は内緒だよ" }
+                ]
+            },
+            en: {
+                title: "Funny Multi-Dojo",
+                footer: "Collect all the weird photos!",
+                menuPrompt: "Pick a level to start the show!",
+                levelLabel: "Level",
+                miniGame: "Mini Game",
+                challenge: "Random Challenge",
+                readPrompt: "Read it out loud!",
+                next: "Next!",
+                prev: "Back",
+                goPlay: "Let's Play!",
+                stage: "Stage",
+                successTitle: "Comedy Gold!",
+                starsLabel: "Stars Collected",
+                rewardLabel: "🎉 Rare Funny Photo Unlocked!",
+                playAgain: "Try Again!",
+                back: "Menu",
+                readings: {
+                    1: Array(9).fill(""), // English doesn't use "readings" like JP, so we handle it in render
+                    2: Array(9).fill(""), 3: Array(9).fill(""), 4: Array(9).fill(""), 5: Array(9).fill(""),
+                    6: Array(9).fill(""), 7: Array(9).fill(""), 8: Array(9).fill(""), 9: Array(9).fill("")
+                },
+                styles: [
+                    'Like a Robot', 'Whispering like a Ninja', 'Like an Opera Singer', 
+                    'Like you are really ANGRY', 'In Baby Talk', 'With a Hip-hop Beat', 
+                    'Like a Crow cawing', 'Like you just woke up', 'Like a Cool Movie Star'
+                ],
+                feedbacks: {
+                    correct: ["Mega Correct!", "Brain Overload!", "Pure Genius!", "Hollywood is Crying!", "God Tier!"],
+                    wrong: ["D'oh!", "Oopsie!", "Glitch in Matrix!", "So close it hurts!"]
+                },
+                rewards: [
+                    { name: "Walking Squid", emoji: "🦑", desc: "Often seen at convenience stores" },
+                    { name: "Pompadour Dog", emoji: "🐕", desc: "Patrolling the park at night" },
+                    { name: "Buff Rabbit", emoji: "🐰", desc: "Loves protein more than carrots" },
+                    { name: "Buddha with Shades", emoji: "🗿", desc: "Actually a great dancer" },
+                    { name: "Flying Rice Ball", emoji: "🍙", desc: "The filling is a secret" }
+                ]
+            }
         };
-
-        const FUNNY_REWARDS = [
-            { name: "二足歩行するイカ", emoji: "🦑", desc: "たまにコンビニで見かけるタイプ" },
-            { name: "リーゼントの犬", emoji: "🐕", desc: "夜の公園をパトロールしているよ" },
-            { name: "筋肉ムキムキのウサギ", emoji: "🐰", desc: "にんじんよりプロテインが好き" },
-            { name: "サングラスをかけた大仏", emoji: "🗿", desc: "実はダンスが得意" },
-            { name: "空飛ぶおにぎり", emoji: "🍙", desc: "中身は内緒だよ" }
-        ];
-
-        const GAG_FEEDBACKS = ["ギガ正解！", "脳が震える〜！", "天才すぎて草", "全米が泣いた！", "神の領域！"];
-        const WRONG_FEEDBACKS = ["ズコーッ！", "おっとっと！", "時空が歪んだ！", "惜しすぎて涙が出るぜ"];
 
         // --- State ---
         let state = {
             view: 'menu',
+            lang: 'ja',
             currentDan: 2,
             currentIndex: 1,
             stars: 0,
@@ -106,6 +175,9 @@
 
         const mainCard = document.getElementById('main-card');
         const homeBtn = document.getElementById('home-btn');
+        const langToggle = document.getElementById('lang-toggle');
+        const appTitle = document.getElementById('app-title');
+        const appFooter = document.getElementById('app-footer');
 
         // --- Core Functions ---
         function setView(newView) {
@@ -115,6 +187,11 @@
             } else {
                 homeBtn.classList.remove('hidden');
             }
+            render();
+        }
+
+        function toggleLanguage() {
+            state.lang = state.lang === 'ja' ? 'en' : 'ja';
             render();
         }
 
@@ -148,11 +225,12 @@
 
         function handleAnswer(ans) {
             if (state.feedback) return;
+            const t = I18N[state.lang];
             if (ans === state.gameQuestion.correct) {
-                state.feedback = { type: 'correct', text: GAG_FEEDBACKS[Math.floor(Math.random() * GAG_FEEDBACKS.length)] };
+                state.feedback = { type: 'correct', text: t.feedbacks.correct[Math.floor(Math.random() * t.feedbacks.correct.length)] };
                 state.stars++;
             } else {
-                state.feedback = { type: 'wrong', text: WRONG_FEEDBACKS[Math.floor(Math.random() * WRONG_FEEDBACKS.length)] };
+                state.feedback = { type: 'wrong', text: t.feedbacks.wrong[Math.floor(Math.random() * t.feedbacks.wrong.length)] };
             }
             render();
 
@@ -162,7 +240,7 @@
                     generateQuestion(state.currentDan);
                     render();
                 } else {
-                    state.reward = FUNNY_REWARDS[Math.floor(Math.random() * FUNNY_REWARDS.length)];
+                    state.reward = t.rewards[Math.floor(Math.random() * t.rewards.length)];
                     setView('result');
                 }
             }, 1500);
@@ -188,22 +266,29 @@
         }
 
         function render() {
+            const t = I18N[state.lang];
+            
+            // Update UI Texts
+            appTitle.innerHTML = `<i data-lucide="laugh" class="text-yellow-500 animate-bounce"></i> ${t.title}`;
+            appFooter.innerHTML = `<i data-lucide="camera" class="w-4 h-4"></i> ${t.footer}`;
+            langToggle.innerText = state.lang === 'ja' ? 'EN / 日本語' : '日本語 / EN';
+
             mainCard.innerHTML = '';
             
             if (state.view === 'menu') {
                 let menuHtml = `
                     <div class="w-full text-center">
-                        <div class="mb-6 animate-pulse text-gray-500 font-bold italic text-lg">どのネタ（段）で遊ぶ？</div>
+                        <div class="mb-6 animate-pulse text-gray-500 font-bold italic text-lg">${t.menuPrompt}</div>
                         <div class="grid grid-cols-3 gap-4">`;
                 [1, 2, 3, 4, 5, 6, 7, 8, 9].forEach(dan => {
                     menuHtml += `
                         <div class="flex flex-col gap-2">
                             <button onclick="startStudy(${dan})" class="h-24 bg-gradient-to-b from-purple-400 to-purple-600 text-white rounded-3xl text-3xl font-black shadow-[0_8px_0_rgb(126,34,206)] transform active:translate-y-1 active:shadow-none transition-all flex flex-col items-center justify-center">
-                                <span class="text-[10px] bg-white text-purple-600 px-2 rounded-full mb-1">ネタNo.</span>
+                                <span class="text-[10px] bg-white text-purple-600 px-2 rounded-full mb-1">${t.levelLabel}</span>
                                 ${dan}
                             </button>
                             <button onclick="startGame(${dan})" class="h-10 bg-pink-500 text-white rounded-full text-xs font-bold shadow-md hover:scale-105 transition-transform">
-                                ミニゲーム
+                                ${t.miniGame}
                             </button>
                         </div>`;
                 });
@@ -212,23 +297,27 @@
             }
 
             else if (state.view === 'study') {
-                const danInfo = KUKU_DATA[state.currentDan];
+                const styleStr = t.styles[state.currentDan - 1];
+                const readingStr = state.lang === 'ja' 
+                    ? t.readings[state.currentDan][state.currentIndex - 1] 
+                    : `${state.currentDan} times ${state.currentIndex} is `;
+
                 mainCard.innerHTML = `
                     <div class="flex flex-col items-center w-full space-y-6">
                         <div class="bg-purple-50 p-4 rounded-2xl border-2 border-purple-100 text-purple-700 font-bold animate-bounce text-sm">
-                            ムチャ振り： 「${danInfo.style}」読んでみて！
+                            ${t.challenge}: 「${styleStr}」${t.readPrompt}
                         </div>
                         <div class="text-center space-y-4">
-                            <div class="flex items-center justify-center gap-4 text-6xl md:text-8xl font-black text-gray-800 drop-shadow-lg">
+                            <div class="flex items-center justify-center gap-4 text-5xl md:text-8xl font-black text-gray-800 drop-shadow-lg">
                                 <span>${state.currentDan}</span>
                                 <span class="text-pink-500">×</span>
                                 <span>${state.currentIndex}</span>
                                 <span class="text-gray-300">=</span>
                                 <span class="text-purple-600">${state.currentDan * state.currentIndex}</span>
                             </div>
-                            <div class="text-3xl bg-yellow-300 text-purple-900 font-black rounded-2xl px-8 py-4 rotate-1 shadow-lg border-4 border-white inline-block">
-                                ${danInfo.readings[state.currentIndex - 1]}
-                                <span class="text-red-600 ml-2">${state.currentDan * state.currentIndex}</span>！
+                            <div class="text-2xl md:text-3xl bg-yellow-300 text-purple-900 font-black rounded-2xl px-6 md:px-8 py-4 rotate-1 shadow-lg border-4 border-white inline-block">
+                                ${readingStr}
+                                <span class="text-red-600 ml-1">${state.currentDan * state.currentIndex}</span>!
                             </div>
                         </div>
 
@@ -236,15 +325,15 @@
 
                         <div class="flex justify-between w-full pt-4">
                             <button onclick="state.currentIndex--; render()" class="px-6 py-4 rounded-full font-bold transition-all ${state.currentIndex === 1 ? 'invisible' : 'bg-gray-100 hover:bg-gray-200'}">
-                                まえ
+                                ${t.prev}
                             </button>
                             ${state.currentIndex < 9 ? `
                                 <button onclick="state.currentIndex++; render()" class="px-10 py-4 bg-purple-500 text-white rounded-full text-xl font-black shadow-xl hover:scale-105 active:scale-95 transition-all border-b-4 border-purple-700">
-                                    つぎ！
+                                    ${t.next}
                                 </button>
                             ` : `
                                 <button onclick="startGame(${state.currentDan})" class="px-10 py-4 bg-pink-500 text-white rounded-full text-xl font-black shadow-xl animate-pulse border-b-4 border-pink-700">
-                                    遊びに行くぜ！
+                                    ${t.goPlay}
                                 </button>
                             `}
                         </div>
@@ -255,7 +344,7 @@
                 mainCard.innerHTML = `
                     <div class="flex flex-col items-center w-full space-y-8">
                         <div class="flex items-center gap-2 text-purple-600 font-black">
-                            <i data-lucide="ghost" class="animate-wiggle"></i> ステージ ${state.currentIndex} / 5
+                            <i data-lucide="ghost" class="animate-wiggle"></i> ${t.stage} ${state.currentIndex} / 5
                         </div>
 
                         <div class="text-center">
@@ -290,7 +379,7 @@
                 mainCard.innerHTML = `
                     <div class="flex flex-col items-center w-full space-y-6 text-center">
                         <i data-lucide="trophy" class="w-20 h-20 text-yellow-400 animate-bounce"></i>
-                        <h2 class="text-3xl font-black text-purple-600 italic">お笑い大成功！</h2>
+                        <h2 class="text-3xl font-black text-purple-600 italic">${t.successTitle}</h2>
                         
                         <div class="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-[40px] border-4 border-white shadow-xl w-full">
                             <div class="flex justify-center gap-2 mb-4">
@@ -300,7 +389,7 @@
                             </div>
                             
                             <div class="bg-white p-6 rounded-3xl shadow-inner border-2 border-dashed border-purple-200">
-                                <p class="text-gray-400 text-xs font-bold mb-2">🎉 激レア・ヘンテコ写真 ゲット！</p>
+                                <p class="text-gray-400 text-xs font-bold mb-2">${t.rewardLabel}</p>
                                 <div class="text-8xl mb-2 hover:scale-125 transition-transform cursor-pointer">${state.reward.emoji}</div>
                                 <h3 class="text-2xl font-black text-purple-700">${state.reward.name}</h3>
                                 <p class="text-sm text-gray-500">${state.reward.desc}</p>
@@ -308,8 +397,8 @@
                         </div>
                         
                         <div class="flex gap-4 w-full pt-4">
-                            <button onclick="startGame(${state.currentDan})" class="flex-1 p-5 bg-pink-500 text-white rounded-3xl font-black shadow-lg border-b-4 border-pink-700 active:translate-y-1">もう一回！</button>
-                            <button onclick="setView('menu')" class="flex-1 p-5 bg-purple-500 text-white rounded-3xl font-black shadow-lg border-b-4 border-purple-700 active:translate-y-1">戻る</button>
+                            <button onclick="startGame(${state.currentDan})" class="flex-1 p-5 bg-pink-500 text-white rounded-3xl font-black shadow-lg border-b-4 border-pink-700 active:translate-y-1">${t.playAgain}</button>
+                            <button onclick="setView('menu')" class="flex-1 p-5 bg-purple-500 text-white rounded-3xl font-black shadow-lg border-b-4 border-purple-700 active:translate-y-1">${t.back}</button>
                         </div>
                     </div>`;
             }
@@ -319,6 +408,7 @@
 
         // --- Event Listeners ---
         homeBtn.addEventListener('click', () => setView('menu'));
+        langToggle.addEventListener('click', toggleLanguage);
 
         // Init
         render();
