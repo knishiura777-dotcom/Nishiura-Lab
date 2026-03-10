@@ -24,22 +24,20 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+        @keyframes scroll-up {
+            from { transform: translateY(100%); }
+            to { transform: translateY(-200%); }
+        }
         .animate-wiggle { animation: wiggle 0.5s infinite ease-in-out; }
         .animate-spin-slow { animation: spin-slow 4s linear infinite; }
         .animate-bounce-short { animation: bounce-short 0.3s infinite ease-in-out; }
+        .animate-scroll-up { animation: scroll-up 20s linear infinite; }
         @keyframes bounce-slow {
             0%, 100% { transform: translateY(-15%) rotate(10deg); }
             50% { transform: translateY(0) rotate(-10deg); }
         }
         .animate-bounce-slow { animation: bounce-slow 3s infinite ease-in-out; }
-        .btn-pushable {
-            transition: all 0.1s;
-            border-bottom-width: 8px;
-        }
-        .btn-pushable:active {
-            transform: translateY(4px);
-            border-bottom-width: 4px;
-        }
+        
         .collection-scroll::-webkit-scrollbar {
             width: 8px;
         }
@@ -63,7 +61,7 @@
                 九九お笑い道場
             </h1>
             <div class="flex gap-2">
-                <button id="lang-toggle" class="px-4 py-2 bg-white rounded-full shadow-lg font-bold text-purple-600 hover:bg-purple-50 transition-colors border-2 border-purple-100">
+                <button id="lang-toggle" class="px-4 py-2 bg-white rounded-full shadow-lg font-bold text-purple-600 hover:bg-purple-50 transition-colors border-2 border-purple-100 text-sm">
                     EN / JP
                 </button>
                 <button id="home-btn" class="hidden p-2 bg-white rounded-full shadow-lg hover:rotate-12 transition-transform border-2 border-purple-100">
@@ -80,25 +78,24 @@
         <footer id="app-footer" class="mt-8 w-full max-w-2xl flex flex-col md:flex-row justify-between items-center text-purple-400 font-bold gap-4">
             <div class="flex items-center gap-2 text-center md:text-left">
                 <i data-lucide="camera" class="w-4 h-4"></i> 
-                <span id="footer-text">1000通りの励ましと500枚の写真をコンプしよう！</span>
+                <span id="footer-text">300枚の写真をコンプして、伝説のエンディングを見よう！</span>
             </div>
             <div id="version-info" class="text-xs opacity-60">
-                Version 1.4.0
+                Version 1.5.0
             </div>
         </footer>
     </div>
 
     <script>
         // --- Constants ---
-        const APP_VERSION = "1.4.0";
-        const TOTAL_REWARDS_COUNT = 500;
-        const TOTAL_FEEDBACK_PARTS = 500; // Based on 25x20 combinations
+        const APP_VERSION = "1.5.0";
+        const TOTAL_REWARDS_COUNT = 300; // Updated target
 
         // --- Translations & Generators ---
         const I18N = {
             ja: {
                 title: "九九お笑い道場",
-                footer: "1000通りの励ましと500枚の写真をコンプしよう！",
+                footer: "300枚の写真をコンプして、伝説のエンディングを見よう！",
                 version: "バージョン",
                 menuPrompt: "どのネタ（段）で遊ぶ？",
                 levelLabel: "ネタNo.",
@@ -119,6 +116,19 @@
                 emptyCollection: "まだ写真がないよ。ミニゲームであそぼう！",
                 locked: "???",
                 progress: "あつめた数",
+                skip: "スキップ",
+                startApp: "修行をはじめる！",
+                introTitle: "九九お笑い道場の門が開く...",
+                introText: "九九という呪文を「笑い」に変えて、世界を救う修行が始まる。300枚のヘンテコ写真をすべて集めし時、君は伝説の九九マスターとなるだろう。覚悟はいいか？",
+                endingTitle: "🎉 九九マスターへの登竜門 突破！",
+                endingMsg: "おめでとう！300枚のヘンテコ写真をコンプリートした君は、もう立派な九九マスターだ。これからも九九で世界を笑わせてくれ！",
+                credits: [
+                    "監督：君",
+                    "笑い提供：ヘンテコな仲間たち",
+                    "九九指導：道場の師範",
+                    "写真撮影：魔法のカメラ",
+                    "Special Thanks：あなた"
+                ],
                 readings: {
                     1: ['いんいちが', 'いんにが', 'いんさんが', 'いんしが', 'いんごが', 'いんろくが', 'いんしちが', 'いんはちが', 'いんくが'],
                     2: ['にいちが', 'ににんが', 'にさんが', 'にしが', 'にご', 'にろく', 'にしち', 'にはち', 'にく'],
@@ -135,7 +145,6 @@
                     '怒ってる人みたいに', '赤ちゃん言葉で', 'ヒップホップのリズムで', 
                     'カラスの鳴き声まじりで', '寝起きでボーッとしながら', 'ものすごく格好つけて'
                 ],
-                // Feedback Generator Parts
                 fbCorrectPrefix: [
                     "ギガ", "超", "銀河系最強の", "伝説の", "100年に一人の", "神レベルの", "全米が泣いた", "異次元の", "爆速の", 
                     "ミラクル", "天才すぎて草な", "光の速さの", "宇宙規模の", "歴史に残る", "教科書に載せたい", "おったまげの", 
@@ -156,7 +165,6 @@
                     "ボタンが遠かった！", "重力のせいだ！", "運勢のせいだ！", "平行世界では正解！", "まだ本気出してない！", "伸びしろですね！", 
                     "良いチャレンジだ！", "これも勉強だ！"
                 ],
-                // Reward Generator Parts
                 genPrefixes: [
                     "ムキムキの", "空飛ぶ", "透明な", "伝説の", "100円の", "かっこいい", "泣き虫な", "ダンスが得意な", 
                     "リーゼントの", "サングラスをかけた", "寝起きの", "社長になった", "未来から来た", "お腹ペコペコの", 
@@ -176,7 +184,7 @@
             },
             en: {
                 title: "Funny Multi-Dojo",
-                footer: "1,000 Encouragements & 500 Photos!",
+                footer: "Collect 300 photos to see the legendary ending!",
                 version: "Version",
                 menuPrompt: "Pick a level to start the show!",
                 levelLabel: "Level",
@@ -197,6 +205,19 @@
                 emptyCollection: "No photos yet. Play mini games!",
                 locked: "Locked",
                 progress: "Collected",
+                skip: "Skip",
+                startApp: "Start Dojo!",
+                introTitle: "The Gates are Opening...",
+                introText: "Turn the magic of multiplication into laughter to save the world. Once you collect all 300 photos, you shall be the Legendary Multi-Master. Are you ready?",
+                endingTitle: "🎉 Legendary Master Status Unlocked!",
+                endingMsg: "Congratulations! You collected all 300 photos. You are now a true Multiplication Master. Keep making the world laugh with numbers!",
+                credits: [
+                    "Director: YOU",
+                    "Laughter by: Weird Objects",
+                    "Sensei: Multiplication Dojo",
+                    "Photography: Magic Camera",
+                    "Special Thanks: Your Brain"
+                ],
                 readings: {
                     1: Array(9).fill(""), 2: Array(9).fill(""), 3: Array(9).fill(""), 4: Array(9).fill(""), 5: Array(9).fill(""),
                     6: Array(9).fill(""), 7: Array(9).fill(""), 8: Array(9).fill(""), 9: Array(9).fill("")
@@ -247,7 +268,7 @@
 
         // --- State ---
         let state = {
-            view: 'menu',
+            view: localStorage.getItem('kuku_intro_seen') ? 'menu' : 'opening',
             lang: 'ja',
             currentDan: 2,
             currentIndex: 1,
@@ -256,7 +277,8 @@
             options: [],
             feedback: null,
             reward: null,
-            collectedIds: JSON.parse(localStorage.getItem('kuku_collected_ids') || '[]')
+            collectedIds: JSON.parse(localStorage.getItem('kuku_collected_ids') || '[]'),
+            endingSeen: false
         };
 
         const mainCard = document.getElementById('main-card');
@@ -300,7 +322,7 @@
         // --- Core Functions ---
         function setView(newView) {
             state.view = newView;
-            if (newView === 'menu') {
+            if (newView === 'menu' || newView === 'opening') {
                 homeBtn.classList.add('hidden');
             } else {
                 homeBtn.classList.remove('hidden');
@@ -313,38 +335,11 @@
             render();
         }
 
-        function startStudy(dan) {
-            state.currentDan = dan;
-            state.currentIndex = 1;
-            setView('study');
-        }
-
-        function generateQuestion(dan) {
-            const num2 = Math.floor(Math.random() * 9) + 1;
-            const correct = dan * num2;
-            let choices = new Set([correct]);
-            while (choices.size < 4) {
-                const offset = Math.floor(Math.random() * 5) - 2;
-                const wrong = Math.max(1, correct + (offset * dan) || Math.floor(Math.random() * 81) + 1);
-                choices.add(wrong);
-            }
-            state.gameQuestion = { dan, num2, correct };
-            state.options = Array.from(choices).sort((a, b) => a - b);
-            state.feedback = null;
-        }
-
-        function startGame(dan) {
-            state.currentDan = dan;
-            state.stars = 0;
-            state.currentIndex = 1;
-            generateQuestion(dan);
-            setView('game');
-        }
-
         function handleAnswer(ans) {
             if (state.feedback) return;
             const isCorrect = ans === state.gameQuestion.correct;
-            
+            const t = I18N[state.lang];
+
             if (isCorrect) {
                 state.feedback = { type: 'correct', text: generateFeedback(true, state.lang) };
                 state.stars++;
@@ -365,9 +360,48 @@
                         state.collectedIds.push(rewardId);
                         localStorage.setItem('kuku_collected_ids', JSON.stringify(state.collectedIds));
                     }
-                    setView('result');
+                    
+                    // Check if 100% reached
+                    if (state.collectedIds.length >= TOTAL_REWARDS_COUNT && !state.endingSeen) {
+                        setView('ending');
+                    } else {
+                        setView('result');
+                    }
                 }
             }, 1500);
+        }
+
+        function generateQuestion(dan) {
+            const num2 = Math.floor(Math.random() * 9) + 1;
+            const correct = dan * num2;
+            let choices = new Set([correct]);
+            while (choices.size < 4) {
+                const offset = Math.floor(Math.random() * 5) - 2;
+                const wrong = Math.max(1, correct + (offset * dan) || Math.floor(Math.random() * 81) + 1);
+                choices.add(wrong);
+            }
+            state.gameQuestion = { dan, num2, correct };
+            state.options = Array.from(choices).sort((a, b) => a - b);
+            state.feedback = null;
+        }
+
+        function startStudy(dan) {
+            state.currentDan = dan;
+            state.currentIndex = 1;
+            setView('study');
+        }
+
+        function startGame(dan) {
+            state.currentDan = dan;
+            state.stars = 0;
+            state.currentIndex = 1;
+            generateQuestion(dan);
+            setView('game');
+        }
+
+        function skipToMenu() {
+            localStorage.setItem('kuku_intro_seen', 'true');
+            setView('menu');
         }
 
         // --- Render Helpers ---
@@ -398,8 +432,58 @@
             langToggle.innerText = state.lang === 'ja' ? 'EN / 日本語' : '日本語 / EN';
 
             mainCard.innerHTML = '';
-            
-            if (state.view === 'menu') {
+            mainCard.className = "w-full bg-white rounded-[40px] shadow-2xl p-6 md:p-10 min-h-[550px] flex flex-col items-center relative border-8 border-purple-100 overflow-hidden";
+
+            // --- View: Opening ---
+            if (state.view === 'opening') {
+                mainCard.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-center space-y-8 py-10">
+                        <div class="relative">
+                            <i data-lucide="sparkles" class="w-16 h-16 text-yellow-400 absolute -top-8 -right-8 animate-pulse"></i>
+                            <h2 class="text-4xl font-black text-purple-700 italic drop-shadow-md leading-tight">${t.introTitle}</h2>
+                        </div>
+                        <p class="text-lg text-gray-600 font-bold leading-relaxed max-w-md">
+                            ${t.introText}
+                        </p>
+                        <div class="flex flex-col gap-4 w-full max-w-xs">
+                            <button onclick="skipToMenu()" class="p-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-3xl font-black text-xl shadow-xl hover:scale-105 transition-all border-b-8 border-purple-800 active:translate-y-2 active:border-b-4">
+                                ${t.startApp}
+                            </button>
+                        </div>
+                        <button onclick="skipToMenu()" class="text-gray-400 font-bold hover:text-purple-400 underline underline-offset-4">
+                            ${t.skip}
+                        </button>
+                    </div>`;
+            }
+
+            // --- View: Ending ---
+            else if (state.view === 'ending') {
+                state.endingSeen = true;
+                mainCard.className += " bg-gray-900 border-yellow-400";
+                mainCard.innerHTML = `
+                    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                        <div class="animate-scroll-up absolute top-0 left-0 w-full text-center text-yellow-200 opacity-80 space-y-10 font-bold">
+                            <h3 class="text-5xl font-black text-yellow-400 mb-20">END ROLL</h3>
+                            ${t.credits.map(c => `<p class="text-2xl">${c}</p>`).join('')}
+                            <div class="text-6xl py-20">👑</div>
+                            <p class="text-3xl">FIN</p>
+                        </div>
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center justify-center h-full text-center space-y-6">
+                        <i data-lucide="trophy" class="w-24 h-24 text-yellow-400 animate-bounce"></i>
+                        <h2 class="text-3xl font-black text-white italic leading-tight">${t.endingTitle}</h2>
+                        <p class="text-white font-bold px-4">${t.endingMsg}</p>
+                        <button onclick="setView('menu')" class="px-10 py-4 bg-yellow-400 text-gray-900 rounded-full font-black shadow-xl hover:scale-105 active:scale-95 transition-all">
+                            ${t.back}
+                        </button>
+                    </div>
+                    <button onclick="setView('menu')" class="absolute top-4 right-4 text-white/50 hover:text-white font-bold underline underline-offset-4 z-20">
+                        ${t.skip}
+                    </button>`;
+            }
+
+            // --- View: Menu ---
+            else if (state.view === 'menu') {
                 const percent = Math.floor((state.collectedIds.length / TOTAL_REWARDS_COUNT) * 100);
                 mainCard.innerHTML = `
                     <div class="w-full text-center">
