@@ -1,1030 +1,783 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Blindness Experiment</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel (for JSX) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Firebase (Compat version) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        /* Disable text selection on canvas to prevent accidental highlighting during rapid clicks */
-        canvas { user-select: none; -webkit-user-select: none; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Change Blindness Experiment - Stable No CDN</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --panel2: #f8fafc;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #4f46e5;
+      --primary2: #4338ca;
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      background: radial-gradient(circle at top left, #eef2ff 0, #f8fafc 34%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .6; }
+    canvas { user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    .screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+    }
+    .card {
+      width: min(960px, 100%);
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(226, 232, 240, .9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card.narrow { width: min(620px, 100%); }
+    .card-body { padding: 30px; }
+    .topbar {
+      padding: 22px 28px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.92);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: #eef2ff;
+      color: var(--primary);
+      font-size: 25px;
+      flex: 0 0 auto;
+    }
+    h1, h2, h3 { margin: 0; }
+    h1 { font-size: clamp(25px, 4vw, 36px); line-height: 1.2; color: #3730a3; }
+    h2 { font-size: clamp(22px, 3vw, 30px); }
+    h3 { font-size: 17px; }
+    p { line-height: 1.75; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .tiny { font-size: 12px; }
+    .stack { display: grid; gap: 18px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .form-panel {
+      background: #eef2ff;
+      border: 1px solid #c7d2fe;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: left;
+    }
+    label { display: block; color: #4b5563; font-size: 13px; font-weight: 700; margin-bottom: 7px; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+      min-height: 44px;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79,70,229,.16); }
+    .btn {
+      border: none;
+      border-radius: 13px;
+      padding: 13px 18px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+      min-height: 48px;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn.primary { background: var(--primary); color: #fff; box-shadow: 0 12px 22px rgba(79,70,229,.24); }
+    .btn.primary:hover { background: var(--primary2); }
+    .btn.dark { background: #111827; color: #fff; }
+    .btn.ghost { background: transparent; color: var(--muted); }
+    .btn.soft { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
+    .btn.green { background: var(--green); color: #fff; }
+    .btn.red { background: var(--red); color: #fff; }
+    .full { width: 100%; }
+    .lang {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 6px;
+      z-index: 20;
+    }
+    .lang button {
+      border: 1px solid #d1d5db;
+      background: #fff;
+      color: #6b7280;
+      border-radius: 999px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .lang button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: #f8fafc; border-bottom: 1px solid var(--line); }
+    .tabs button {
+      border: none;
+      background: transparent;
+      padding: 16px 8px;
+      color: #64748b;
+      font-weight: 800;
+      border-bottom: 3px solid transparent;
+    }
+    .tabs button.active { background: #fff; color: var(--primary); border-bottom-color: var(--primary); }
+    .section-title { border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 12px; }
+    .radio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .radio-card {
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 15px;
+      background: #fff;
+      min-height: 102px;
+      display: grid;
+      align-content: start;
+      gap: 6px;
+    }
+    .radio-card.active { border-color: var(--primary); background: #eef2ff; }
+    .notice { padding: 16px; border-radius: 14px; border: 1px solid var(--line); background: #f8fafc; }
+    .notice.blue { background: #eff6ff; border-left: 5px solid #3b82f6; }
+    .notice.amber { background: var(--amber-bg); border-left: 5px solid var(--amber); }
+    .pre {
+      background: #111827;
+      color: #e5e7eb;
+      padding: 16px;
+      border-radius: 13px;
+      overflow: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      max-height: 260px;
+      white-space: pre;
+    }
+    .play-card {
+      width: min(720px, 100%);
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid var(--line);
+    }
+    .play-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 6px 10px; background: #f1f5f9; color: #475569; font-size: 13px; font-weight: 800; }
+    .canvas-wrap {
+      position: relative;
+      border: 2px solid #e5e7eb;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #f3f4f6;
+    }
+    canvas { display: block; width: 100%; height: auto; cursor: crosshair; }
+    .feedback-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,.84);
+      display: grid;
+      place-items: center;
+      text-align: center;
+      animation: fade .16s ease-out;
+    }
+    .target-hint {
+      position: absolute;
+      border: 3px solid #16a34a;
+      border-radius: 999px;
+      width: 58px;
+      height: 58px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      box-shadow: 0 0 0 999px rgba(255,255,255,.18);
+    }
+    .big-number { font-size: clamp(28px, 5vw, 42px); font-weight: 900; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+    .stat { border-radius: 16px; padding: 18px; text-align: center; border: 1px solid var(--line); }
+    .stat.red { background: var(--red-bg); color: #991b1b; border-color: #fecaca; }
+    .stat.green { background: var(--green-bg); color: #065f46; border-color: #bbf7d0; }
+    .result-table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 14px; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    th, td { padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+    th { background: #f8fafc; color: #475569; font-weight: 900; }
+    tr:last-child td { border-bottom: none; }
+    .hidden { display: none !important; }
+    .center { text-align: center; }
+    .actions { display: grid; gap: 10px; }
+    .actions.two { grid-template-columns: 1fr 1fr; }
+    .fade { animation: fade .2s ease-out; }
+    @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 720px) {
+      .screen { padding: 14px; align-items: flex-start; padding-top: 58px; }
+      .card-body { padding: 20px; }
+      .topbar { padding: 18px; }
+      .grid2, .grid3, .radio-grid, .stats, .actions.two { grid-template-columns: 1fr; }
+      .tabs { grid-template-columns: 1fr; }
+      .play-head { align-items: flex-start; flex-direction: column; }
+      .lang { position: absolute; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
-    <div id="root"></div>
+<body>
+  <div id="app"></div>
 
-    <script type="text/babel">
-        // --- React Hooks & Utils ---
-        const { useState, useEffect, useRef, useCallback } = React;
+  <script>
+    (function () {
+      'use strict';
 
-        // --- Icons (Simplified Lucide SVGs) ---
-        const IconBase = ({ children, className = "", ...props }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={className} 
-                {...props}
-            >
-                {children}
-            </svg>
-        );
-
-        const Play = (props) => <IconBase {...props}><polygon points="5 3 19 12 5 21 5 3"/></IconBase>;
-        const RotateCcw = (props) => <IconBase {...props}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12"/><path d="M3 3v9h9"/></IconBase>;
-        const CheckCircle = (props) => <IconBase {...props}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></IconBase>;
-        const AlertCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></IconBase>;
-        const MousePointer2 = (props) => <IconBase {...props}><path d="m14 6 7.7-7.7"/><path d="m14 6-4.4 11-2.6-7-7-2.6Z"/></IconBase>;
-        const Eye = (props) => <IconBase {...props}><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></IconBase>;
-        const Download = (props) => <IconBase {...props}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></IconBase>;
-        const Settings = (props) => <IconBase {...props}><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></IconBase>;
-        const Save = (props) => <IconBase {...props}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></IconBase>;
-        const ArrowLeft = (props) => <IconBase {...props}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></IconBase>;
-        const Copy = (props) => <IconBase {...props}><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></IconBase>;
-        const Server = (props) => <IconBase {...props}><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></IconBase>;
-        const FileText = (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></IconBase>;
-        const Database = (props) => <IconBase {...props}><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></IconBase>;
-        const Check = (props) => <IconBase {...props}><polyline points="20 6 9 17 4 12"/></IconBase>;
-        const Globe = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></IconBase>;
-
-        // --- Translation Data ---
-        const TRANSLATIONS = {
-            ja: {
-                title: "変化盲 (Change Blindness)",
-                subtitle: "実験プログラム",
-                participantInfo: "参加者情報 (任意)",
-                id: "ID",
-                age: "年齢",
-                gender: "性別",
-                genderOptions: { select: "未選択", male: "男性", female: "女性", other: "その他" },
-                placeholderId: "例: sub001",
-                placeholderAge: "歳",
-                startExperiment: "実験を開始",
-                settings: "設定・詳細",
-                back: "戻る",
-                settingsTitle: "実験設定",
-                tabs: { params: "パラメータ", save: "データ保存", info: "実験情報" },
-                params: {
-                    basic: "基本設定",
-                    trials: "各条件の試行回数",
-                    items: "オブジェクト数",
-                    time: "時間設定 (ms)",
-                    imageDuration: "画像提示時間",
-                    blankDuration: "ブランク時間"
-                },
-                save: {
-                    modes: {
-                        csv: { label: "CSVダウンロード", desc: "ローカルに保存" },
-                        gas: { label: "Google Apps Script", desc: "スプレッドシートへ送信" },
-                        firebase: { label: "Firebase Firestore", desc: "クラウドデータベース" }
-                    },
-                    csvInfo: "実験終了時に結果をCSVファイルとしてダウンロードします。特別な設定は不要です。",
-                    gasLabel: "Web App URL",
-                    gasDesc: "デプロイしたWebアプリのURLを入力してください。",
-                    gasCodeTitle: "GAS デプロイ用コード (doPost)",
-                    copy: "コードをコピー",
-                    copied: "コピー完了",
-                    firebaseStatus: "Firebase接続状態",
-                    connected: "接続OK",
-                    notFound: "設定が見つかりません",
-                    firebaseDesc: "Firebase config設定を使用します。データはFirestoreに保存されます。"
-                },
-                info: {
-                    summaryTitle: "実験の概要",
-                    summary: "視覚的変化の検出における「フリッカー（画面の瞬き）」の影響を測定します。",
-                    varsTitle: "実験変数",
-                    iv: "独立変数: フリッカーの有無",
-                    dv: "従属変数: 反応時間 (ms)",
-                    specsTitle: "技術仕様",
-                    specs: "時間計測: performance.now() (高精度), 描画同期: requestAnimationFrame"
-                },
-                finished: {
-                    title: "実験完了",
-                    flicker: "フリッカーあり",
-                    noFlicker: "フリッカーなし",
-                    saveComplete: "保存完了",
-                    saving: "保存中...",
-                    downloadCsv: "CSVダウンロード",
-                    sendTo: "へ送信",
-                    backToTitle: "タイトルに戻る"
-                },
-                playing: {
-                    trial: "試行",
-                    instruction: "変化を探してクリック",
-                    guest: "ゲスト"
-                },
-                alerts: {
-                    copyFailed: "クリップボードへのコピーに失敗しました。",
-                    saveSuccess: "データを送信しました",
-                    saveError: "保存に失敗しました"
-                }
-            },
-            en: {
-                title: "Change Blindness",
-                subtitle: "Experiment Program",
-                participantInfo: "Participant Info (Optional)",
-                id: "ID",
-                age: "Age",
-                gender: "Gender",
-                genderOptions: { select: "Select", male: "Male", female: "Female", other: "Other" },
-                placeholderId: "e.g. sub001",
-                placeholderAge: "yrs",
-                startExperiment: "Start Experiment",
-                settings: "Settings",
-                back: "Back",
-                settingsTitle: "Experiment Settings",
-                tabs: { params: "Parameters", save: "Data Save", info: "Info" },
-                params: {
-                    basic: "Basic Settings",
-                    trials: "Trials per Condition",
-                    items: "Number of Items",
-                    time: "Timing Settings (ms)",
-                    imageDuration: "Image Duration",
-                    blankDuration: "Blank Duration"
-                },
-                save: {
-                    modes: {
-                        csv: { label: "Download CSV", desc: "Save locally" },
-                        gas: { label: "Google Apps Script", desc: "Send to Sheets" },
-                        firebase: { label: "Firebase Firestore", desc: "Cloud Database" }
-                    },
-                    csvInfo: "Results will be downloaded as a CSV file at the end of the experiment.",
-                    gasLabel: "Web App URL",
-                    gasDesc: "Enter the deployed Web App URL.",
-                    gasCodeTitle: "GAS Deployment Code (doPost)",
-                    copy: "Copy Code",
-                    copied: "Copied!",
-                    firebaseStatus: "Firebase Status",
-                    connected: "Connected",
-                    notFound: "Config Not Found",
-                    firebaseDesc: "Uses the provided Firebase config. Data is saved to Firestore."
-                },
-                info: {
-                    summaryTitle: "Overview",
-                    summary: "Measures the effect of 'flicker' on visual change detection.",
-                    varsTitle: "Variables",
-                    iv: "IV: Presence of Flicker",
-                    dv: "DV: Reaction Time (ms)",
-                    specsTitle: "Tech Specs",
-                    specs: "Timing: performance.now() (High Precision), Sync: requestAnimationFrame"
-                },
-                finished: {
-                    title: "Experiment Finished",
-                    flicker: "Flicker",
-                    noFlicker: "No Flicker",
-                    saveComplete: "Saved",
-                    saving: "Saving...",
-                    downloadCsv: "Download CSV",
-                    sendTo: "Send to",
-                    backToTitle: "Back to Title"
-                },
-                playing: {
-                    trial: "Trial",
-                    instruction: "Find the change and click!",
-                    guest: "Guest"
-                },
-                alerts: {
-                    copyFailed: "Failed to copy to clipboard.",
-                    saveSuccess: "Data sent successfully.",
-                    saveError: "Save failed"
-                }
-            },
-            sv: {
-                title: "Förändringsblindhet",
-                subtitle: "Experimentprogram",
-                participantInfo: "Deltagarinfo (Valfritt)",
-                id: "ID",
-                age: "Ålder",
-                gender: "Kön",
-                genderOptions: { select: "Välj", male: "Man", female: "Kvinna", other: "Annat" },
-                placeholderId: "t.ex. sub001",
-                placeholderAge: "år",
-                startExperiment: "Starta experimentet",
-                settings: "Inställningar",
-                back: "Tillbaka",
-                settingsTitle: "Experimentinställningar",
-                tabs: { params: "Parametrar", save: "Spara Data", info: "Info" },
-                params: {
-                    basic: "Grundinställningar",
-                    trials: "Försök per villkor",
-                    items: "Antal objekt",
-                    time: "Tidsinställningar (ms)",
-                    imageDuration: "Bildvaraktighet",
-                    blankDuration: "Blanktid"
-                },
-                save: {
-                    modes: {
-                        csv: { label: "Ladda ner CSV", desc: "Spara lokalt" },
-                        gas: { label: "Google Apps Script", desc: "Skicka till Sheets" },
-                        firebase: { label: "Firebase Firestore", desc: "Molndatabas" }
-                    },
-                    csvInfo: "Resultaten laddas ner som en CSV-fil i slutet av experimentet.",
-                    gasLabel: "Web App URL",
-                    gasDesc: "Ange URL för den distribuerade webbappen.",
-                    gasCodeTitle: "GAS-distributionskod (doPost)",
-                    copy: "Kopiera kod",
-                    copied: "Kopierad!",
-                    firebaseStatus: "Firebase-status",
-                    connected: "Ansluten",
-                    notFound: "Konfig ej hittad",
-                    firebaseDesc: "Använder Firebase-konfigurationen. Data sparas i Firestore."
-                },
-                info: {
-                    summaryTitle: "Översikt",
-                    summary: "Mäter effekten av 'flimmer' på upptäckt av visuella förändringar.",
-                    varsTitle: "Variabler",
-                    iv: "OV: Förekomst av flimmer",
-                    dv: "BV: Reaktionstid (ms)",
-                    specsTitle: "Tekniska specifikationer",
-                    specs: "Tidtagning: performance.now(), Synk: requestAnimationFrame"
-                },
-                finished: {
-                    title: "Experiment avslutat",
-                    flicker: "Flimmer",
-                    noFlicker: "Inget flimmer",
-                    saveComplete: "Sparad",
-                    saving: "Sparar...",
-                    downloadCsv: "Ladda ner CSV",
-                    sendTo: "Skicka till",
-                    backToTitle: "Tillbaka till titeln"
-                },
-                playing: {
-                    trial: "Försök",
-                    instruction: "Hitta förändringen och klicka!",
-                    guest: "Gäst"
-                },
-                alerts: {
-                    copyFailed: "Misslyckades med att kopiera till urklipp.",
-                    saveSuccess: "Data skickades framgångsrikt.",
-                    saveError: "Sparandet misslyckades"
-                }
-            }
-        };
-
-        const GAS_CODE = `function doPost(e) {
-  var data;
-  try {
-    data = JSON.parse(e.postData.contents);
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({status: "error", message: "Invalid JSON"}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-  
+      const GAS_CODE = `function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow([
-      "ParticipantID", "Age", "Gender", "TrialID", "Condition", "ReactionTime", "Success", 
-      "Date", "ImageDuration", "BlankDuration", "ItemsCount"
-    ]);
+    sheet.appendRow(["ParticipantID", "Age", "Gender", "TrialID", "Condition", "ReactionTime", "Success", "Date", "ImageDuration", "BlankDuration", "ItemsCount"]);
   }
-  
-  if (Array.isArray(data)) {
-    data.forEach(function(row) {
-      sheet.appendRow([
-        row.ParticipantID,
-        row.Age,
-        row.Gender,
-        row.TrialID,
-        row.Condition,
-        row.ReactionTime,
-        row.Success,
-        row.Date,
-        row.ImageDuration,
-        row.BlankDuration,
-        row.ItemsCount
-      ]);
-    });
-  }
-  
-  var output = ContentService.createTextOutput(JSON.stringify({status: "success"}));
-  output.setMimeType(ContentService.MimeType.JSON);
-  return output;
+  data.forEach(function(row) {
+    sheet.appendRow([row.ParticipantID, row.Age, row.Gender, row.TrialID, row.Condition, row.ReactionTime, row.Success, row.Date, row.ImageDuration, row.BlankDuration, row.ItemsCount]);
+  });
+  return ContentService.createTextOutput(JSON.stringify({status: "success"})).setMimeType(ContentService.MimeType.JSON);
 }`;
 
-        const DEFAULT_CONFIG = {
-            trialsPerCondition: 5,
-            imageDuration: 240,
-            blankDuration: 80,
-            itemsCount: 16,
-            saveMode: 'csv',
-            gasUrl: ''
-        };
+      const T = {
+        ja: {
+          title: '変化盲（Change Blindness）', subtitle: '実験プログラム 安定版', participant: '参加者情報（任意）', id: 'ID', age: '年齢', gender: '性別', select: '未選択', male: '男性', female: '女性', other: 'その他', start: '実験を開始', settings: '設定・詳細', back: '戻る', params: 'パラメータ', save: 'データ保存', info: '実験情報', trials: '各条件の試行回数', items: 'オブジェクト数', imageDuration: '画像提示時間（ms）', blankDuration: 'ブランク時間（ms）', saveMode: '保存方法', csv: 'CSVダウンロード', gas: 'Google Apps Script', firebaseOff: 'Firebaseは安定版では無効', gasUrl: 'GAS Web App URL', copyCode: 'GASコードをコピー', copied: 'コピーしました', overview: '視覚的変化の検出におけるフリッカーの影響を測定します。フリッカーあり条件では画像間に空白画面が入り、変化検出が遅くなりやすいことを体験・測定できます。', iv: '独立変数：フリッカーの有無', dv: '従属変数：反応時間（ms）', tech: '時間計測：performance.now() / 描画：requestAnimationFrame / 保存：CSVまたはGAS', trial: '試行', instruction: '変化した図形をクリックしてください', guest: 'ゲスト', feedbackCorrect: '検出しました', feedbackMiss: '別の場所です', finished: '実験完了', flicker: 'フリッカーあり', noFlicker: 'フリッカーなし', download: 'CSVダウンロード', copyResults: '結果をコピー', sendGas: 'GASへ送信', saved: '保存完了', saving: '保存中...', backTitle: 'タイトルに戻る', localHistory: 'この端末の履歴にも保存しました', noGas: 'GAS URLが未設定です。設定画面でURLを入力してください。', sendSuccess: 'GASへ送信リクエストを行いました。スプレッドシート側をご確認ください。', sendError: 'GAS送信に失敗しました。', empty: '結果がありません。'
+        },
+        en: {
+          title: 'Change Blindness', subtitle: 'Stable Experiment Program', participant: 'Participant Info (Optional)', id: 'ID', age: 'Age', gender: 'Gender', select: 'Select', male: 'Male', female: 'Female', other: 'Other', start: 'Start Experiment', settings: 'Settings', back: 'Back', params: 'Parameters', save: 'Data Save', info: 'Info', trials: 'Trials per condition', items: 'Number of items', imageDuration: 'Image duration (ms)', blankDuration: 'Blank duration (ms)', saveMode: 'Save mode', csv: 'Download CSV', gas: 'Google Apps Script', firebaseOff: 'Firebase disabled in this stable build', gasUrl: 'GAS Web App URL', copyCode: 'Copy GAS code', copied: 'Copied', overview: 'This experiment measures the effect of flicker on visual change detection.', iv: 'IV: presence of flicker', dv: 'DV: reaction time (ms)', tech: 'Timing: performance.now() / rendering: requestAnimationFrame / save: CSV or GAS', trial: 'Trial', instruction: 'Click the changed object', guest: 'Guest', feedbackCorrect: 'Detected', feedbackMiss: 'Try another place', finished: 'Experiment Finished', flicker: 'Flicker', noFlicker: 'No Flicker', download: 'Download CSV', copyResults: 'Copy Results', sendGas: 'Send to GAS', saved: 'Saved', saving: 'Saving...', backTitle: 'Back to Title', localHistory: 'Saved to this device history.', noGas: 'GAS URL is not set.', sendSuccess: 'Request sent to GAS. Please check the spreadsheet.', sendError: 'GAS send failed.', empty: 'No results.'
+        },
+        sv: {
+          title: 'Förändringsblindhet', subtitle: 'Stabilt experimentprogram', participant: 'Deltagarinfo (valfritt)', id: 'ID', age: 'Ålder', gender: 'Kön', select: 'Välj', male: 'Man', female: 'Kvinna', other: 'Annat', start: 'Starta experimentet', settings: 'Inställningar', back: 'Tillbaka', params: 'Parametrar', save: 'Spara data', info: 'Info', trials: 'Försök per villkor', items: 'Antal objekt', imageDuration: 'Bildtid (ms)', blankDuration: 'Blanktid (ms)', saveMode: 'Sparläge', csv: 'Ladda ner CSV', gas: 'Google Apps Script', firebaseOff: 'Firebase är avstängt i denna stabila version', gasUrl: 'GAS Web App URL', copyCode: 'Kopiera GAS-kod', copied: 'Kopierat', overview: 'Experimentet mäter flimmereffekt på upptäckt av visuella förändringar.', iv: 'OV: flimmer eller inte', dv: 'BV: reaktionstid (ms)', tech: 'Tid: performance.now() / rendering: requestAnimationFrame / spara: CSV eller GAS', trial: 'Försök', instruction: 'Klicka på objektet som ändrats', guest: 'Gäst', feedbackCorrect: 'Hittat', feedbackMiss: 'Försök en annan plats', finished: 'Experiment avslutat', flicker: 'Flimmer', noFlicker: 'Inget flimmer', download: 'Ladda ner CSV', copyResults: 'Kopiera resultat', sendGas: 'Skicka till GAS', saved: 'Sparat', saving: 'Sparar...', backTitle: 'Tillbaka till titeln', localHistory: 'Sparat i enhetens historik.', noGas: 'GAS URL saknas.', sendSuccess: 'Begäran skickad till GAS.', sendError: 'GAS-sändning misslyckades.', empty: 'Inga resultat.'
+        }
+      };
 
-        const getRandomColor = () => {
-            const colors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        };
+      const state = {
+        lang: 'ja',
+        screen: 'intro',
+        tab: 'params',
+        config: loadConfig(),
+        participant: { id: '', age: '', gender: '' },
+        trials: [],
+        index: 0,
+        results: [],
+        feedback: null,
+        saveStatus: 'idle',
+        copyStatus: 'idle',
+        currentPhase: 0,
+        targetHint: null
+      };
 
-        const generateItems = (width, height, count) => {
-            const items = [];
-            const padding = 50;
-            
-            for (let i = 0; i < count; i++) {
-                let x, y, overlap;
-                let attempts = 0;
-                do {
-                    x = padding + Math.random() * (width - padding * 2);
-                    y = padding + Math.random() * (height - padding * 2);
-                    overlap = items.some(item => {
-                        const dx = item.x - x;
-                        const dy = item.y - y;
-                        return Math.sqrt(dx * dx + dy * dy) < 60;
-                    });
-                    attempts++;
-                } while (overlap && attempts < 100);
+      let rafId = null;
+      let lastSwitchTime = 0;
+      let startTime = 0;
+      let firstFrame = true;
 
-                items.push({
-                    id: i,
-                    x,
-                    y,
-                    color: getRandomColor(),
-                    shape: Math.random() > 0.5 ? 'circle' : 'rect',
-                    size: 40
-                });
-            }
-            return items;
-        };
+      function tr() { return T[state.lang] || T.ja; }
+      function el(id) { return document.getElementById(id); }
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+      }
+      function clampNumber(value, min, max, fallback) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return fallback;
+        return Math.max(min, Math.min(max, n));
+      }
+      function loadConfig() {
+        const fallback = { trialsPerCondition: 5, imageDuration: 240, blankDuration: 80, itemsCount: 16, saveMode: 'csv', gasUrl: '' };
+        try {
+          const saved = JSON.parse(localStorage.getItem('change_blindness_config_no_cdn') || 'null');
+          return Object.assign({}, fallback, saved || {});
+        } catch (_) { return fallback; }
+      }
+      function saveConfig() {
+        localStorage.setItem('change_blindness_config_no_cdn', JSON.stringify(state.config));
+      }
+      function setScreen(next) {
+        stopLoop();
+        state.screen = next;
+        renderApp();
+      }
+      function setLang(lang) { state.lang = lang; document.documentElement.lang = lang === 'sv' ? 'sv' : lang; renderApp(); }
 
-        // --- Main Component ---
-        function ChangeBlindnessApp() {
-            const [gameState, setGameState] = useState('intro');
-            const [config, setConfig] = useState(DEFAULT_CONFIG);
-            const [activeTab, setActiveTab] = useState('params');
-            const [results, setResults] = useState([]);
-            const [currentTrialIndex, setCurrentTrialIndex] = useState(0);
-            const [trialList, setTrialList] = useState([]);
-            const [feedback, setFeedback] = useState(null); 
-            const [lang, setLang] = useState('ja');
-            const t = TRANSLATIONS[lang];
+      function langSwitcherHtml() {
+        return `<div class="lang">
+          ${['ja','en','sv'].map(l => `<button type="button" class="${state.lang === l ? 'active' : ''}" data-lang="${l}">${l === 'ja' ? 'JP' : l.toUpperCase()}</button>`).join('')}
+        </div>`;
+      }
 
-            const [participantInfo, setParticipantInfo] = useState({
-                id: '',
-                age: '',
-                gender: ''
-            });
+      function icon(name) {
+        const map = { eye:'👁️', play:'▶', gear:'⚙️', back:'←', save:'💾', db:'🗄️', file:'📄', check:'✓', download:'⬇', copy:'⧉', refresh:'↻', pointer:'⌖' };
+        return map[name] || '•';
+      }
 
-            const [copyStatus, setCopyStatus] = useState('idle');
-            const [saveStatus, setSaveStatus] = useState('idle');
-            
-            const [user, setUser] = useState(null);
-            const [firebaseReady, setFirebaseReady] = useState(false);
-            const [db, setDb] = useState(null);
-            const [auth, setAuth] = useState(null);
+      function renderApp() {
+        const app = el('app');
+        if (!app) return;
+        if (state.screen === 'intro') app.innerHTML = introHtml();
+        else if (state.screen === 'settings') app.innerHTML = settingsHtml();
+        else if (state.screen === 'playing' || state.screen === 'feedback') app.innerHTML = playingHtml();
+        else if (state.screen === 'finished') app.innerHTML = finishedHtml();
+        bindCommon();
+        if (state.screen === 'intro') bindIntro();
+        if (state.screen === 'settings') bindSettings();
+        if (state.screen === 'playing' || state.screen === 'feedback') bindPlaying();
+        if (state.screen === 'finished') bindFinished();
+        if (state.screen === 'playing') startLoop();
+        if (state.screen === 'feedback') drawFrame();
+      }
 
-            const canvasRef = useRef(null);
-            const loopRef = useRef(null);
-            const startTimeRef = useRef(0);
+      function bindCommon() {
+        document.querySelectorAll('[data-lang]').forEach(btn => btn.addEventListener('click', () => setLang(btn.dataset.lang)));
+      }
 
-            const currentTrial = trialList[currentTrialIndex];
+      function introHtml() {
+        const t = tr();
+        return `${langSwitcherHtml()}<main class="screen"><section class="card narrow fade"><div class="card-body center stack">
+          <div class="brand" style="justify-content:center"><div class="brand-icon">${icon('eye')}</div><div><h1>${t.title}</h1><p class="muted" style="margin:6px 0 0">${t.subtitle}</p></div></div>
+          <div class="form-panel">
+            <h3 class="section-title">${t.participant}</h3>
+            <div class="stack">
+              <div><label for="participant-id">${t.id}</label><input id="participant-id" type="text" value="${escapeHtml(state.participant.id)}" placeholder="sub001"></div>
+              <div class="grid2">
+                <div><label for="participant-age">${t.age}</label><input id="participant-age" type="number" min="0" max="120" value="${escapeHtml(state.participant.age)}" placeholder="20"></div>
+                <div><label for="participant-gender">${t.gender}</label><select id="participant-gender">
+                  <option value="" ${state.participant.gender === '' ? 'selected' : ''}>${t.select}</option>
+                  <option value="male" ${state.participant.gender === 'male' ? 'selected' : ''}>${t.male}</option>
+                  <option value="female" ${state.participant.gender === 'female' ? 'selected' : ''}>${t.female}</option>
+                  <option value="other" ${state.participant.gender === 'other' ? 'selected' : ''}>${t.other}</option>
+                </select></div>
+              </div>
+            </div>
+          </div>
+          <button id="start-btn" class="btn primary full" type="button">${icon('play')} ${t.start}</button>
+          <button id="settings-btn" class="btn ghost full" type="button">${icon('gear')} ${t.settings}</button>
+          <p class="tiny muted">No CDN / No React / No Babel / Offline-ready stable build</p>
+        </div></section></main>`;
+      }
 
-            // Firebase Initialization
-            useEffect(() => {
-                if (typeof firebase === 'undefined') {
-                    console.log("Firebase SDK not loaded");
-                    return;
-                }
-                
-                let firebaseConfig = null;
-                if (typeof __firebase_config !== 'undefined') {
-                    try {
-                        firebaseConfig = JSON.parse(__firebase_config);
-                    } catch(e) { console.error("Config parse error", e); }
-                }
+      function bindIntro() {
+        ['id','age','gender'].forEach(key => {
+          const node = el('participant-' + key);
+          if (node) node.addEventListener('input', e => { state.participant[key] = e.target.value; });
+        });
+        el('start-btn').addEventListener('click', startExperiment);
+        el('settings-btn').addEventListener('click', () => setScreen('settings'));
+      }
 
-                if (firebaseConfig) {
-                    try {
-                        const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
-                        const authInstance = firebase.auth();
-                        const dbInstance = firebase.firestore();
-                        
-                        setAuth(authInstance);
-                        setDb(dbInstance);
-                        setFirebaseReady(true);
+      function settingsHtml() {
+        const t = tr();
+        const c = state.config;
+        return `${langSwitcherHtml()}<main class="screen"><section class="card fade">
+          <div class="topbar"><div class="brand"><div class="brand-icon">${icon('gear')}</div><div><h2>${t.settings}</h2><p class="small muted" style="margin:4px 0 0">Change Blindness Experiment</p></div></div><button id="back-btn" class="btn ghost" type="button">${icon('back')} ${t.back}</button></div>
+          <div class="tabs">
+            <button type="button" data-tab="params" class="${state.tab === 'params' ? 'active' : ''}">${icon('gear')} ${t.params}</button>
+            <button type="button" data-tab="save" class="${state.tab === 'save' ? 'active' : ''}">${icon('db')} ${t.save}</button>
+            <button type="button" data-tab="info" class="${state.tab === 'info' ? 'active' : ''}">${icon('file')} ${t.info}</button>
+          </div>
+          <div class="card-body">${settingsTabHtml(t, c)}</div>
+        </section></main>`;
+      }
 
-                        const initAuth = async () => {
-                            try {
-                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                                    await authInstance.signInWithCustomToken(__initial_auth_token);
-                                } else {
-                                    await authInstance.signInAnonymously();
-                                }
-                            } catch (error) {
-                                console.error("Auth failed:", error);
-                            }
-                        };
-                        initAuth();
-                        authInstance.onAuthStateChanged(setUser);
-                    } catch (e) {
-                        console.error("Firebase initialization failed:", e);
-                    }
-                } else {
-                    console.log("Firebase config not found.");
-                }
-            }, []);
+      function settingsTabHtml(t, c) {
+        if (state.tab === 'params') {
+          return `<div class="stack" style="max-width:620px;margin:auto">
+            <h3 class="section-title">${t.params}</h3>
+            <div><label for="trialsPerCondition">${t.trials}</label><input id="trialsPerCondition" data-config-number min="1" max="20" type="number" value="${c.trialsPerCondition}"></div>
+            <div><label for="itemsCount">${t.items}</label><input id="itemsCount" data-config-number min="2" max="30" type="number" value="${c.itemsCount}"></div>
+            <div class="grid2"><div><label for="imageDuration">${t.imageDuration}</label><input id="imageDuration" data-config-number min="80" max="2000" step="10" type="number" value="${c.imageDuration}"></div><div><label for="blankDuration">${t.blankDuration}</label><input id="blankDuration" data-config-number min="0" max="1000" step="10" type="number" value="${c.blankDuration}"></div></div>
+            <div class="notice amber small">1条件あたり${c.trialsPerCondition}試行のため、合計は <b>${c.trialsPerCondition * 2}試行</b> です。</div>
+          </div>`;
+        }
+        if (state.tab === 'save') {
+          return `<div class="stack">
+            <h3 class="section-title">${t.saveMode}</h3>
+            <div class="radio-grid">
+              ${saveModeCard('csv', t.csv, 'ローカル保存 / local', c.saveMode === 'csv')}
+              ${saveModeCard('gas', t.gas, 'Google Sheets', c.saveMode === 'gas')}
+              ${saveModeCard('firebase', t.firebaseOff, 'disabled', c.saveMode === 'firebase')}
+            </div>
+            <div id="save-detail" class="notice ${c.saveMode === 'firebase' ? 'amber' : ''}">${saveDetailHtml(t, c)}</div>
+          </div>`;
+        }
+        return `<div class="stack small"><div class="notice blue"><h3>${t.info}</h3><p>${t.overview}</p></div><div><h3>${t.params}</h3><ul><li>${t.iv}</li><li>${t.dv}</li></ul></div><div><h3>Tech</h3><p>${t.tech}</p></div></div>`;
+      }
 
-            // Experiment Logic
-            const startExperiment = () => {
-                const trials = [];
-                const width = 600;
-                const height = 400;
+      function saveModeCard(id, label, desc, active) {
+        return `<label class="radio-card ${active ? 'active' : ''}"><input type="radio" name="saveMode" value="${id}" ${active ? 'checked' : ''}> <b>${label}</b><span class="small muted">${desc}</span></label>`;
+      }
 
-                for (let i = 0; i < config.trialsPerCondition; i++) {
-                    const items = generateItems(width, height, config.itemsCount);
-                    const targetIndex = Math.floor(Math.random() * items.length);
-                    trials.push({
-                        id: `flicker-${i}`,
-                        condition: 'flicker',
-                        items: items,
-                        targetIndex: targetIndex,
-                        targetChange: 'color', 
-                        newColor: getRandomColor()
-                    });
-                }
+      function saveDetailHtml(t, c) {
+        if (c.saveMode === 'csv') return `<div class="center"><div style="font-size:36px">${icon('file')}</div><p>${t.csv}: 実験終了後にCSVファイルとして保存します。</p></div>`;
+        if (c.saveMode === 'gas') return `<div class="stack"><div><label for="gasUrl">${t.gasUrl}</label><input id="gasUrl" type="text" value="${escapeHtml(c.gasUrl)}" placeholder="https://script.google.com/macros/s/..."></div><button id="copy-gas-code" class="btn soft" type="button">${icon('copy')} ${t.copyCode}</button><pre class="pre">${escapeHtml(GAS_CODE)}</pre></div>`;
+        return `<div class="center"><div style="font-size:36px">${icon('db')}</div><p><b>${t.firebaseOff}</b></p><p class="small muted">白画面回避のため、この安定版ではFirebase SDKを読み込みません。クラウド集約が必要な場合は、実環境のFirebase設定を入れたビルド済み版として別途固定化してください。</p></div>`;
+      }
 
-                for (let i = 0; i < config.trialsPerCondition; i++) {
-                    const items = generateItems(width, height, config.itemsCount);
-                    const targetIndex = Math.floor(Math.random() * items.length);
-                    trials.push({
-                        id: `no-flicker-${i}`,
-                        condition: 'no-flicker',
-                        items: items,
-                        targetIndex: targetIndex,
-                        targetChange: 'color',
-                        newColor: getRandomColor()
-                    });
-                }
+      function bindSettings() {
+        el('back-btn').addEventListener('click', () => { saveConfig(); setScreen('intro'); });
+        document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => { state.tab = btn.dataset.tab; renderApp(); }));
+        document.querySelectorAll('[data-config-number]').forEach(input => {
+          input.addEventListener('input', e => {
+            const id = e.target.id;
+            if (id === 'trialsPerCondition') state.config[id] = clampNumber(e.target.value, 1, 20, 5);
+            if (id === 'itemsCount') state.config[id] = clampNumber(e.target.value, 2, 30, 16);
+            if (id === 'imageDuration') state.config[id] = clampNumber(e.target.value, 80, 2000, 240);
+            if (id === 'blankDuration') state.config[id] = clampNumber(e.target.value, 0, 1000, 80);
+            saveConfig();
+          });
+        });
+        document.querySelectorAll('input[name="saveMode"]').forEach(radio => {
+          radio.addEventListener('change', e => { state.config.saveMode = e.target.value; saveConfig(); renderApp(); });
+        });
+        const gas = el('gasUrl');
+        if (gas) gas.addEventListener('input', e => { state.config.gasUrl = e.target.value; saveConfig(); });
+        const copy = el('copy-gas-code');
+        if (copy) copy.addEventListener('click', async () => {
+          const ok = await copyText(GAS_CODE);
+          copy.innerHTML = ok ? `${icon('check')} ${tr().copied}` : `${icon('copy')} ${tr().copyCode}`;
+        });
+      }
 
-                setTrialList(trials.sort(() => Math.random() - 0.5));
-                setCurrentTrialIndex(0);
-                setResults([]);
-                setSaveStatus('idle');
-                setGameState('playing');
-            };
+      function randomColor(exclude) {
+        const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+        let color = colors[Math.floor(Math.random() * colors.length)];
+        let guard = 0;
+        while (exclude && color === exclude && guard < 20) { color = colors[Math.floor(Math.random() * colors.length)]; guard++; }
+        return color;
+      }
 
-            useEffect(() => {
-                if (gameState !== 'playing' || !currentTrial) return;
+      function generateItems(width, height, count) {
+        const items = [];
+        const padding = 46;
+        for (let i = 0; i < count; i++) {
+          let x = 0, y = 0, attempts = 0, overlap = true;
+          while (overlap && attempts < 200) {
+            x = padding + Math.random() * (width - padding * 2);
+            y = padding + Math.random() * (height - padding * 2);
+            overlap = items.some(item => Math.hypot(item.x - x, item.y - y) < 58);
+            attempts++;
+          }
+          items.push({ id: i, x, y, color: randomColor(), shape: Math.random() > .5 ? 'circle' : 'rect', size: 40 });
+        }
+        return items;
+      }
 
-                let lastSwitchTime = null;
-                let phase = 0;
-                let isFirstFrame = true;
+      function createTrial(id, condition) {
+        const width = 600, height = 400;
+        const items = generateItems(width, height, state.config.itemsCount);
+        const targetIndex = Math.floor(Math.random() * items.length);
+        const originalColor = items[targetIndex].color;
+        return { id, condition, items, targetIndex, newColor: randomColor(originalColor) };
+      }
 
-                const render = (timestamp) => {
-                    const canvas = canvasRef.current;
-                    if (!canvas) return;
-                    const ctx = canvas.getContext('2d');
+      function shuffle(arr) {
+        const out = arr.slice();
+        for (let i = out.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [out[i], out[j]] = [out[j], out[i]];
+        }
+        return out;
+      }
 
-                    if (lastSwitchTime === null) {
-                        lastSwitchTime = timestamp;
-                        if (isFirstFrame) {
-                            startTimeRef.current = timestamp;
-                            isFirstFrame = false;
-                        }
-                    }
+      function startExperiment() {
+        saveConfig();
+        const trials = [];
+        for (let i = 0; i < state.config.trialsPerCondition; i++) trials.push(createTrial(`flicker-${i + 1}`, 'flicker'));
+        for (let i = 0; i < state.config.trialsPerCondition; i++) trials.push(createTrial(`no-flicker-${i + 1}`, 'no-flicker'));
+        state.trials = shuffle(trials);
+        state.index = 0;
+        state.results = [];
+        state.feedback = null;
+        state.saveStatus = 'idle';
+        state.targetHint = null;
+        state.screen = 'playing';
+        resetTiming();
+        renderApp();
+      }
 
-                    const elapsed = timestamp - lastSwitchTime;
-                    
-                    if (currentTrial.condition === 'flicker') {
-                        if ((phase === 0 || phase === 2) && elapsed > config.imageDuration) {
-                            phase = (phase + 1) % 4;
-                            lastSwitchTime = timestamp;
-                        } else if ((phase === 1 || phase === 3) && elapsed > config.blankDuration) {
-                            phase = (phase + 1) % 4;
-                            lastSwitchTime = timestamp;
-                        }
-                    } else {
-                        if (elapsed > config.imageDuration) {
-                            phase = phase === 0 ? 2 : 0;
-                            lastSwitchTime = timestamp;
-                        }
-                    }
+      function resetTiming() {
+        lastSwitchTime = 0;
+        startTime = 0;
+        firstFrame = true;
+        state.currentPhase = 0;
+      }
 
-                    ctx.fillStyle = '#f3f4f6';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+      function currentTrial() { return state.trials[state.index]; }
+      function stopLoop() { if (rafId) cancelAnimationFrame(rafId); rafId = null; }
+      function startLoop() { stopLoop(); resetTiming(); rafId = requestAnimationFrame(loop); }
 
-                    if (currentTrial.condition === 'flicker' && (phase === 1 || phase === 3)) {
-                        loopRef.current = requestAnimationFrame(render);
-                        return;
-                    }
+      function loop(timestamp) {
+        drawFrame(timestamp);
+        rafId = requestAnimationFrame(loop);
+      }
 
-                    const isModified = (phase === 2);
-                    
-                    currentTrial.items.forEach((item, index) => {
-                        let drawColor = item.color;
-                        if (index === currentTrial.targetIndex && isModified) {
-                            drawColor = currentTrial.newColor;
-                            if (drawColor === item.color) drawColor = '#000000';
-                        }
+      function drawFrame(timestamp) {
+        const canvas = el('stimulus-canvas');
+        const trial = currentTrial();
+        if (!canvas || !trial) return;
+        const ctx = canvas.getContext('2d');
+        const now = typeof timestamp === 'number' ? timestamp : performance.now();
 
-                        ctx.fillStyle = drawColor;
-                        ctx.beginPath();
-                        if (item.shape === 'circle') {
-                            ctx.arc(item.x, item.y, item.size / 2, 0, Math.PI * 2);
-                        } else {
-                            ctx.fillRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
-                        }
-                        ctx.fill();
-                        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-                        ctx.lineWidth = 2;
-                        ctx.stroke();
-                    });
-
-                    loopRef.current = requestAnimationFrame(render);
-                };
-
-                loopRef.current = requestAnimationFrame(render);
-                return () => {
-                    if (loopRef.current) cancelAnimationFrame(loopRef.current);
-                };
-            }, [gameState, currentTrial, config]);
-
-            const handleCanvasClick = (e) => {
-                if (gameState !== 'playing' || !currentTrial) return;
-
-                const clickTime = performance.now(); 
-                const canvas = canvasRef.current;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-
-                const targetItem = currentTrial.items[currentTrial.targetIndex];
-                const dist = Math.sqrt(Math.pow(x - targetItem.x, 2) + Math.pow(y - targetItem.y, 2));
-
-                if (dist < targetItem.size) {
-                    const reactionTime = clickTime - startTimeRef.current;
-                    handleTrialEnd(true, reactionTime);
-                }
-            };
-
-            const handleTrialEnd = (success, time) => {
-                const newResult = {
-                    trialId: currentTrial.id,
-                    condition: currentTrial.condition,
-                    time: time,
-                    success: success
-                };
-                
-                setResults([...results, newResult]);
-                setFeedback({ success, time: time.toFixed(1) });
-                setGameState('feedback');
-
-                setTimeout(() => {
-                    if (currentTrialIndex < trialList.length - 1) {
-                        setFeedback(null);
-                        setCurrentTrialIndex(prev => prev + 1);
-                        setGameState('playing');
-                    } else {
-                        setGameState('finished');
-                    }
-                }, 1500);
-            };
-
-            const handleSaveData = async () => {
-                setSaveStatus('saving');
-                
-                // Prepare data inside handleSaveData to ensure latest participantInfo is used
-                const date = new Date().toLocaleString();
-                const data = results.map(row => ({
-                    ParticipantID: participantInfo.id || 'Anonymous',
-                    Age: participantInfo.age,
-                    Gender: participantInfo.gender,
-                    TrialID: row.trialId,
-                    Condition: row.condition,
-                    ReactionTime: Number(row.time).toFixed(3),
-                    Success: row.success ? 1 : 0,
-                    Date: date,
-                    ImageDuration: config.imageDuration,
-                    BlankDuration: config.blankDuration,
-                    ItemsCount: config.itemsCount
-                }));
-
-                try {
-                    if (config.saveMode === 'csv') {
-                        let csvContent = `ParticipantID,Age,Gender,TrialID,Condition,ReactionTime(ms),Success,Date,ImageDuration,BlankDuration,ItemsCount\n`;
-                        data.forEach(row => {
-                            csvContent += `${row.ParticipantID},${row.Age},${row.Gender},${row.TrialID},${row.Condition},${row.ReactionTime},${row.Success},"${row.Date}",${row.ImageDuration},${row.BlankDuration},${row.ItemsCount}\n`;
-                        });
-                        
-                        const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-                        const blob = new Blob([bom, csvContent], { type: 'text/csv;charset=utf-8;' });
-                        const url = URL.createObjectURL(blob);
-                        const link = document.createElement('a');
-                        link.href = url;
-                        const filename = participantInfo.id ? `${participantInfo.id}_results.csv` : `results.csv`;
-                        link.download = filename;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        setSaveStatus('success');
-                    } else if (config.saveMode === 'gas') {
-                        if (!config.gasUrl) throw new Error("GAS URL Not Set");
-                        await fetch(config.gasUrl, {
-                            method: 'POST',
-                            mode: 'no-cors', 
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(data)
-                        });
-                        setSaveStatus('success');
-                        alert(t.alerts.saveSuccess);
-                    } else if (config.saveMode === 'firebase') {
-                        if (!user || !db) throw new Error("Firebase not ready");
-                        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app';
-                        
-                        // Compat API usage
-                        // Path: artifacts/{appId}/users/{uid}/changeBlindnessResults
-                        const colRef = db.collection('artifacts').doc(appId).collection('users').doc(user.uid).collection('changeBlindnessResults');
-                        await colRef.add({
-                            participantInfo: participantInfo,
-                            experimentDate: new Date(),
-                            config: config,
-                            results: data
-                        });
-                        setSaveStatus('success');
-                    }
-                } catch (error) {
-                    console.error("Save error:", error);
-                    setSaveStatus('error');
-                    alert(`${t.alerts.saveError}: ${error.message}`);
-                }
-            };
-
-            const handleConfigChange = (e) => {
-                const { name, value } = e.target;
-                setConfig(prev => ({
-                    ...prev,
-                    [name]: (name === 'saveMode' || name === 'gasUrl') ? value : parseInt(value, 10)
-                }));
-            };
-
-            const handleParticipantInfoChange = (e) => {
-                const { name, value } = e.target;
-                console.log(`Input change: ${name} = ${value}`); // Debug log
-                setParticipantInfo(prev => ({ ...prev, [name]: value }));
-            };
-
-            const copyGasCode = () => {
-                const textArea = document.createElement("textarea");
-                textArea.value = GAS_CODE;
-                textArea.style.position = "fixed";
-                textArea.style.left = "-9999px";
-                textArea.style.top = "0";
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        setCopyStatus('copied');
-                        setTimeout(() => setCopyStatus('idle'), 2000);
-                    } else {
-                        alert(t.alerts.copyFailed);
-                    }
-                } catch (err) {
-                    console.error('Fallback: Oops, unable to copy', err);
-                }
-                document.body.removeChild(textArea);
-            };
-
-            const calculateStats = () => {
-                const flickerResults = results.filter(r => r.condition === 'flicker');
-                const noFlickerResults = results.filter(r => r.condition === 'no-flicker');
-                const getAvg = (arr) => arr.length ? (arr.reduce((a, b) => a + b.time, 0) / arr.length).toFixed(1) : 0;
-                return { flickerAvg: getAvg(flickerResults), noFlickerAvg: getAvg(noFlickerResults) };
-            };
-
-            const LangSwitcher = () => (
-                <div className="absolute top-4 right-4 flex gap-2">
-                    <button onClick={() => setLang('ja')} className={`px-2 py-1 text-xs rounded border ${lang === 'ja' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>JP</button>
-                    <button onClick={() => setLang('en')} className={`px-2 py-1 text-xs rounded border ${lang === 'en' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>EN</button>
-                    <button onClick={() => setLang('sv')} className={`px-2 py-1 text-xs rounded border ${lang === 'sv' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-600'}`}>SV</button>
-                </div>
-            );
-
-            // Settings Screen
-            if (gameState === 'settings') {
-                return (
-                    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 font-sans text-gray-800 relative">
-                        <LangSwitcher />
-                        <div className="max-w-4xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
-                            <div className="bg-white border-b px-8 py-6 flex items-center justify-between sticky top-0 z-10">
-                                <div className="flex items-center gap-3">
-                                    <Settings className="w-8 h-8 text-gray-600" />
-                                    <h2 className="text-2xl font-bold text-gray-800">{t.settingsTitle}</h2>
-                                </div>
-                                <button onClick={() => setGameState('intro')} className="text-gray-500 hover:text-gray-800 flex items-center gap-1">
-                                    <ArrowLeft className="w-5 h-5" /> {t.back}
-                                </button>
-                            </div>
-
-                            <div className="flex border-b bg-gray-50">
-                                {[{ id: 'params', icon: Settings, label: t.tabs.params }, { id: 'save', icon: Database, label: t.tabs.save }, { id: 'info', icon: FileText, label: t.tabs.info }].map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`flex-1 py-4 flex items-center justify-center gap-2 font-medium transition-colors ${activeTab === tab.id ? 'bg-white text-indigo-600 border-t-2 border-indigo-600' : 'text-gray-500 hover:bg-gray-100'}`}
-                                    >
-                                        <tab.icon className="w-4 h-4" />
-                                        {tab.label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="p-8 min-h-[400px]">
-                                {activeTab === 'params' && (
-                                    <div className="space-y-6 max-w-lg mx-auto animate-in fade-in duration-300">
-                                        <div className="space-y-4">
-                                            <h3 className="text-lg font-bold text-gray-800 border-b pb-2">{t.params.basic}</h3>
-                                            <div>
-                                                <label className="block text-gray-700 font-medium mb-1">{t.params.trials}</label>
-                                                <input type="number" name="trialsPerCondition" value={config.trialsPerCondition} onChange={handleConfigChange} className="w-full p-2 border rounded" min="1" max="20" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-gray-700 font-medium mb-1">{t.params.items}</label>
-                                                <input type="number" name="itemsCount" value={config.itemsCount} onChange={handleConfigChange} className="w-full p-2 border rounded" min="2" max="30" />
-                                            </div>
-                                            
-                                            <h3 className="text-lg font-bold text-gray-800 border-b pb-2 mt-8">{t.params.time}</h3>
-                                            <div>
-                                                <label className="block text-gray-700 font-medium mb-1">{t.params.imageDuration}</label>
-                                                <input type="number" name="imageDuration" value={config.imageDuration} onChange={handleConfigChange} className="w-full p-2 border rounded" min="100" step="10" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-gray-700 font-medium mb-1">{t.params.blankDuration}</label>
-                                                <input type="number" name="blankDuration" value={config.blankDuration} onChange={handleConfigChange} className="w-full p-2 border rounded" min="0" step="10" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'save' && (
-                                    <div className="space-y-8 animate-in fade-in duration-300">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                            {[{ id: 'csv', label: t.save.modes.csv.label, desc: t.save.modes.csv.desc }, { id: 'gas', label: t.save.modes.gas.label, desc: t.save.modes.gas.desc }, { id: 'firebase', label: t.save.modes.firebase.label, desc: t.save.modes.firebase.desc }].map(mode => (
-                                                <label key={mode.id} className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all ${config.saveMode === mode.id ? 'border-indigo-600 bg-indigo-50' : 'border-gray-200 hover:border-indigo-300'}`}>
-                                                    <input type="radio" name="saveMode" value={mode.id} checked={config.saveMode === mode.id} onChange={handleConfigChange} className="absolute top-4 right-4" />
-                                                    <span className="font-bold text-gray-800">{mode.label}</span>
-                                                    <span className="text-xs text-gray-500 mt-1">{mode.desc}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-
-                                        <div className="bg-gray-50 p-6 rounded-xl border">
-                                            {config.saveMode === 'csv' && (
-                                                <div className="text-center text-gray-600">
-                                                    <FileText className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-                                                    <p>{t.save.csvInfo}</p>
-                                                </div>
-                                            )}
-
-                                            {config.saveMode === 'gas' && (
-                                                <div className="space-y-6">
-                                                    <div>
-                                                        <label className="block text-gray-700 font-bold mb-2">{t.save.gasLabel}</label>
-                                                        <input type="text" name="gasUrl" value={config.gasUrl} onChange={handleConfigChange} placeholder="https://script.google.com/macros/s/..." className="w-full p-3 border rounded-lg font-mono text-sm focus:ring-2 focus:ring-indigo-500" />
-                                                        <p className="text-xs text-gray-500 mt-1">{t.save.gasDesc}</p>
-                                                    </div>
-                                                    <div className="border-t pt-4">
-                                                        <div className="flex justify-between items-center mb-2">
-                                                            <h4 className="font-bold text-gray-700 text-sm">{t.save.gasCodeTitle}</h4>
-                                                            <button onClick={copyGasCode} className="flex items-center gap-1 text-xs px-3 py-1 bg-white border rounded hover:bg-gray-100 transition">
-                                                                {copyStatus === 'copied' ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
-                                                                {copyStatus === 'copied' ? t.save.copied : t.save.copy}
-                                                            </button>
-                                                        </div>
-                                                        <div className="relative">
-                                                            <pre className="bg-gray-800 text-gray-100 p-4 rounded-lg text-xs overflow-x-auto h-48 font-mono leading-relaxed">{GAS_CODE}</pre>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {config.saveMode === 'firebase' && (
-                                                <div className="text-center">
-                                                    <Database className="w-12 h-12 mx-auto mb-2 text-orange-400" />
-                                                    <h4 className="font-bold text-gray-800 mb-2">{t.save.firebaseStatus}</h4>
-                                                    {firebaseReady ? (
-                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-bold">
-                                                            <CheckCircle className="w-4 h-4" /> {t.save.connected}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full text-sm font-bold">
-                                                            <AlertCircle className="w-4 h-4" /> {t.save.notFound}
-                                                        </div>
-                                                    )}
-                                                    <p className="text-sm text-gray-600 mt-4 max-w-md mx-auto">{t.save.firebaseDesc}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activeTab === 'info' && (
-                                    <div className="space-y-6 text-sm text-gray-700 animate-in fade-in duration-300">
-                                        <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                                            <h4 className="font-bold text-blue-900 mb-2">{t.info.summaryTitle}</h4>
-                                            <p>{t.info.summary}</p>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-900 mb-2">{t.info.varsTitle}</h4>
-                                            <ul className="list-disc list-inside space-y-1 pl-4">
-                                                <li>{t.info.iv}</li>
-                                                <li>{t.info.dv}</li>
-                                            </ul>
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-900 mb-2">{t.info.specsTitle}</h4>
-                                            <ul className="list-disc list-inside space-y-1 pl-4 text-gray-600">
-                                                <li>{t.info.specs}</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            // Intro Screen
-            if (gameState === 'intro') {
-                return (
-                    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 relative">
-                        <LangSwitcher />
-                        <div className="max-w-xl bg-white p-8 rounded-xl shadow-lg w-full text-center">
-                            <h1 className="text-3xl font-bold mb-2 text-indigo-700 flex items-center justify-center gap-3">
-                                <Eye className="w-10 h-10" />
-                                {t.title}
-                            </h1>
-                            <p className="text-gray-500 mb-8">{t.subtitle}</p>
-                            
-                            <div className="space-y-4 text-left max-w-sm mx-auto mb-8">
-                                <div className="bg-indigo-50 p-4 rounded-lg mb-4">
-                                    <h3 className="font-bold text-indigo-800 text-sm mb-2 border-b border-indigo-200 pb-1">{t.participantInfo}</h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-xs text-gray-600 mb-1" htmlFor="input-participant-id">{t.id}</label>
-                                            <input
-                                                id="input-participant-id"
-                                                name="id"
-                                                type="text"
-                                                value={participantInfo.id}
-                                                onChange={handleParticipantInfoChange}
-                                                placeholder={t.placeholderId}
-                                                className="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <label className="block text-xs text-gray-600 mb-1" htmlFor="input-participant-age">{t.age}</label>
-                                                <input
-                                                    id="input-participant-age"
-                                                    name="age"
-                                                    type="number"
-                                                    value={participantInfo.age}
-                                                    onChange={handleParticipantInfoChange}
-                                                    placeholder={t.placeholderAge}
-                                                    className="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs text-gray-600 mb-1" htmlFor="input-participant-gender">{t.gender}</label>
-                                                <select
-                                                    id="input-participant-gender"
-                                                    name="gender"
-                                                    value={participantInfo.gender}
-                                                    onChange={handleParticipantInfoChange}
-                                                    className="w-full p-2 border rounded text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
-                                                >
-                                                    <option value="">{t.genderOptions.select}</option>
-                                                    <option value="male">{t.genderOptions.male}</option>
-                                                    <option value="female">{t.genderOptions.female}</option>
-                                                    <option value="other">{t.genderOptions.other}</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button onClick={startExperiment} className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2 text-xl cursor-pointer">
-                                    <Play className="w-6 h-6" /> {t.startExperiment}
-                                </button>
-                                
-                                <button onClick={() => setGameState('settings')} className="w-full py-2 text-gray-500 hover:text-indigo-600 text-sm font-medium flex items-center justify-center gap-1">
-                                    <Settings className="w-4 h-4" /> {t.settings}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            // Finished Screen
-            if (gameState === 'finished') {
-                const stats = calculateStats();
-                return (
-                    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 relative">
-                        <LangSwitcher />
-                        <div className="max-w-2xl w-full bg-white p-8 rounded-xl shadow-lg">
-                            <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">{t.finished.title}</h2>
-                            
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <div className="bg-red-50 p-4 rounded text-center border border-red-100">
-                                    <div className="text-sm text-red-800 mb-1">{t.finished.flicker}</div>
-                                    <div className="text-3xl font-bold text-red-600">{stats.flickerAvg} ms</div>
-                                </div>
-                                <div className="bg-green-50 p-4 rounded text-center border border-green-100">
-                                    <div className="text-sm text-green-800 mb-1">{t.finished.noFlicker}</div>
-                                    <div className="text-3xl font-bold text-green-600">{stats.noFlickerAvg} ms</div>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-3">
-                                <button 
-                                    onClick={handleSaveData}
-                                    disabled={saveStatus === 'saving' || saveStatus === 'success'}
-                                    className={`w-full py-3 font-bold rounded-lg shadow transition flex items-center justify-center gap-2 ${saveStatus === 'success' ? 'bg-green-600 text-white' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
-                                >
-                                    {saveStatus === 'saving' ? (
-                                        <span>{t.finished.saving}</span>
-                                    ) : saveStatus === 'success' ? (
-                                        <> <Check className="w-5 h-5" /> {t.finished.saveComplete} ({config.saveMode.toUpperCase()}) </>
-                                    ) : (
-                                        <> 
-                                            {config.saveMode === 'csv' ? <Download className="w-5 h-5"/> : <Server className="w-5 h-5"/>}
-                                            {config.saveMode === 'csv' ? t.finished.downloadCsv : `${t.finished.sendTo} ${config.saveMode.toUpperCase()}`}
-                                        </>
-                                    )}
-                                </button>
-
-                                <button 
-                                    onClick={() => { setGameState('intro'); setParticipantInfo({id:'', age:'', gender:''}); setSaveStatus('idle'); }}
-                                    className="w-full py-3 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-lg shadow transition flex items-center justify-center gap-2"
-                                >
-                                    <RotateCcw className="w-5 h-5" /> {t.finished.backToTitle}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            // Playing Screen
-            return (
-                <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4 font-sans relative">
-                    <LangSwitcher />
-                    <div className="bg-white p-4 rounded-xl shadow-xl flex flex-col items-center relative">
-                        <div className="w-full flex justify-between items-center mb-4 px-2">
-                            <div className="text-gray-500 font-medium text-sm">
-                                {participantInfo.id || t.playing.guest} | {t.playing.trial}: {currentTrialIndex + 1}/{config.trialsPerCondition * 2}
-                            </div>
-                            <div className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-600">
-                                {t.playing.instruction}
-                            </div>
-                        </div>
-
-                        <div className="relative border-2 border-gray-200 rounded-lg overflow-hidden cursor-crosshair bg-[#f3f4f6]">
-                            <canvas
-                                ref={canvasRef}
-                                width={600}
-                                height={400}
-                                onClick={handleCanvasClick}
-                                className="block w-full max-w-[600px] h-auto"
-                            />
-                            {gameState === 'feedback' && feedback && (
-                                <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center animate-in fade-in duration-200">
-                                    <CheckCircle className="w-12 h-12 text-green-500 mb-2" />
-                                    <p className="text-xl font-bold text-gray-800">{feedback.time} ms</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
+        if (!lastSwitchTime) {
+          lastSwitchTime = now;
+          if (firstFrame) { startTime = now; firstFrame = false; }
+        }
+        const elapsed = now - lastSwitchTime;
+        if (trial.condition === 'flicker') {
+          if ((state.currentPhase === 0 || state.currentPhase === 2) && elapsed >= state.config.imageDuration) {
+            state.currentPhase = (state.currentPhase + 1) % 4;
+            lastSwitchTime = now;
+          } else if ((state.currentPhase === 1 || state.currentPhase === 3) && elapsed >= state.config.blankDuration) {
+            state.currentPhase = (state.currentPhase + 1) % 4;
+            lastSwitchTime = now;
+          }
+        } else if (elapsed >= state.config.imageDuration) {
+          state.currentPhase = state.currentPhase === 0 ? 2 : 0;
+          lastSwitchTime = now;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<ChangeBlindnessApp />);
-    </script>
+        ctx.fillStyle = '#f3f4f6';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (trial.condition === 'flicker' && (state.currentPhase === 1 || state.currentPhase === 3)) return;
+
+        const modified = state.currentPhase === 2;
+        trial.items.forEach((item, index) => {
+          ctx.fillStyle = (index === trial.targetIndex && modified) ? trial.newColor : item.color;
+          ctx.beginPath();
+          if (item.shape === 'circle') {
+            ctx.arc(item.x, item.y, item.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
+          }
+          ctx.strokeStyle = 'rgba(15,23,42,.14)';
+          ctx.lineWidth = 2;
+          if (item.shape === 'circle') ctx.stroke();
+          else ctx.strokeRect(item.x - item.size / 2, item.y - item.size / 2, item.size, item.size);
+        });
+      }
+
+      function playingHtml() {
+        const t = tr();
+        const trial = currentTrial();
+        const isFeedback = state.screen === 'feedback' && state.feedback;
+        const total = state.config.trialsPerCondition * 2;
+        let hint = '';
+        if (isFeedback && state.targetHint) {
+          hint = `<div class="target-hint" style="left:${state.targetHint.xPercent}%;top:${state.targetHint.yPercent}%"></div>`;
+        }
+        return `${langSwitcherHtml()}<main class="screen"><section class="play-card fade">
+          <div class="play-head"><div class="pill">${state.participant.id ? escapeHtml(state.participant.id) : t.guest} | ${t.trial} ${state.index + 1}/${total}</div><div class="pill">${icon('pointer')} ${t.instruction}</div></div>
+          <div class="canvas-wrap"><canvas id="stimulus-canvas" width="600" height="400"></canvas>${hint}${isFeedback ? `<div class="feedback-overlay"><div><div style="font-size:48px;color:#16a34a">${icon('check')}</div><h2>${state.feedback.success ? t.feedbackCorrect : t.feedbackMiss}</h2><p class="big-number" style="color:#16a34a;margin:8px 0 0">${state.feedback.time} ms</p></div></div>` : ''}</div>
+          <p class="tiny muted center">${trial ? escapeHtml(trial.condition) : ''} / image ${state.config.imageDuration}ms / blank ${state.config.blankDuration}ms</p>
+        </section></main>`;
+      }
+
+      function bindPlaying() {
+        const canvas = el('stimulus-canvas');
+        if (!canvas) return;
+        canvas.addEventListener('click', handleCanvasClick);
+      }
+
+      function handleCanvasClick(e) {
+        if (state.screen !== 'playing') return;
+        const trial = currentTrial();
+        const canvas = el('stimulus-canvas');
+        if (!trial || !canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        const target = trial.items[trial.targetIndex];
+        const hit = Math.abs(x - target.x) <= target.size / 1.35 && Math.abs(y - target.y) <= target.size / 1.35;
+        if (!hit) return;
+        const reaction = performance.now() - startTime;
+        endTrial(true, reaction);
+      }
+
+      function endTrial(success, reaction) {
+        stopLoop();
+        const trial = currentTrial();
+        const target = trial.items[trial.targetIndex];
+        state.results.push({
+          trialId: trial.id,
+          condition: trial.condition,
+          time: reaction,
+          success: success,
+          targetX: Math.round(target.x),
+          targetY: Math.round(target.y),
+          timestamp: new Date().toISOString()
+        });
+        state.feedback = { success: success, time: reaction.toFixed(1) };
+        state.targetHint = { xPercent: target.x / 600 * 100, yPercent: target.y / 400 * 100 };
+        state.screen = 'feedback';
+        renderApp();
+        window.setTimeout(() => {
+          state.feedback = null;
+          state.targetHint = null;
+          if (state.index < state.trials.length - 1) {
+            state.index++;
+            state.screen = 'playing';
+            resetTiming();
+          } else {
+            state.screen = 'finished';
+            saveLocalHistory();
+          }
+          renderApp();
+        }, 1150);
+      }
+
+      function saveLocalHistory() {
+        try {
+          const item = { savedAt: new Date().toISOString(), participant: state.participant, config: state.config, results: state.results };
+          const key = 'change_blindness_history_no_cdn';
+          const history = JSON.parse(localStorage.getItem(key) || '[]');
+          history.unshift(item);
+          localStorage.setItem(key, JSON.stringify(history.slice(0, 20)));
+        } catch (_) {}
+      }
+
+      function resultRows() {
+        const date = new Date().toLocaleString('ja-JP');
+        return state.results.map(r => ({
+          ParticipantID: state.participant.id || 'Anonymous',
+          Age: state.participant.age || '',
+          Gender: state.participant.gender || '',
+          TrialID: r.trialId,
+          Condition: r.condition,
+          ReactionTime: Number(r.time).toFixed(3),
+          Success: r.success ? 1 : 0,
+          Date: date,
+          ImageDuration: state.config.imageDuration,
+          BlankDuration: state.config.blankDuration,
+          ItemsCount: state.config.itemsCount,
+          TargetX: r.targetX,
+          TargetY: r.targetY
+        }));
+      }
+
+      function calculateStats() {
+        const f = state.results.filter(r => r.condition === 'flicker');
+        const n = state.results.filter(r => r.condition === 'no-flicker');
+        const avg = arr => arr.length ? (arr.reduce((sum, r) => sum + r.time, 0) / arr.length).toFixed(1) : '0.0';
+        return { flicker: avg(f), noFlicker: avg(n), countFlicker: f.length, countNoFlicker: n.length };
+      }
+
+      function finishedHtml() {
+        const t = tr();
+        const s = calculateStats();
+        const rows = state.results.slice(0, 8).map((r, i) => `<tr><td>${i + 1}</td><td>${escapeHtml(r.trialId)}</td><td>${r.condition === 'flicker' ? t.flicker : t.noFlicker}</td><td>${Number(r.time).toFixed(1)}</td></tr>`).join('');
+        return `${langSwitcherHtml()}<main class="screen"><section class="card narrow fade"><div class="card-body center stack">
+          <div><h1>${t.finished}</h1><p class="muted">${t.localHistory}</p></div>
+          <div class="stats"><div class="stat red"><div class="small">${t.flicker} (${s.countFlicker})</div><div class="big-number">${s.flicker}</div><div class="tiny">ms</div></div><div class="stat green"><div class="small">${t.noFlicker} (${s.countNoFlicker})</div><div class="big-number">${s.noFlicker}</div><div class="tiny">ms</div></div></div>
+          <div class="actions two"><button id="download-btn" class="btn primary" type="button">${icon('download')} ${t.download}</button><button id="copy-results-btn" class="btn soft" type="button">${icon('copy')} ${t.copyResults}</button></div>
+          ${state.config.saveMode === 'gas' ? `<button id="send-gas-btn" class="btn green full" type="button">${icon('save')} ${t.sendGas}</button>` : ''}
+          <div class="result-table-wrap"><table><thead><tr><th>#</th><th>Trial</th><th>Condition</th><th>RT(ms)</th></tr></thead><tbody>${rows || `<tr><td colspan="4">${t.empty}</td></tr>`}</tbody></table></div>
+          <button id="back-title-btn" class="btn dark full" type="button">${icon('refresh')} ${t.backTitle}</button>
+        </div></section></main>`;
+      }
+
+      function bindFinished() {
+        el('download-btn').addEventListener('click', downloadCsv);
+        el('copy-results-btn').addEventListener('click', async () => {
+          const ok = await copyText(toTsv(resultRows()));
+          const b = el('copy-results-btn');
+          if (b && ok) b.innerHTML = `${icon('check')} ${tr().copied}`;
+        });
+        const gasBtn = el('send-gas-btn');
+        if (gasBtn) gasBtn.addEventListener('click', sendGas);
+        el('back-title-btn').addEventListener('click', () => {
+          state.screen = 'intro'; state.results = []; state.trials = []; state.index = 0; state.feedback = null; state.saveStatus = 'idle'; renderApp();
+        });
+      }
+
+      function toCsv(rows) {
+        if (!rows.length) return '';
+        const headers = Object.keys(rows[0]);
+        const esc = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        return '\uFEFF' + headers.join(',') + '\n' + rows.map(r => headers.map(h => esc(r[h])).join(',')).join('\n');
+      }
+      function toTsv(rows) {
+        if (!rows.length) return '';
+        const headers = Object.keys(rows[0]);
+        return headers.join('\t') + '\n' + rows.map(r => headers.map(h => String(r[h] == null ? '' : r[h]).replace(/\t/g, ' ')).join('\t')).join('\n');
+      }
+      function downloadCsv() {
+        const rows = resultRows();
+        const csv = toCsv(rows);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const id = state.participant.id ? state.participant.id.replace(/[\\/:*?"<>|\s]+/g, '_') : 'anonymous';
+        a.href = url;
+        a.download = `${id}_change_blindness_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+      async function copyText(text) {
+        try {
+          if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+        } catch (_) {}
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
+        ta.remove();
+        return ok;
+      }
+      async function sendGas() {
+        const t = tr();
+        if (!state.config.gasUrl) { alert(t.noGas); return; }
+        const btn = el('send-gas-btn');
+        if (btn) { btn.disabled = true; btn.textContent = t.saving; }
+        try {
+          await fetch(state.config.gasUrl, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(resultRows()) });
+          alert(t.sendSuccess);
+          if (btn) btn.textContent = t.saved;
+        } catch (e) {
+          console.error(e);
+          alert(t.sendError);
+          if (btn) { btn.disabled = false; btn.innerHTML = `${icon('save')} ${t.sendGas}`; }
+        }
+      }
+
+      renderApp();
+    })();
+  </script>
 </body>
 </html>
