@@ -1,46 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- 
-    サイトマップ設定
-    1. <loc>の中の "https://your-domain.com" を実際のURLにすべて置換してください。
-    2. priority（優先度）は、草庵(1.0)とメインホーム(0.8)を高く設定しています。
-  -->
-
-  <!-- 表玄関：草庵 (New Top) -->
   <url>
-    <loc>https://your-domain.com/</loc>
-    <lastmod>2024-03-20</lastmod>
+    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/experiments.html</loc>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
-
-  <!-- メインホーム (Original Top) -->
   <url>
-    <loc>https://your-domain.com/home.html</loc>
-    <lastmod>2024-03-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Works / 実績 -->
-  <url>
-    <loc>https://your-domain.com/works.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- About / 研究室・プロフィールについて -->
-  <url>
-    <loc>https://your-domain.com/about.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <!-- Contact / お問い合わせ -->
-  <url>
-    <loc>https://your-domain.com/contact.html</loc>
+    <loc>https://knishiura777-dotcom.github.io/Nishiura-Lab/Exp_About.html</loc>
     <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
-
 </urlset>

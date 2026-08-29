@@ -378,8 +378,8 @@
       });
       document.getElementById('app').innerHTML = `
         <header class="topbar"><div class="container topbar-inner">
-          <a href="index.html" class="brand"><span class="backdot">←</span><span>${esc(t.lab_name)}</span></a>
-          <div style="display:flex;align-items:center;gap:24px"><nav class="nav"><a href="index.html">${esc(t.nav_home)}</a><a href="#concept">Concept</a><a href="./Exp_About.html">${esc(t.nav_dev)}</a><a href="#library">Library</a><a href="index.html#contact">${esc(t.nav_contact)}</a></nav>
+          <a href="https://nishiura-lab.workspace-370172.chatgpt.site/" class="brand"><span class="backdot">←</span><span>${esc(t.lab_name)}</span></a>
+          <div style="display:flex;align-items:center;gap:24px"><nav class="nav"><a href="https://nishiura-lab.workspace-370172.chatgpt.site/">${esc(t.nav_home)}</a><a href="#concept">Concept</a><a href="./Exp_About.html">${esc(t.nav_dev)}</a><a href="#library">Library</a><a href="https://nishiura-lab.workspace-370172.chatgpt.site/#contact">${esc(t.nav_contact)}</a></nav>
           <div class="lang"><button class="${state.lang==='en'?'active':''}" data-lang="en">EN</button><span>|</span><button class="${state.lang==='ja'?'active':''}" data-lang="ja">JP</button><span>|</span><button class="${state.lang==='se'?'active':''}" data-lang="se">SE</button></div></div>
         </div></header>
         <main>
@@ -390,7 +390,7 @@
           </div></div></section>
           <section class="achievements"><div class="container"><div class="section-head"><span class="kicker">${esc(t.achievements_kicker)}</span><h2 class="section-title">${esc(t.achievements_title)}</h2></div><div class="achieve-list">
             ${[1,2,3].map(n => `<article class="achieve"><h3>${esc(t['achieve_'+n+'_title'])}</h3><p>${esc(t['achieve_'+n+'_meta'])}</p></article>`).join('')}
-          </div><p style="margin-top:24px"><a href="index.html#publications" style="font-size:12px;font-weight:900;text-transform:uppercase;color:#1e293b">${esc(t.achieve_view_all)} →</a></p></div></section>
+          </div><p style="margin-top:24px"><a href="https://nishiura-lab.workspace-370172.chatgpt.site/#publications" style="font-size:12px;font-weight:900;text-transform:uppercase;color:#1e293b">${esc(t.achieve_view_all)} →</a></p></div></section>
           <section id="library" class="library"><div class="container"><div class="center"><h2 class="section-title">${esc(t.libraryTitle)}</h2><div class="search-wrap"><span class="search-icon">⌕</span><input id="searchInput" type="text" value="${esc(state.searchQuery)}" placeholder="${esc(t.searchPlaceholder)}"></div><div class="filters"><button class="filter ${state.activeCategory==='All'?'active':''}" data-cat="All">${esc(t.filterAll)}</button>${categoriesList.map(c => `<button class="filter ${state.activeCategory===c?'active':''}" data-cat="${esc(c)}">${esc(t[c])}</button>`).join('')}</div></div>
             <div class="tech"><h3><span style="color:#64748b">!</span>${esc(t.precautionTitle)}</h3><p style="font-size:12px;color:#64748b;margin:6px 0 0">${esc(t.precautionSubtitle)}</p><div class="tech-grid">
               <a href="./Frame_rate_measurement.html" target="_blank" class="tech-card"><div class="icon-badge" style="width:40px;height:40px;font-size:18px">□</div><h4>${esc(t.prec_screen_title)}</h4><p>${esc(t.prec_screen_desc)}</p><span class="link">${esc(t.prec_screen_link)}</span></a>
