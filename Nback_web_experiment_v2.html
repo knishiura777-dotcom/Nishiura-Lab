@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>N-back ワーキングメモリ実験</title>
+<style>
+:root{--bg:#f3f4f6;--card:#fff;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--indigo:#4f46e5;--indigo2:#4338ca;--green:#15803d;--red:#b91c1c;--amber:#b45309;--slate:#111827}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:var(--bg);color:var(--text)}
+button,input,select{font:inherit} button{cursor:pointer}.wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}.screen{display:none;width:min(920px,100%)}.screen.active{display:block}.card{background:var(--card);border-radius:18px;box-shadow:0 14px 40px rgba(15,23,42,.10);padding:28px}.title{font-size:30px;font-weight:800;margin:0}.subtitle{color:var(--muted);margin-top:8px;line-height:1.7}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid var(--line);border-radius:14px;padding:18px;background:#fafafa}.panel h3{margin:0 0 12px;font-size:16px}.field{margin-bottom:12px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px;color:#4b5563}.field input,.field select{width:100%;padding:10px 12px;border:1px solid #d1d5db;border-radius:9px;background:#fff}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:800}.btn-primary{background:var(--indigo);color:#fff}.btn-primary:hover{background:var(--indigo2)}.btn-secondary{background:#374151;color:#fff}.btn-light{background:#fff;border:1px solid #c7d2fe;color:#4338ca}.btn-green{background:#15803d;color:#fff}.btn-red{background:#b91c1c;color:#fff}.btn-wide{width:100%;padding:16px}.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.choice{border:2px solid #ddd6fe;background:#fff;border-radius:14px;padding:18px;text-align:center}.choice:hover{border-color:#7c3aed;box-shadow:0 7px 18px rgba(124,58,237,.12)}.choice strong{display:block;font-size:20px;margin-bottom:4px}.note{border-radius:12px;padding:14px 16px;line-height:1.65;font-size:14px}.note-blue{background:#eff6ff;border:1px solid #bfdbfe}.note-amber{background:#fffbeb;border:1px solid #fde68a}.note-green{background:#f0fdf4;border:1px solid #bbf7d0}.small{font-size:12px;color:var(--muted)}.section-title{font-size:18px;font-weight:800;margin:22px 0 10px}.test-card{height:430px;background:#111827;border-radius:18px;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.25)}.stimulus{font-size:110px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;color:#fff}.fixation{width:12px;height:12px;border-radius:50%;background:#6b7280}.test-meta{position:absolute;right:18px;top:16px;color:#9ca3af;font:12px ui-monospace,monospace}.progress{position:absolute;bottom:0;left:0;height:5px;background:#6366f1;transition:width .15s}.kbd{display:inline-block;border:1px solid #cbd5e1;border-bottom-width:3px;background:#fff;border-radius:7px;padding:2px 8px;font-family:ui-monospace,monospace;font-weight:800}.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.metric{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center}.metric .label{font-size:13px;color:#64748b}.metric .value{font-size:27px;font-weight:800;color:#4338ca;margin-top:5px}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:11px 12px;border-bottom:1px solid #e5e7eb;text-align:center}.table th{background:#f8fafc;font-size:13px}.table td:first-child,.table th:first-child{text-align:left}.status{font-size:13px;font-weight:700}.status.ok{color:var(--green)}.hidden{display:none!important}.footer{margin-top:18px;text-align:center;font-size:12px;color:#9ca3af}.settings details{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}.settings summary{font-weight:800;cursor:pointer}.settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}.download-box{border:2px solid #bbf7d0;background:#f0fdf4;border-radius:14px;padding:18px}.download-box h3{margin:0 0 8px;color:#166534}.pill{display:inline-block;padding:3px 8px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:700}.warn{color:var(--red);font-weight:700}.center{text-align:center}.spacer{height:10px}@media(max-width:720px){.grid2,.choice-grid,.metric-grid,.settings-grid{grid-template-columns:1fr}.card{padding:18px}.title{font-size:25px}.stimulus{font-size:84px}.test-card{height:360px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main id="screen-intro" class="screen active">
+    <div class="card">
+      <h1 class="title">N-back ワーキングメモリ実験</h1>
+      <p class="subtitle">1-back と 2-back を比較し、ワーキングメモリ負荷が正答率と反応時間に与える影響を調べます。インストールは不要です。</p>
+
+      <div class="grid2" style="margin-top:22px">
+        <section class="panel">
+          <h3>参加者情報</h3>
+          <div class="field"><label>参加者ID（必須）</label><input id="pid" type="text" placeholder="例：P01" autocomplete="off"></div>
+          <div class="grid2">
+            <div class="field"><label>年齢（任意）</label><input id="age" type="number" min="0" max="120" placeholder="Age"></div>
+            <div class="field"><label>性別（任意）</label><select id="gender"><option value="">選択しない</option><option>男性</option><option>女性</option><option>その他</option><option>回答しない</option></select></div>
+          </div>
+          <div class="field"><label>利き手（任意）</label><select id="hand"><option value="">選択しない</option><option>右利き</option><option>左利き</option><option>両利き</option></select></div>
+        </section>
+        <section class="panel">
+          <h3>実験のポイント</h3>
+          <div class="note note-blue">画面中央の文字が、<strong>1-backでは1つ前</strong>、<strong>2-backでは2つ前</strong>と同じ場合だけスペースキーを押します。</div>
+          <div class="note note-amber" style="margin-top:10px">順序効果を抑えるため、クラス内で <strong>1→2</strong> と <strong>2→1</strong> をほぼ半数ずつ実施してください。</div>
+          <p class="small" style="margin-bottom:0">実験処理は各自のブラウザ内で行われます。終了後、個人の生データをCSVで保存します。</p>
+        </section>
+      </div>
+
+      <div class="section-title">実施順序を選ぶ</div>
+      <div class="choice-grid">
+        <button class="choice" onclick="startSession('1-2')"><strong>1-back → 2-back</strong><span class="small">低負荷から高負荷へ</span></button>
+        <button class="choice" onclick="startSession('2-1')"><strong>2-back → 1-back</strong><span class="small">高負荷から低負荷へ</span></button>
+      </div>
+
+      <div class="settings" style="margin-top:18px">
+        <details>
+          <summary>教員用：実験設定</summary>
+          <div class="settings-grid">
+            <div class="field"><label>分析対象試行数／条件</label><input id="trialCount" type="number" min="20" max="100" value="30"></div>
+            <div class="field"><label>ターゲット率</label><select id="targetRatio"><option value="0.2">20%</option><option value="0.3" selected>30%</option><option value="0.4">40%</option></select></div>
+            <div class="field"><label>刺激提示時間 (ms)</label><input id="stimDuration" type="number" min="200" max="3000" step="100" value="1000"></div>
+            <div class="field"><label>刺激間隔 ISI (ms)</label><input id="isiDuration" type="number" min="300" max="5000" step="100" value="1500"></div>
+          </div>
+          <p class="small">各条件の冒頭2試行はウォームアップとして記録しますが、正答率・平均RTの集計から除外します。ターゲット数は分析対象試行に対して設定値どおりになるよう生成します。</p>
+        </details>
+      </div>
+      <div class="footer">授業用Web実験版 v2.0</div>
+    </div>
+  </main>
+
+  <main id="screen-instruction" class="screen">
+    <div class="card center" style="max-width:680px;margin:auto">
+      <h2 id="instructionTitle" class="title" style="font-size:27px"></h2>
+      <div class="note note-blue" style="margin:22px 0;text-align:left;font-size:17px">
+        画面に文字が1つずつ表示されます。<br><strong id="instructionText"></strong>に表示された文字と同じ文字が出たときだけ、<span class="kbd">Space</span> を押してください。<br><br>違う文字のときは、何も押しません。
+      </div>
+      <div id="example" class="panel" style="margin-bottom:20px"></div>
+      <button class="btn btn-primary" onclick="beginTest()">この条件を開始</button>
+      <p class="small">できるだけ正確に、かつ速く反応してください。</p>
+    </div>
+  </main>
+
+  <main id="screen-test" class="screen">
+    <div class="test-card">
+      <div id="stimulus" class="stimulus hidden">A</div>
+      <div id="fixation" class="fixation"></div>
+      <div id="testMeta" class="test-meta"></div>
+      <div id="progress" class="progress" style="width:0%"></div>
+    </div>
+  </main>
+
+  <main id="screen-feedback" class="screen">
+    <div class="card center" style="max-width:680px;margin:auto">
+      <h2 class="title" style="font-size:27px">条件終了</h2>
+      <p id="feedbackCondition" class="subtitle"></p>
+      <div class="metric-grid" style="margin:22px 0">
+        <div class="metric"><div class="label">正答率</div><div id="feedbackAccuracy" class="value">-</div></div>
+        <div class="metric"><div class="label">平均反応時間（正しいターゲット反応）</div><div id="feedbackRT" class="value">-</div></div>
+      </div>
+      <button id="nextBlockBtn" class="btn btn-primary hidden" onclick="nextBlock()">次の条件へ</button>
+      <button id="showResultsBtn" class="btn btn-green hidden" onclick="showResults()">両条件の結果を見る</button>
+    </div>
+  </main>
+
+  <main id="screen-results" class="screen">
+    <div class="card">
+      <h2 class="title">実験結果</h2>
+      <p class="subtitle">まず自分の結果を確認し、その後、必ずCSVを保存してください。</p>
+      <table class="table" style="margin-top:18px">
+        <thead><tr><th>条件</th><th>正答率</th><th>平均RT (ms)</th><th>HIT</th><th>MISS</th><th>False Alarm</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1-back</strong></td><td id="r1acc">-</td><td id="r1rt">-</td><td id="r1hit">-</td><td id="r1miss">-</td><td id="r1fa">-</td></tr>
+          <tr><td><strong>2-back</strong></td><td id="r2acc">-</td><td id="r2rt">-</td><td id="r2hit">-</td><td id="r2miss">-</td><td id="r2fa">-</td></tr>
+        </tbody>
+      </table>
+
+      <div class="download-box" style="margin-top:22px">
+        <h3>1. 生データCSVを保存</h3>
+        <p style="margin-top:0">1-back・2-backの全試行を<strong>1つのCSV</strong>にまとめて保存します。このファイルは変更せず、個人データの原本として保管してください。</p>
+        <button class="btn btn-green btn-wide" onclick="downloadRawCSV()">実験データCSVを保存</button>
+        <div id="rawSaved" class="status ok hidden" style="margin-top:8px">✓ 生データCSVを保存しました</div>
+      </div>
+
+      <div class="download-box" style="margin-top:14px;border-color:#c7d2fe;background:#eef2ff">
+        <h3 style="color:#3730a3">2. 集計値CSV（任意）</h3>
+        <p style="margin-top:0">個人集計の確認用です。クラス全体入力用Excelへの転記にも利用できます。</p>
+        <button class="btn btn-light btn-wide" onclick="downloadSummaryCSV()">個人集計CSVを保存</button>
+      </div>
+
+      <div class="note note-amber" style="margin-top:18px"><strong>授業上の原則：</strong> 生データCSVは個人で保持し、クラス共有ファイルには参加者IDと集計値だけを入力します。</div>
+      <div class="row" style="justify-content:center;margin-top:20px"><button class="btn btn-secondary" onclick="resetExperiment()">最初の画面に戻る</button></div>
+    </div>
+  </main>
+</div>
+<script>
+'use strict';
+const STIMULI = ['A','B','C','D','H','J','K','L','M','N','P','Q','R','S','T','X'];
+const WARMUP = 2;
+const state = {
+  participant:{id:'',age:'',gender:'',hand:''}, order:'', queue:[], n:1,
+  config:{trialCount:30,targetRatio:0.3,stimulusDuration:1000,isiDuration:1500},
+  trials:[], responses:[], currentIndex:0, responded:false, startTime:0, timers:[],
+  blockResults:{1:null,2:null}, rawDownloaded:false, startedAt:null
+};
+function showScreen(name){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById('screen-'+name).classList.add('active')}
+function readConfig(){
+  state.config.trialCount = Math.max(20, Math.min(100, Number(document.getElementById('trialCount').value)||30));
+  state.config.targetRatio = Number(document.getElementById('targetRatio').value)||0.3;
+  state.config.stimulusDuration = Math.max(200, Number(document.getElementById('stimDuration').value)||1000);
+  state.config.isiDuration = Math.max(300, Number(document.getElementById('isiDuration').value)||1500);
+}
+function startSession(order){
+  const id=document.getElementById('pid').value.trim();
+  if(!id){alert('参加者IDを入力してください。');document.getElementById('pid').focus();return}
+  readConfig();
+  state.participant={id,age:document.getElementById('age').value.trim(),gender:document.getElementById('gender').value,hand:document.getElementById('hand').value};
+  state.order=order; state.queue=order==='1-2'?[1,2]:[2,1]; state.blockResults={1:null,2:null};state.rawDownloaded=false;state.startedAt=new Date().toISOString();
+  nextBlock();
+}
+function nextBlock(){if(!state.queue.length){showResults();return} startBlock(state.queue.shift())}
+function startBlock(n){
+  state.n=n; state.trials=generateSequence(n,state.config); state.responses=[]; state.currentIndex=0; state.responded=false;
+  document.getElementById('instructionTitle').textContent=n+'-back 課題';
+  document.getElementById('instructionText').textContent=n===1?'1つ前':'2つ前';
+  document.getElementById('example').innerHTML=n===1?'<strong>例：</strong> A → C → <span class="pill">C（押す）</span> → H':'<strong>例：</strong> A → C → <span class="pill">A（押す）</span> → H';
+  showScreen('instruction');
+}
+function generateSequence(n,config){
+  const scoredCount=config.trialCount, total=scoredCount+WARMUP;
+  const targetCount=Math.round(scoredCount*config.targetRatio);
+  const scoredPositions=[]; for(let i=WARMUP;i<total;i++) scoredPositions.push(i);
+  shuffle(scoredPositions); const targetSet=new Set(scoredPositions.slice(0,targetCount));
+  const seq=[];
+  for(let i=0;i<total;i++){
+    let ch;
+    if(i<WARMUP){ch=randomStimulus()}
+    else if(targetSet.has(i)){ch=seq[i-n].char}
+    else {do{ch=randomStimulus()}while(ch===seq[i-n].char)}
+    seq.push({id:i,char:ch,isTarget:i>=WARMUP && targetSet.has(i),scored:i>=WARMUP});
+  }
+  return seq;
+}
+function randomStimulus(){return STIMULI[Math.floor(Math.random()*STIMULI.length)]}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function beginTest(){showScreen('test');setTimeout(()=>runTrial(0),350)}
+function runTrial(index){
+  if(index>=state.trials.length){finishBlock();return}
+  state.currentIndex=index;state.responded=false;
+  const t=state.trials[index]; const stim=document.getElementById('stimulus'),fix=document.getElementById('fixation');
+  stim.textContent=t.char;stim.classList.remove('hidden');fix.classList.add('hidden');
+  document.getElementById('testMeta').textContent=state.n+'-back | '+(index+1)+'/'+state.trials.length+(t.scored?'':' | warm-up');
+  document.getElementById('progress').style.width=((index/state.trials.length)*100)+'%';
+  state.startTime=performance.now(); clearTimers();
+  const hide=setTimeout(()=>{stim.classList.add('hidden');fix.classList.remove('hidden')},state.config.stimulusDuration);
+  const next=setTimeout(()=>{if(!state.responded)recordResponse(index,false,null);runTrial(index+1)},state.config.stimulusDuration+state.config.isiDuration);
+  state.timers=[hide,next];
+}
+function clearTimers(){state.timers.forEach(clearTimeout);state.timers=[]}
+function recordResponse(index,keyPressed,rt){
+  const t=state.trials[index];if(!t)return;let correct=false,type='';
+  if(!t.scored){type=keyPressed?'WARMUP_KEY':'WARMUP_NONE';correct=null}
+  else if(keyPressed&&t.isTarget){correct=true;type='HIT'}
+  else if(keyPressed&&!t.isTarget){correct=false;type='FALSE_ALARM'}
+  else if(!keyPressed&&t.isTarget){correct=false;type='MISS'}
+  else {correct=true;type='CORRECT_REJECTION'}
+  state.responses.push({trialId:index+1,scored:t.scored,stimulus:t.char,nLevel:state.n,isTarget:t.isTarget,keyPressed,rt:rt===null?null:Math.round(rt),isCorrect:correct,type});
+}
+function finishBlock(){clearTimers();showScreen('feedback');const summary=analyzeBlock();state.blockResults[state.n]=summary;
+  document.getElementById('feedbackCondition').textContent=state.n+'-back の集計';
+  document.getElementById('feedbackAccuracy').textContent=summary.accuracy.toFixed(1)+'%';
+  document.getElementById('feedbackRT').textContent=summary.meanRT===null?'—':Math.round(summary.meanRT)+' ms';
+  const next=document.getElementById('nextBlockBtn'),results=document.getElementById('showResultsBtn');
+  if(state.queue.length){next.classList.remove('hidden');results.classList.add('hidden');next.textContent='次の条件（'+state.queue[0]+'-back）へ'}else{next.classList.add('hidden');results.classList.remove('hidden')}
+}
+function analyzeBlock(){
+  const scored=state.responses.filter(r=>r.scored);const correct=scored.filter(r=>r.isCorrect===true).length;
+  const hits=scored.filter(r=>r.type==='HIT');const miss=scored.filter(r=>r.type==='MISS').length;const fa=scored.filter(r=>r.type==='FALSE_ALARM').length;const cr=scored.filter(r=>r.type==='CORRECT_REJECTION').length;
+  const rts=hits.map(r=>r.rt).filter(v=>Number.isFinite(v));const meanRT=rts.length?rts.reduce((a,b)=>a+b,0)/rts.length:null;
+  return {nLevel:state.n,accuracy:100*correct/scored.length,meanRT,hit:hits.length,miss,falseAlarm:fa,correctRejection:cr,responses:[...state.responses],completedAt:new Date().toISOString(),config:{...state.config}};
+}
+function showResults(){
+  const r1=state.blockResults[1],r2=state.blockResults[2];if(!r1||!r2)return;
+  set('r1acc',r1.accuracy.toFixed(1)+'%');set('r1rt',r1.meanRT===null?'—':Math.round(r1.meanRT));set('r1hit',r1.hit);set('r1miss',r1.miss);set('r1fa',r1.falseAlarm);
+  set('r2acc',r2.accuracy.toFixed(1)+'%');set('r2rt',r2.meanRT===null?'—':Math.round(r2.meanRT));set('r2hit',r2.hit);set('r2miss',r2.miss);set('r2fa',r2.falseAlarm);
+  document.getElementById('rawSaved').classList.add('hidden');showScreen('results');
+}
+function set(id,val){document.getElementById(id).textContent=val}
+function csvEscape(v){if(v===null||v===undefined)return'';const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function downloadFile(text,filename){const blob=new Blob(['\ufeff'+text],{type:'text/csv;charset=utf-8;'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+function safeId(){return state.participant.id.replace(/[^0-9A-Za-z_-]/g,'_')||'noID'}
+function timestampForFile(){return new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z')}
+function downloadRawCSV(){
+  const headers=['Participant ID','Age','Gender','Handedness','Order','Block','N-Level','Trial','Scored','Stimulus','Is Target','Key Pressed','RT (ms)','Is Correct','Response Type','Stimulus Duration (ms)','ISI (ms)','Target Ratio','Session Started','Block Completed'];
+  const rows=[];let blockNo=0;const seq=state.order==='1-2'?[1,2]:[2,1];
+  seq.forEach(n=>{blockNo++;const r=state.blockResults[n];r.responses.forEach(x=>rows.push([state.participant.id,state.participant.age,state.participant.gender,state.participant.hand,state.order,blockNo,n,x.trialId,x.scored?1:0,x.stimulus,x.isTarget?1:0,x.keyPressed?1:0,x.rt??'',x.isCorrect===null?'':(x.isCorrect?1:0),x.type,r.config.stimulusDuration,r.config.isiDuration,r.config.targetRatio,state.startedAt,r.completedAt]))});
+  const csv=[headers,...rows].map(row=>row.map(csvEscape).join(',')).join('\r\n');downloadFile(csv,`Nback_${safeId()}_${state.order}_${timestampForFile()}_raw.csv`);state.rawDownloaded=true;document.getElementById('rawSaved').classList.remove('hidden');
+}
+function downloadSummaryCSV(){
+  const r1=state.blockResults[1],r2=state.blockResults[2];const headers=['Participant ID','Order','1-back Accuracy (%)','1-back Mean RT (ms)','1-back HIT','1-back MISS','1-back False Alarm','2-back Accuracy (%)','2-back Mean RT (ms)','2-back HIT','2-back MISS','2-back False Alarm'];
+  const row=[state.participant.id,state.order,r1.accuracy.toFixed(2),r1.meanRT===null?'':r1.meanRT.toFixed(2),r1.hit,r1.miss,r1.falseAlarm,r2.accuracy.toFixed(2),r2.meanRT===null?'':r2.meanRT.toFixed(2),r2.hit,r2.miss,r2.falseAlarm];
+  downloadFile([headers,row].map(x=>x.map(csvEscape).join(',')).join('\r\n'),`Nback_${safeId()}_${timestampForFile()}_summary.csv`);
+}
+function resetExperiment(){if(!state.rawDownloaded&&!confirm('生データCSVがまだ保存されていません。最初の画面に戻りますか？'))return;clearTimers();state.blockResults={1:null,2:null};state.queue=[];state.rawDownloaded=false;showScreen('intro')}
+window.addEventListener('keydown',e=>{if(!document.getElementById('screen-test').classList.contains('active'))return;if(e.repeat)return;if(e.code==='Space'||e.key===' '){e.preventDefault();if(!state.responded){state.responded=true;recordResponse(state.currentIndex,true,performance.now()-state.startTime)}}});
+window.addEventListener('beforeunload',e=>{if((state.blockResults[1]||state.blockResults[2])&&!state.rawDownloaded){e.preventDefault();e.returnValue=''}});
+</script>
+</body>
+</html>
