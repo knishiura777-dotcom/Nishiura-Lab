@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b19">
+<meta name="description" content="GROWTH QUEST｜努力は、たまに報われる。現代風8ビットRPGで10年間の練習・成長・熟達化・成功の違いを学ぶ放置型心理学シミュレーション。">
+<title>GROWTH QUEST｜努力を積み上げる10年 Ver.0.7.1 · MODERN RPG 完成版</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#070b19;--bg-elev:#0d1429;
+  --surface:rgba(17,27,51,.82);--surface-strong:rgba(22,34,63,.95);
+  --surface-hover:rgba(31,48,86,.94);
+  --border:rgba(148,179,224,.22);--border-strong:rgba(138,245,208,.55);
+  --border-gold:rgba(250,212,122,.52);
+  --ink:#f4f7ff;--mute:#b9c9e2;--dim:#91a4c1;
+  --gold:#fad47a;--mint:#7ef2c4;--sky:#7cc4ff;
+  --rose:#ff9aa2;--violet:#b69cff;
+  --gold-soft:rgba(250,212,122,.12);--mint-soft:rgba(126,242,196,.11);
+  --shadow-lg:0 20px 52px rgba(2,6,18,.52);--shadow-sm:0 7px 22px rgba(2,6,18,.35);
+  --radius-xl:20px;--radius-lg:15px;--radius-md:11px;--radius-sm:8px;
+  --font-sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,system-ui,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --font-serif:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:125px}
+body{margin:0;min-height:100dvh;font:15px/1.72 var(--font-sans);color:var(--ink);background:var(--bg);background-image:radial-gradient(ellipse 900px 450px at 12% -8%,rgba(110,168,255,.17),transparent 68%),radial-gradient(ellipse 760px 400px at 88% 4%,rgba(126,242,196,.11),transparent 67%),radial-gradient(ellipse 780px 440px at 50% 112%,rgba(182,156,255,.10),transparent 70%);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.46}
+a{color:var(--sky)}a:hover{color:#c9e6ff}a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2.5px solid var(--gold);outline-offset:3px}
+h1,h2,h3,h4,p{margin-top:0}p{margin-bottom:10px}p:last-child{margin-bottom:0}
+strong{font-weight:750}b{font-weight:780}
+.shell{width:min(1220px,calc(100% - 36px));margin-inline:auto}
+/* Top and navigation */
+.top{position:sticky;top:0;z-index:30;background:rgba(9,14,31,.88);border-bottom:1px solid var(--border);backdrop-filter:blur(17px) saturate(135%);-webkit-backdrop-filter:blur(17px) saturate(135%)}
+.top>.shell{padding:13px 0 11px}
+.toprow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:14px;font:900 19px var(--font-mono);color:var(--bg);background:linear-gradient(135deg,var(--gold),var(--mint));box-shadow:0 0 24px rgba(126,242,196,.22),inset 0 1px 0 rgba(255,255,255,.55)}
+.over{color:var(--mint);font:800 10px var(--font-mono);letter-spacing:.16em;text-transform:uppercase}
+h1{margin:3px 0 0;font:900 clamp(20px,3vw,29px)/1.2 var(--font-mono);letter-spacing:.04em}
+h1 span{color:var(--gold);background:linear-gradient(90deg,var(--gold),#ffebba);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.tagline{font-size:12.5px;color:var(--mute);font-weight:650;margin-top:3px}
+.quick{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font:750 11px var(--font-mono);border:1px solid var(--border);background:rgba(255,255,255,.045);white-space:nowrap;color:var(--ink)}
+.chip.gold-chip{color:var(--gold);background:var(--gold-soft);border-color:var(--border-gold)}
+.chip.mint-chip{color:var(--mint);background:var(--mint-soft);border-color:var(--border-strong)}
+.subhead{font-size:11.5px;color:var(--dim);margin-top:9px}
+.nav{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:20px 0 26px}
+.nav button{position:relative;min-height:53px;padding:10px 12px;text-align:left;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--surface);color:var(--mute);font-weight:750;font-size:12.8px;transition:border-color .14s,background .14s,transform .14s}
+.nav button:hover{background:var(--surface-hover);border-color:rgba(148,179,224,.43);color:var(--ink);transform:translateY(-2px)}
+.nav button[aria-current="step"]{color:var(--ink);border-color:var(--border-strong);background:linear-gradient(145deg,rgba(44,114,96,.46),rgba(20,34,62,.95));box-shadow:0 12px 30px rgba(6,24,24,.35)}
+.nav button[aria-current="step"]::after{content:"";position:absolute;bottom:0;left:12px;right:12px;height:3px;background:linear-gradient(90deg,var(--mint),var(--gold));border-radius:10px}
+.screen{display:none}.screen.active{display:block;animation:fadeSlideIn .23s ease-out}
+@keyframes fadeSlideIn{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:none}}
+.label{display:inline-flex;align-items:center;gap:9px;margin:0 0 9px;font:800 11px var(--font-mono);letter-spacing:.12em;color:var(--mint);text-transform:uppercase}
+.label::before{content:"";width:7px;height:7px;background:var(--gold);box-shadow:0 0 11px var(--gold);transform:rotate(45deg);border-radius:2px}
+.screen h2{font-size:clamp(23px,3vw,33px);line-height:1.35;font-weight:850;margin:0 0 7px}
+.lead{margin:0 0 21px;max-width:850px;font-size:14px;line-height:1.83;color:var(--mute)}
+/* Layout */
+.grid{display:grid;gap:17px;min-width:0}
+.two{grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr)}
+.halves{grid-template-columns:repeat(2,minmax(0,1fr))}
+.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.space{margin-top:16px}.row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:11px}
+.small{font-size:13px}.tiny{font-size:11.5px;line-height:1.67;color:var(--dim)}
+.muted{color:var(--mute)}.gold{color:var(--gold)}.mint{color:var(--mint)}.rose{color:var(--rose)}.pixel{font-family:var(--font-mono);font-weight:850}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:22px;box-shadow:var(--shadow-lg),inset 0 1px 0 rgba(255,255,255,.045);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);min-width:0}
+.panel.goldedge{border-color:var(--border-gold);background:linear-gradient(152deg,rgba(38,35,56,.8),rgba(16,25,48,.88))}
+.panel.ember{border-color:rgba(126,242,196,.29);background:linear-gradient(155deg,rgba(20,46,56,.77),rgba(15,24,45,.9))}
+.panel h3{margin:0 0 13px;display:flex;align-items:center;gap:8px;font-size:17px;font-weight:800;line-height:1.46}
+.panel h4{margin:0 0 10px;font-size:14px;font-weight:760;color:var(--mute)}
+/* Novel */
+.novel{font:15px/2.02 var(--font-serif);letter-spacing:.025em;color:#eff2fc}
+.novel h3{font-family:var(--font-sans);font-size:18px}
+.novel p{margin-bottom:.85em}.novel strong{color:var(--gold)}
+/* Inputs and buttons */
+.choice{display:flex;align-items:center;gap:10px;margin:9px 0;padding:12px 14px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(11,18,36,.68);font-size:13.5px;line-height:1.65;cursor:pointer;transition:background .15s,border-color .15s}
+.choice:hover{background:rgba(24,38,70,.8);border-color:rgba(148,179,224,.45)}
+.choice:has(input:checked){border-color:var(--mint);background:linear-gradient(90deg,rgba(46,134,112,.32),rgba(17,29,54,.86));box-shadow:inset 3px 0 0 var(--gold)}
+.choice input{flex:none;width:17px;height:17px;accent-color:var(--mint)}
+.fieldlabel{display:block;font-size:13px;font-weight:750;margin-bottom:7px}
+.range{width:100%;min-height:28px;accent-color:var(--mint);cursor:pointer}
+.rating{font:800 15px var(--font-mono);color:var(--gold);font-variant-numeric:tabular-nums}
+.select{width:100%;min-height:44px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(9,15,31,.93);color:var(--ink);font-size:13px;cursor:pointer}
+.settingline{border-bottom:1px dashed rgba(148,179,224,.2);padding:14px 0}
+.settingline:last-child{border-bottom:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:10px 16px;border:1px solid rgba(170,198,238,.32);border-radius:var(--radius-sm);background:linear-gradient(180deg,rgba(40,58,94,.93),rgba(25,39,66,.98));box-shadow:var(--shadow-sm);font-size:13px;font-weight:780;color:var(--ink);text-align:center;transition:filter .14s,border-color .14s,transform .14s}
+.btn:hover:not(:disabled){filter:brightness(1.15);border-color:rgba(255,255,255,.45);transform:translateY(-1.5px)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.primary{background:linear-gradient(135deg,#248a6e,#1b6557);border-color:rgba(126,242,196,.65);box-shadow:0 9px 24px rgba(36,138,110,.26);color:white}
+.btn.goldbtn{background:linear-gradient(135deg,#b68434,#84591c);border-color:rgba(250,212,122,.77);box-shadow:0 8px 22px rgba(182,132,52,.24);color:white}
+.btn.ghost{background:rgba(255,255,255,.045);border-color:var(--border);color:var(--mute);box-shadow:none}
+.btn.ghost:hover:not(:disabled){background:rgba(255,255,255,.09);color:var(--ink)}
+.btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+.warn,.notice{border-radius:var(--radius-md);padding:12px 14px;font-size:12.2px;line-height:1.75}
+.warn{background:rgba(250,212,122,.075);border:1px solid rgba(250,212,122,.34);color:#f7e4b5}
+.notice{background:rgba(126,242,196,.07);border:1px solid rgba(126,242,196,.29);color:#d7faea}
+textarea{width:100%;min-height:108px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(8,14,29,.9);color:var(--ink);font-size:13.5px;resize:vertical;line-height:1.7}
+/* Art scene */
+.pixelart{position:relative;align-self:start;overflow:hidden;border:1px solid rgba(250,212,122,.4);border-radius:var(--radius-lg);background:#070d1f;box-shadow:var(--shadow-lg),0 0 40px rgba(126,242,196,.08)}
+.pixelart canvas{display:block;width:100%;height:auto;aspect-ratio:320/176;image-rendering:pixelated}
+.artlabel{position:absolute;z-index:2;top:11px;left:11px;padding:5px 10px;border-radius:6px;font:800 10.5px var(--font-mono);letter-spacing:.06em;background:rgba(8,14,30,.84);border:1px solid rgba(250,212,122,.42);color:var(--gold)}
+.saying{position:absolute;left:11px;right:11px;bottom:11px;z-index:2;background:rgba(8,14,30,.89);border:1px solid rgba(180,205,240,.32);border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;font-weight:740}
+/* Characters */
+.characters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.char{position:relative;display:flex;align-items:center;flex-direction:column;justify-content:center;min-height:155px;padding:14px 7px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(11,18,36,.74);color:var(--ink);text-align:center;transition:transform .15s,border-color .15s,background .15s}
+.char:hover:not(:disabled){transform:translateY(-3px);border-color:var(--border-gold)}
+.char[aria-pressed="true"]{background:linear-gradient(165deg,rgba(42,120,102,.43),rgba(16,28,52,.95));border-color:var(--mint);box-shadow:0 0 24px rgba(126,242,196,.13)}
+.char[aria-pressed="true"]::after{content:"ACTIVE";position:absolute;top:6px;right:6px;padding:1px 5px;border-radius:3px;background:var(--mint);color:var(--bg);font:800 8.5px var(--font-mono)}
+.sprite{display:block;width:50px;height:68px;margin:0 auto 6px;image-rendering:pixelated;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.char b{font-size:14px}.char small{font-size:10.3px;color:var(--mute);line-height:1.45;margin-top:4px}
+/* Status and timeline */
+.statgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{position:relative;min-width:0;overflow:hidden;padding:13px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:rgba(9,15,31,.75)}
+.stat::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--mint),transparent)}
+.stat:nth-child(1)::before{background:linear-gradient(90deg,var(--gold),transparent)}.stat:nth-child(3)::before{background:linear-gradient(90deg,var(--sky),transparent)}.stat:nth-child(4)::before{background:linear-gradient(90deg,var(--violet),transparent)}
+.stat .k{font-size:11px;color:var(--mute);font-weight:650}
+.stat .v{font:900 clamp(19px,2.5vw,27px)/1.25 var(--font-mono);font-variant-numeric:tabular-nums;margin:5px 0 2px;overflow-wrap:anywhere}
+.stat .desc{font-size:10px;color:var(--dim)}
+.track{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;margin:10px 0}
+.track .yr{display:grid;place-items:center;min-height:29px;border:1px solid var(--border);border-radius:5px;background:rgba(10,17,34,.8);font:800 10.5px var(--font-mono);color:var(--dim)}
+.track .yr.done{background:var(--mint);border-color:var(--mint);color:#071914}.track .yr.current{color:var(--gold);background:var(--gold-soft);border-color:var(--gold)}
+.timeline{height:12px;border:1px solid var(--border);background:rgba(8,14,29,.9);border-radius:999px;overflow:hidden;padding:2px}
+.timeline div{height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--mint),var(--sky),var(--gold));transition:width .12s}
+.stage{min-height:68px;padding:13px 15px;border-radius:var(--radius-md);border:1px solid var(--border);border-left:4px solid var(--gold);background:rgba(10,17,35,.75);font-size:13px}
+.stage b{display:block;margin-bottom:4px;font-size:14px;color:var(--gold)}
+.svgchart{display:block;width:100%;height:auto;min-height:177px;border:1px solid var(--border);border-radius:var(--radius-md);background:rgba(7,13,27,.75);padding:7px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;color:var(--mute);font-size:11.5px}
+.square{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.explain{margin-top:13px;padding-top:12px;border-top:1px dashed var(--border);color:var(--mute);font-size:12px}
+.checkpoint{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.checkpoint div{padding:9px 5px;border:1px solid var(--border);border-radius:6px;background:rgba(9,15,31,.73);text-align:center}
+.checkpoint small{display:block;font-size:10.5px;color:var(--dim)}.checkpoint b{display:block;margin-top:2px;font:800 15px var(--font-mono);color:var(--gold)}
+/* Result and study */
+.resultBig{font-size:clamp(23px,3.8vw,38px);font-weight:900;line-height:1.35;margin-bottom:9px;color:var(--gold)}
+.tablewrap{overflow-x:auto}.table{width:100%;min-width:480px;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;font-size:12.2px;font-variant-numeric:tabular-nums}
+.table th:first-child,.table td:first-child{text-align:left}.table th{font-weight:750;color:var(--mute)}
+.conclusion{padding:16px;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--mint-soft);font-size:13.5px}
+.refs ol{padding-left:20px}.refs li{margin-bottom:10px;font-size:13px;line-height:1.7}.refs a{text-underline-offset:3px}
+.hidden{display:none!important}
+/* 10 practice tips */
+.year-tip{border-radius:var(--radius-md);border:1px solid var(--border-gold);background:linear-gradient(135deg,rgba(250,212,122,.1),rgba(16,27,51,.88));padding:14px 16px}
+.year-tip-label{font:800 10.5px var(--font-mono);color:var(--gold);letter-spacing:.08em}
+.year-tip b{display:block;font-size:15.5px;margin:5px 0 4px}.year-tip p{font-size:12.5px;color:var(--mute);margin:0 0 10px}
+.year-tip .btn{min-height:36px;font-size:11.5px;padding:7px 12px}
+.tips-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.tip-card{min-width:0;padding:17px;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--surface);transition:transform .15s,border-color .15s}
+.tip-card:hover{transform:translateY(-2px);border-color:rgba(148,179,224,.4)}
+.tip-card.selected{border-color:var(--mint);background:linear-gradient(155deg,rgba(36,108,92,.31),rgba(16,26,48,.92))}
+.tip-number{font:800 11px var(--font-mono);color:var(--gold);letter-spacing:.08em}
+.tip-card h4{margin:5px 0 9px;font-size:15.5px;color:var(--ink)}
+.tip-card p{font-size:12.4px;margin:8px 0}.tip-card .bad{color:var(--mute)}.tip-card .action{color:var(--mint)}
+.tip-card .question{border-left:3px solid var(--gold);border-radius:0 6px 6px 0;background:var(--gold-soft);color:var(--ink);padding:6px 11px}
+.tip-evidence{margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);font-size:11px;color:var(--dim)}
+.tip-save{min-height:36px;padding:7px 12px;margin-top:10px;font-size:12px}
+.gap-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:13px 0}
+.gap-stat{padding:11px 12px;border-radius:var(--radius-md);border:1px solid var(--border);background:rgba(9,15,31,.76)}
+.gap-stat span{font-size:11px;color:var(--mute);display:block}.gap-stat strong{font:850 22px var(--font-mono);color:var(--gold);display:block;margin-top:4px}
+.short-select{width:min(240px,100%)}
+.week-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:9px 0 10px}
+.week-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:46px;border-radius:6px;border:1px solid var(--border);background:rgba(10,17,34,.76);font-size:10px;color:var(--dim);min-width:0}
+.week-cell strong{font-size:14px;line-height:1.2}
+.week-cell.practice{background:rgba(126,242,196,.17);border-color:var(--mint);color:var(--mint)}
+.week-cell.missed{background:rgba(255,154,162,.17);border-color:var(--rose);color:var(--rose)}
+.week-cell.weekmark{box-shadow:inset 0 2px 0 var(--gold)}
+.week-legend{display:flex;flex-wrap:wrap;gap:13px;font-size:11px;color:var(--mute);margin-bottom:11px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--dim);margin-right:5px}
+.dot.practice{background:var(--mint)}.dot.missed{background:var(--rose)}.dot.free{background:rgba(148,179,224,.4)}
+.tip-summary{margin-bottom:12px;border:1px solid var(--border-gold);border-radius:var(--radius-md);background:var(--gold-soft);color:var(--ink);font-size:12px;line-height:1.7;padding:12px 14px}
+.note-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.note-input{display:block;width:100%;min-height:42px;margin:7px 0 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(8,14,29,.9);color:var(--ink);font-size:13px;padding:9px 12px}
+.note-list{display:grid;gap:8px;margin-top:14px}.note-entry{display:grid;gap:3px;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(9,15,31,.75);font-size:12px}
+.note-entry b{color:var(--gold)}.note-entry span{color:var(--mute)}
+.footer{margin:43px auto 30px;padding-top:18px;border-top:1px solid var(--border);color:var(--dim);font-size:12px}
+/* Focused quest layout: character and plan before charts on small screens */
+#page-quest>.grid.two{align-items:start;grid-template-columns:minmax(0,1.36fr) minmax(330px,1fr);gap:18px}
+#page-quest>.grid.two>.grid{display:contents}
+#page-quest>.grid.two>.grid:first-child>.pixelart{grid-column:1;grid-row:1}
+#page-quest>.grid.two>.grid:first-child>.panel:nth-child(2){grid-column:1;grid-row:2}
+#page-quest>.grid.two>.grid:first-child>.panel:nth-child(3){grid-column:1;grid-row:3}
+#page-quest>.grid.two>aside.grid>.panel:nth-child(1){grid-column:2;grid-row:1}
+#page-quest>.grid.two>aside.grid>.panel:nth-child(2){grid-column:2;grid-row:2}
+#page-quest>.grid.two>aside.grid>.panel:nth-child(3){grid-column:2;grid-row:3}
+@media(max-width:980px){
+  .nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .two,.halves{grid-template-columns:1fr}
+  #page-quest>.grid.two{grid-template-columns:1fr}
+  #page-quest>.grid.two>.grid:first-child>.pixelart,
+  #page-quest>.grid.two>.grid:first-child>.panel:nth-child(2),
+  #page-quest>.grid.two>.grid:first-child>.panel:nth-child(3),
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(1),
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(2),
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(3){grid-column:auto;grid-row:auto}
+  #page-quest>.grid.two>.grid:first-child>.pixelart{order:1}
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(1){order:2}
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(2){order:3}
+  #page-quest>.grid.two>.grid:first-child>.panel:nth-child(2){order:4}
+  #page-quest>.grid.two>.grid:first-child>.panel:nth-child(3){order:5}
+  #page-quest>.grid.two>aside.grid>.panel:nth-child(3){order:6}
+}
+@media(max-width:640px){
+  html{scroll-padding-top:95px}
+  .shell{width:calc(100% - 22px)}
+  .top>.shell{padding:10px 0 9px}
+  .toprow{gap:10px}.logo{width:43px;height:43px;font-size:17px;border-radius:11px}
+  .over{font-size:9px;letter-spacing:.1em}h1{font-size:20px}.tagline{font-size:11px}
+  .quick,.subhead{display:none}
+  .nav{display:flex;gap:7px;overflow-x:auto;margin:15px 0 19px;padding-bottom:6px;scrollbar-width:thin}
+  .nav button{flex:0 0 auto;min-width:108px;min-height:44px;padding:8px 10px;font-size:11.7px}
+  .panel{padding:16px;border-radius:var(--radius-lg)}
+  .screen h2{font-size:24px}.lead{font-size:13px}
+  .three{grid-template-columns:1fr}
+  .statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .checkpoint{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tips-grid,.note-fields{grid-template-columns:1fr}
+  .characters{gap:7px}.char{min-height:138px;padding:11px 4px}.char small{font-size:9.6px}
+  .btnrow{gap:7px}.btn{font-size:12px;padding:10px 12px}
+  .track{gap:3px}.track .yr{font-size:9px}
+  .week-grid{gap:3px}.week-cell{min-height:42px;font-size:9px}.week-cell strong{font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px;background:#422e2e;color:#fff">JavaScriptが無効です。SafariやChromeなどの通常のブラウザで開いてください。</p></noscript>
+<header class="top"><div class="shell"><div class="toprow"><div class="logo" aria-hidden="true">GQ</div><div><div class="over">MODERN RPG SIMULATION / 10-YEAR EXPERTISE EDITION</div><h1>GROWTH <span>QUEST</span></h1><div class="tagline">努力は、たまに報われる。　― 10年間の修行 ―</div></div><div class="quick"><span class="chip gold-chip">VER 0.7.1 RPG</span><span class="chip mint-chip">AUTO QUEST</span><span class="chip">LOCAL SAVE</span></div></div><div class="subhead">10年間の成長を見守りながら、練習の頻度と10の工夫を学ぶ、放置型の心理学RPG。</div></div></header>
+<main class="shell">
+<nav class="nav" aria-label="ゲーム画面"><button type="button" data-page="story" aria-current="step">01　物語</button><button type="button" data-page="quest">02　10年修行</button><button type="button" data-page="lab">03　条件比較</button><button type="button" data-page="review">04　ふり返り</button><button type="button" data-page="tips">05　修行のヒント</button><button type="button" data-page="guide">06　研究の根拠</button></nav>
+
+<section id="page-story" class="screen active" aria-labelledby="story-title">
+<div class="label">PROLOGUE 00 / 明日の門</div><h2 id="story-title">努力は、たまに報われる。</h2><p class="lead">物語を読んで、最初の考えを残しましょう。ゲーム後に同じ質問に答えます。正解を選ぶ必要はありません。</p>
+<div class="grid two"><article class="panel goldedge novel" aria-label="小説『明日の門』"><h3>短編小説『明日の門』</h3>
+<p>毎年、春になると、村の丘に「明日の門」が現れる。門をくぐれるのは、試練に勝った一人だけだった。</p>
+<p>カイは365日、欠かさず走った。昨日より一歩遠くへ。疲れた日は記録をつけ、練習方法を変えた。</p>
+<p>リナは家族の世話で、走れない日が多かった。それでも空いた時間に坂道を駆け上がり、少しずつ力をつけた。</p>
+<p>ソラはあまり練習しなかったが、生まれつき足が速かった。父親はかつて門をくぐった英雄で、試練の秘密も教えてくれた。</p>
+<p>そして春。三人は同じ丘を駆け上がった。</p>
+<p>最初に門へ着いたのはソラだった。途中で深い霧に迷ったカイは二着。リナは足を痛め、最後まで走れなかった。</p>
+<p>翌日の新聞には、ソラの笑顔と「努力の末につかんだ栄光」という見出しが大きく載った。</p>
+<p>カイは一年間の練習帳を閉じた。</p><p>「僕の努力は、無駄だったのだろうか」</p>
+<p>リナが静かに答えた。</p><p>「それは、まだ分からないんじゃない？」</p>
+<p>丘の上では、<strong>明日の門が静かに消えていた。</strong></p></article>
+<div class="grid"><div class="pixelart"><canvas id="story-art" width="320" height="176" role="img" aria-label="ドット絵の夜空、山並み、明日の門、旅人たち"></canvas><div class="artlabel">THE GATE OF TOMORROW</div><div class="saying">▼ もし、もう一度やり直せるなら？</div></div><div class="panel"><div class="label">FIRST THOUGHT / 開始前</div><h3>Q. 努力と成功の関係は？</h3><label class="choice"><input name="before" type="radio" value="A">努力を続ければ、いつか必ず成功する</label><label class="choice"><input name="before" type="radio" value="B">成功は、ほとんど運で決まる</label><label class="choice"><input name="before" type="radio" value="C">努力は成功の可能性を変えるが、結果は保証されない</label>
+<div class="space"><div class="row"><label class="fieldlabel" for="before-scale">努力は成功にどれくらい影響すると思う？</label><span id="before-scale-value" class="rating">50 / 100</span></div><input id="before-scale" class="range" type="range" min="0" max="100" value="50"><div class="tiny">0 = ほぼ影響しない / 100 = とても影響する（主観的な予想）</div></div>
+<div id="before-saved-note" class="notice space hidden">開始前の回答は記録済みです。授業で前後を比較するため、あとから変更されません。</div><div id="story-error" role="alert" class="rose small"></div><div class="btnrow"><button id="start-story" class="btn goldbtn" type="button">回答を記録して、10年後へ ▶</button></div></div></div></div>
+</section>
+
+<section id="page-quest" class="screen" aria-labelledby="quest-title"><div class="label">CHAPTER 01 / 10-YEAR IDLE QUEST</div><h2 id="quest-title">修行の方針を決めて、10年を見守ろう。</h2><p class="lead">「練習した時間」と「身についた技能」は別のもの。主人公と修行方針を決めたら、10年間を自動進行させ、成長を見守りましょう。</p>
+<div class="grid two"><div class="grid"><div class="pixelart"><canvas id="journey-art" width="320" height="176" role="img" aria-label="10年間の旅を進む冒険者のドット絵"></canvas><div class="artlabel" id="art-year">YEAR 00 / 10</div><div class="saying" id="art-message">▶ 旅の準備をしよう</div></div><div class="panel"><div class="row"><h3>10年間の修行ステータス</h3><span class="chip" id="progress-label">0 / 120か月</span></div><div class="timeline" role="progressbar" aria-label="修行の進行" aria-valuemin="0" aria-valuemax="120" aria-valuenow="0" id="progress"><div id="progress-fill"></div></div><div class="track" id="year-track" aria-label="1年から10年までの進行状況"></div><div class="statgrid space"><div class="stat"><div class="k">努力の累積</div><div class="v gold" id="stat-hours">0h</div><div class="desc">練習した合計時間</div></div><div class="stat"><div class="k">技能の伸び</div><div class="v mint" id="stat-skill">0</div><div class="desc">仮想の技能指数 0–100</div></div><div class="stat"><div class="k">上達した量</div><div class="v" id="stat-gain">+0</div><div class="desc">初期値との差</div></div><div class="stat"><div class="k">続けた月数</div><div class="v" id="stat-active">0</div><div class="desc">練習した月 / 120</div></div></div>
+<div class="year-tip space" aria-live="polite"><div class="row"><span class="year-tip-label" id="year-tip-heading">修行の知恵 / YEAR 01</span><span class="chip">ヒント 01 / 10</span></div><b id="year-tip-title">週2回の短い練習から</b><p id="year-tip-content">予定が1回消えると、次の練習までの空白が長くなることがあります。</p><button class="btn ghost" id="year-tip-open" type="button">10の実践ヒントを読む ↗</button></div>
+<div class="space stage" aria-live="polite"><b id="event-title">旅の始まり</b><span id="event-story">練習方法を選んで「10年を自動で進める」を押してください。</span></div>
+<div class="btnrow"><button class="btn primary" id="run" type="button">▶ 10年を自動で進める</button><button class="btn" id="pause" type="button" disabled>⏸ 一時停止</button><button class="btn" id="skip" type="button">≫ 10年後へ</button><button class="btn ghost" id="reroll" type="button">↻ 同じ方針で再挑戦</button></div><div class="row space"><label class="fieldlabel" for="speed">進行速度</label><select class="select" id="speed" style="width:auto;min-width:180px"><option value="slow">ゆっくり（約25秒）</option><option value="normal" selected>ふつう（約10秒）</option><option value="fast">高速（約3秒）</option></select></div><p class="tiny space">自動進行はブラウザを開いている間だけ動きます。リロード後は記録から再開できます。</p></div>
+<div class="panel"><h3>技能の成長曲線</h3><svg class="svgchart" id="skill-chart" role="img" aria-label="0年から10年までの技能指数の推移"></svg><div class="legend"><span><span class="square" style="background:var(--mint)"></span>技能指数（0–100）</span></div><h4 class="space">努力時間の積み上がり方</h4><svg class="svgchart" id="hours-chart" role="img" aria-label="0年から10年までの累積練習時間の推移"></svg><div class="legend"><span><span class="square" style="background:var(--gold)"></span>累積努力時間（時間）</span></div><div class="explain">2つのグラフは単位が異なります。努力時間は積み上がっても、技能は同じ割合で伸びるとは限りません。実際の成長曲線も課題・人・練習条件で異なります。</div><div id="milestone-box" class="checkpoint"></div></div></div>
+<aside class="grid"><div class="panel"><h3>主人公を選ぶ</h3><div class="characters"><button class="char" type="button" data-hero="kai" aria-pressed="true"><canvas class="sprite" data-sprite="kai" width="24" height="32" aria-hidden="true"></canvas><b>カイ</b><small>練習する時間を確保しやすい</small></button><button class="char" type="button" data-hero="rina" aria-pressed="false"><canvas class="sprite" data-sprite="rina" width="24" height="32" aria-hidden="true"></canvas><b>リナ</b><small>家庭の事情で時間が限られる</small></button><button class="char" type="button" data-hero="sora" aria-pressed="false"><canvas class="sprite" data-sprite="sora" width="24" height="32" aria-hidden="true"></canvas><b>ソラ</b><small>初期技能と支援が高い</small></button></div><p class="small muted space" id="hero-info"></p><div class="warn">人物ごとに初期条件が異なります。優劣を断定する設定ではなく、環境の違いを比べるための仮定です。</div></div>
+<div class="panel"><h3>修行の方針を選ぶ</h3><label class="fieldlabel" for="policy">練習方法</label><select id="policy" class="select"><option value="repeat">① 同じ練習を繰り返す</option><option value="purpose">② 目標を決めて練習する</option><option value="reflect" selected>③ 振り返って方法を変える</option><option value="balance">④ 休息と練習を調整する</option></select><p class="small muted" id="policy-info"></p><div class="settingline"><div class="row"><label class="fieldlabel" for="hours">1週間の目標練習時間</label><b class="gold" id="hours-value">1時間</b></div><input id="hours" class="range" type="range" min="0" max="20" value="1" step="0.5"><div class="tiny">家族事情・偶然の出来事などで実際の時間は変わります。</div></div><div class="settingline"><label class="fieldlabel" for="practice-frequency">週に何回、練習を予定する？</label>
+<select id="practice-frequency" class="select"><option value="1">週1回（まとめて練習）</option><option value="2" selected>週2回（まずはこの例から）</option><option value="3">週3回（短く分けて練習）</option></select>
+<p class="small" id="frequency-mini" aria-live="polite"></p>
+<button class="btn ghost" type="button" id="quest-open-tips">練習の間隔と10のヒントを見る ↗</button>
+<div class="tiny space">回数による成長の違いは教材用の仮定です。全員に共通の「週2回以上」という科学的基準はありません。</div></div>
+<div class="settingline"><label class="fieldlabel" for="setting-env">周囲の環境</label><select id="setting-env" class="select"><option value="standard" selected>標準的な環境</option><option value="supported">先生・仲間の支援がある</option><option value="limited">支援が少なく制約が多い</option></select></div><div class="notice space"><b>ポイント</b>　4つの方法を比べるとき、努力時間は揃えて計算します。上達の違いが「方法」によるものか考えてみましょう。</div></div><div class="panel ember"><h3>10年ルールって本当？</h3><p class="small">熟達化の研究では、長い年月にわたる集中的な練習が重要だと考えられています。しかし、<strong class="gold">10年経てば全員が達人になる</strong>という法則ではありません。</p><div class="btnrow"><button class="btn ghost" type="button" data-goto="guide">原著研究を読む ↗</button></div></div></aside></div>
+<div id="quest-result" class="panel goldedge space hidden" aria-live="polite"><div class="label">THE GATE / 10年後の結末</div><h2 id="gate-title">明日の門の判定</h2><div class="resultBig" id="gate-word"></div><p id="gate-text"></p><div class="grid three space"><div class="stat"><div class="k">最終技能指数</div><div class="v mint" id="final-skill"></div></div><div class="stat"><div class="k">累積練習時間</div><div class="v gold" id="final-hours"></div></div><div class="stat"><div class="k">今回の成功確率</div><div class="v" id="final-prob"></div></div></div><div class="warn space">成功・失敗の確率はゲーム内の仮定で計算しています。10年ルールや練習研究の実測値ではありません。</div><div class="btnrow"><button type="button" class="btn primary" id="go-lab">100の並行世界を比べる ▶</button><button type="button" class="btn" id="year-csv">年ごとの記録CSV</button><button type="button" class="btn ghost" id="go-tips">次は10の修行のヒントへ ▶</button></div></div>
+</section>
+
+<section id="page-lab" class="screen" aria-labelledby="lab-title"><div class="label">CHAPTER 02 / 研究室</div><h2 id="lab-title">「どれだけ」より「どう学ぶ」？</h2><p class="lead">同じ主人公・同じ偶然を使い、条件だけを変えて比べます。これはゲームのルールを調べる実験であり、実際の学生の成長を予測するものではありません。</p>
+<div class="grid two"><div class="panel"><div class="row"><h3>100人分ではなく「100のもしも」</h3><span class="chip">100回 × 条件</span></div><label class="fieldlabel" for="lab-mode">何を変えて比べる？</label><select id="lab-mode" class="select"><option value="method">同じ練習時間で、方法を変える</option><option value="amount">同じ方法で、練習時間を変える</option><option value="frequency">同じ時間で、週の練習回数を変える</option></select><div class="btnrow"><button type="button" class="btn primary" id="lab-run">▶ 100回ずつ自動比較</button><button type="button" class="btn" id="lab-csv" disabled>比較結果CSV</button></div><p class="small muted space">主人公・環境は修行画面で選んだ条件を使います。方法比較では目標練習時間が同じです。</p><div class="space"><svg class="svgchart" id="lab-chart" role="img" aria-label="実験条件ごとの10年間の平均技能成長曲線"></svg></div><div class="legend" id="lab-legend"></div></div><div class="panel"><h3>10年後の結果</h3><div id="lab-summary" class="notice">「100回ずつ自動比較」を押すと、練習時間・技能・成功回数を比較できます。</div><div class="tablewrap space"><table class="table"><thead><tr><th>条件</th><th>平均努力(h)</th><th>平均技能</th><th>門の通過</th></tr></thead><tbody id="lab-table"><tr><td colspan="4">まだ比較していません。</td></tr></tbody></table></div><div class="space stage"><b>この数字が示すこと</b><span id="lab-insight">モデルの数式を変えれば、結果も変化します。成長や成功の実測データではありません。</span></div></div></div>
+<div class="grid halves space"><div class="panel"><h3>考えてみよう</h3><p>① 練習時間が多い人ほど、いつでも成功しているでしょうか？</p><p>② 練習時間を揃えても、方法を変えると結果は違うでしょうか？</p><p>③ 10年間続けても、成功しない人がいるのはなぜでしょうか？</p><p>④ 成功した人だけを見ていると、何を見落とすでしょうか？</p></div><div class="panel"><h3>成功ではなく「熟達」を見る</h3><p class="small">熟達とは、難しい課題に安定して対応できる技能が形成されることです。ゲームでは便宜的に「技能指数」で表し、現実の検定や音楽技能の点数ではありません。</p><p class="small">練習時間、技能、最終試練の成功は、互いに関係していても同じ指標ではありません。</p><div class="btnrow"><button class="btn goldbtn" id="go-review" type="button">最後の判断へ ▶</button></div></div></div></section>
+
+<section id="page-review" class="screen" aria-labelledby="review-title"><div class="label">EPILOGUE / 思考の変化</div><h2 id="review-title">もう一度、同じ問いに答える。</h2><p class="lead">ゲーム前の答えはまだ見ないで回答してください。意見が変わらなくてもかまいません。</p><div class="grid halves"><div class="panel" id="review-form"><h3>Q. 努力と成功の関係は？</h3><label class="choice"><input name="after" type="radio" value="A">努力を続ければ、いつか必ず成功する</label><label class="choice"><input name="after" type="radio" value="B">成功は、ほとんど運で決まる</label><label class="choice"><input name="after" type="radio" value="C">努力は成功の可能性を変えるが、結果は保証されない</label><div class="row space"><label class="fieldlabel" for="after-scale">努力の影響はどのくらい？</label><b class="rating" id="after-scale-value">50 / 100</b></div><input id="after-scale" class="range" type="range" min="0" max="100" value="50"><label class="fieldlabel space" for="reason">なぜそう考えましたか？</label><textarea id="reason" maxlength="1200" placeholder="努力時間、学習方法、環境、偶然、技能の伸びについて考えたこと……"></textarea><div id="review-error" class="small rose" role="alert"></div><div class="btnrow"><button id="save-review" class="btn primary">回答を保存して前後を比較 ▶</button></div></div><div class="panel"><h3>ゲームで発見したこと</h3><div class="stage"><b>努力量 ≠ 技能 ≠ 成功</b>努力が積み重なっても、技能の伸び方はさまざま。技能が伸びても、成功には環境や偶然が関わります。</div><p class="small space">10年ルールは、長期的な熟達に関する研究から生まれた経験則です。練習の質、個人差、環境を考慮する必要があります。</p><div class="notice">ゲームの数値は仮想モデルです。現実の人間を評価したり、努力不足を判定したりするものではありません。</div></div></div>
+<div id="review-saved" class="panel goldedge space hidden"><h3>開始前とゲーム後の判断</h3><div class="grid halves"><div class="notice"><b>ゲーム開始前</b><p id="before-answer"></p><p id="before-rating"></p></div><div class="notice"><b>ゲーム終了後</b><p id="after-answer"></p><p id="after-rating"></p></div></div><div class="stage space"><b id="change-head"></b><span id="change-msg"></span></div><div class="btnrow"><button id="summary-csv" class="btn primary" type="button">回答・結果CSV</button><button id="full-json" class="btn" type="button">全記録JSON</button><button id="reset-all" class="btn ghost" type="button">最初からやり直す</button></div></div></section>
+
+
+<section id="page-tips" class="screen" aria-labelledby="tips-title">
+ <div class="label">TRAINING WISDOM / 10の修行のヒント</div><h2 id="tips-title">努力が続く仕組みを、つくろう。</h2>
+ <p class="lead">成功の保証はありません。それでも、<strong>次の練習につながる行動</strong>は設計できます。ピアノ・語学・スポーツ・勉強で使える、具体的な10の工夫です。</p>
+ <div class="grid halves">
+  <div class="panel goldedge"><div class="label">INTERACTIVE / 1回休むと？</div><h3>練習の回数と「空白日数」</h3>
+    <p class="small">同じ週60分の練習でも、何回に分けるかで予定が変わります。2週目の最初の練習を1回だけ休んだ場合を比べます。</p>
+    <div class="row space"><label for="tip-frequency" class="fieldlabel">週の練習予定</label><select id="tip-frequency" class="select short-select"><option value="1">週1回 × 60分</option><option value="2" selected>週2回 × 30分</option><option value="3">週3回 × 20分</option></select></div>
+    <div class="gap-stats"><div class="gap-stat"><span>通常の最長間隔</span><strong id="gap-usual">—</strong></div><div class="gap-stat"><span>1回休んだ場合</span><strong id="gap-miss">—</strong></div></div>
+    <div class="week-grid" id="week-grid" role="img" aria-label="4週間の練習予定と欠席した1回を示すカレンダー"></div>
+    <div class="week-legend"><span><i class="dot practice"></i>練習した</span><span><i class="dot missed"></i>1回休んだ</span><span><i class="dot free"></i>練習予定なし</span></div>
+    <div id="gap-insight" class="tip-summary" role="status"></div><button type="button" class="btn goldbtn" id="apply-frequency">この回数で10年間の修行を試す ▶</button>
+    <p class="tiny">これは曜日間隔の算数です。「14日空くと能力が何%低下する」とは計算していません。病気や回復に必要な休息を否定するものでもありません。</p>
+  </div>
+  <div class="panel"><div class="label">PRACTICE PLAN / 最初の2週間</div><h3>自分の練習計画をつくる</h3>
+    <p class="small">例：毎週 火・金の19時に30分、ピアノの右手4小節を練習する。予定が崩れた日は翌日に10分だけ再開する。</p>
+    <label class="fieldlabel" for="personal-plan">いつ・何を・何分するか（自由記述）</label>
+    <textarea id="personal-plan" maxlength="600" placeholder="例：火曜19時と金曜19時に30分ずつ。4小節をゆっくり弾き、練習ノートにできたことと次の課題を1行書く。"></textarea>
+    <div class="btnrow"><button class="btn primary" type="button" id="save-personal-plan">計画を保存する</button><button class="btn" type="button" id="tips-csv">ヒントと計画をCSV出力</button></div><div class="tiny" role="status" id="tips-save-status">記録はこのブラウザだけに保存されます。</div>
+    <div class="notice space"><b>続けやすさを優先</b>：最初の2週間は週2回×15〜30分から試し、できた割合を見て調整する方法を提案します。練習回数は固定の正解ではありません。</div>
+  </div>
+ </div>
+ <div class="panel space"><div class="label">REAL PRACTICE / 自分の練習ノート</div><h3>練習を1行で記録する</h3>
+ <p class="small">これはゲームの仮想技能ではなく、あなた自身の実際の練習記録です。成長につながった経験を残しましょう。</p>
+ <div class="note-fields"><label class="fieldlabel">日付<input class="note-input" id="note-date" type="date"></label><label class="fieldlabel">練習時間（分）<input class="note-input" id="note-minutes" type="number" min="0" max="600" step="5" value="30"></label></div>
+ <label class="fieldlabel">今日できたこと<input id="note-success" class="note-input" maxlength="150" placeholder="例：右手4小節を止まらず弾けた"></label>
+ <label class="fieldlabel">次に試す一手<input id="note-next" class="note-input" maxlength="150" placeholder="例：次回はテンポを少しだけ上げる"></label>
+ <div class="btnrow"><button class="btn primary" id="add-practice-note" type="button">この練習を記録</button><button class="btn" id="notes-csv" type="button">練習ノートCSV</button></div>
+ <p id="note-status" class="tiny" role="status"></p><div class="note-list" id="note-list" aria-label="最近の練習記録"></div>
+ </div>
+ <div class="row tips-head space"><div><div class="label">TEN LESSONS</div><h3>小さな工夫を10個集めよう</h3></div><div class="chip" id="tips-count">0 / 10 選択中</div></div>
+ <div class="tips-grid" id="tips-cards" aria-label="修行を続けるための10個のアドバイス"></div>
+ <div class="panel space"><h3>研究から分かること・分からないこと</h3><p class="small">学習の<strong>分散</strong>、いつ行動するかを先に決める<strong>実行意図</strong>、進捗の<strong>記録</strong>については研究の裏付けがあります。一方「週2回が最低条件」「30分が最適」といった普遍的な回数・時間は確認されていません。ここで示す曜日や分数は、学生が試せる<strong>具体的な設計例</strong>です。</p><div class="btnrow"><button type="button" class="btn ghost" data-goto="guide">原著研究を確かめる ↗</button><button type="button" class="btn" data-goto="quest">10年間の修行に戻る ↩</button></div></div>
+</section>
+
+<section id="page-guide" class="screen" aria-labelledby="guide-title"><div class="label">ACADEMIC NOTES / 根拠と限界</div><h2 id="guide-title">10年修行の法則を、どう理解する？</h2><p class="lead">ゲーム内の「10年」と「技能指数」を研究上の事実と混同しないための解説です。心理学を初めて学ぶ学生にも理解できるよう整理しています。</p>
+<div class="grid halves"><div class="panel"><h3>研究から言えること</h3><p><b class="gold">① 長い練習は大切。</b> 世界水準の熟達には多くの領域で長期にわたる集中的な練習が関わっています。</p><p><b class="gold">② 練習の方法も大切。</b> 達成したい課題を明確にして改善する「意図的練習」が熟達化研究で注目されています。</p><p><b class="gold">③ それでも、練習時間だけでは決まらない。</b> 追試では、上位のバイオリン奏者同士の違いを累積練習時間だけで説明できませんでした。</p><p><b class="gold">④ 成長は一定の倍率ではない。</b> 最初は伸びやすく、次第に改善が緩やかになる形もあります。個人差や練習方略の変更による変化もあります。</p></div><div class="panel"><h3>このゲームで仮定したこと</h3><p>● 技能指数：0〜100の仮想的な指標です。</p><p>● 成長曲線：技能が高くなるほど伸びにくい設定を置いています。</p><p>● 方針による違い：目標練習や振り返りで上達効率が変わると仮定しています。係数は研究の効果量ではありません。</p><p>● 偶然：練習を妨げる出来事、支援機会、最終試練の運を乱数で表現しています。</p><p>● 10年の節目：10年目に誰もが熟達する閾値を設定していません。</p><div class="warn">ここでのシミュレーションは心理学の概念を理解するための教材です。未来予測モデルや心理検査ではありません。</div></div></div>
+<div class="panel refs space"><h3>研究をさらに調べる（原著論文）</h3><ol><li>Ericsson, Krampe, & Tesch-Römer（1993）. <i>The Role of Deliberate Practice in the Acquisition of Expert Performance.</i> 長期的な意図的練習と熟達化の関係。<a href="https://doi.org/10.1037/0033-295X.100.3.363" target="_blank" rel="noopener noreferrer">DOIで読む</a></li><li>Macnamara & Maitra（2019）. <i>The Role of Deliberate Practice in Expert Performance: Revisiting Ericsson et al. (1993).</i> バイオリン奏者を対象とした追試。<a href="https://doi.org/10.1098/rsos.190327" target="_blank" rel="noopener noreferrer">オープンアクセス</a></li><li>Heathcote, Brown, & Mewhort（2000）. <i>The Power Law Repealed: The Case for an Exponential Law of Practice.</i> 個人の学習曲線は単一の法則で簡単に説明できないことを検討。<a href="https://doi.org/10.3758/BF03212979" target="_blank" rel="noopener noreferrer">DOIで読む</a></li><li>Cepeda et al.（2006）. <i>Distributed Practice in Verbal Recall Tasks.</i> 学習間隔が記憶保持に及ぼす影響のレビュー。<a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener noreferrer">DOIで読む</a></li></ol><div class="notice"><b>授業の問い</b>：「10年間努力して成功した人」と「10年間努力して成功しなかった人」がいたとき、何が同じで、何が違うのでしょうか？</div></div>
+<div class="panel space refs"><h3>10の練習ヒントに関係する研究</h3><ol>
+<li><a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda et al. (2006)</a>：学習を分ける間隔と保持成績の関係（分散学習）。</li>
+<li><a href="https://doi.org/10.1016/S0065-2601(06)38002-1" target="_blank" rel="noopener">Gollwitzer &amp; Sheeran (2006)</a>：「いつ・どこで・何をする」の行動計画（実行意図）。</li>
+<li><a href="https://doi.org/10.1037/bul0000025" target="_blank" rel="noopener">Harkin et al. (2016)</a>：進捗を記録・確認する介入と目標達成。</li>
+<li><a href="https://doi.org/10.1177/1529100612453266" target="_blank" rel="noopener">Dunlosky et al. (2013)</a>：想起練習・分散学習などの学習方略レビュー。</li>
+<li><a href="https://doi.org/10.1037/0003-066X.57.9.705" target="_blank" rel="noopener">Locke &amp; Latham (2002)</a>：目標の具体性、難易度、フィードバックに関する目標設定理論。</li>
+</ol><p class="tiny">参考文献は考え方の裏付けです。ゲームの「週1・週2・週3」の技能補正値は研究の推定効果量ではありません。</p></div>
+</section>
+<footer class="footer">GROWTH QUEST — 努力は、たまに報われる。 <span class="gold">Ver.0.7.1 / MODERN RPG COMPLETE</span><br>保存はこの端末のブラウザ内のみ。データは外部へ送信しません。数字は心理学研究から直接推定したものではありません。</footer>
+</main>
+<script>
+(()=>{
+'use strict';
+const VERSION='0.7.1', STORAGE='gq_expertise_071', NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const all=(q)=>Array.from(document.querySelectorAll(q));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt=v=>Math.round(v).toLocaleString('ja-JP');
+const answers={A:'努力を続ければ、いつか必ず成功する',B:'成功は、ほとんど運で決まる',C:'努力は成功の可能性を変えるが、結果は保証されない'};
+const people={kai:{name:'カイ',init:22,time:1.0,aptitude:1,opportunity:1,desc:'練習時間を確保しやすい。初期技能はまだ低い。'},rina:{name:'リナ',init:18,time:.73,aptitude:1.03,opportunity:.85,desc:'家族の世話で練習の時間が限られる。学ぶ意欲は強い。'},sora:{name:'ソラ',init:36,time:1,aptitude:1.02,opportunity:1.16,desc:'経験と助言に恵まれた高い初期技能を持つ。'}};
+const methods={repeat:{name:'同じ練習を繰り返す',eff:.88,note:'量は積み上がるが、方法を変えないため伸びが鈍るという仮定です。'},purpose:{name:'目標を決めて練習',eff:1.12,note:'課題を絞り、達成度を確認するため、効率が高まるという仮定です。'},reflect:{name:'振り返って方法を変える',eff:1.22,note:'失敗を検討して練習方法を調整し、上達効率が改善するという仮定です。'},balance:{name:'休息と練習を調整する',eff:1.04,note:'疲労を抑えて継続しやすくするという仮定です。練習時間自体は同じに揃えます。'}};
+const environments={standard:{name:'標準的な環境',time:1,learning:1,opportunity:1},supported:{name:'支援のある環境',time:1.08,learning:1.1,opportunity:1.15},limited:{name:'制約の多い環境',time:.85,learning:.9,opportunity:.82}};
+const colors=['#7ef2c4','#fad47a','#7cc4ff','#b69cff','#ff9aa2'];
+function fresh(){return {version:VERSION,participantId:'GQ-'+Math.random().toString(36).slice(2,9).toUpperCase(),page:'story',before:null,after:null,hero:'kai',policy:'reflect',weekly:1,frequency:2,tipDemoFrequency:2,savedTips:[],personalPlan:'',practiceNotes:[],environment:'standard',speed:'normal',seed:null,month:0,run:null,lab:null,labMode:'method'}}
+let state=fresh(),timer=null;
+function restore(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem('gq_expertise_07')||localStorage.getItem('gq_expertise_06')||localStorage.getItem('gq_expertise_04')||'null');
+    if(raw && typeof raw==='object'){
+      const def=fresh();
+      state={...def,...raw,version:VERSION};
+      state.participantId=typeof state.participantId==='string'&&state.participantId.startsWith('GQ-')?state.participantId:def.participantId;
+      if(!people[state.hero])state.hero='kai';
+      if(!methods[state.policy])state.policy='reflect';
+      if(!environments[state.environment])state.environment='standard';
+      state.weekly=clamp(Number(state.weekly)||0,0,20);
+      state.month=clamp(Number(state.month)||0,0,120);
+      state.frequency=[1,2,3].includes(Number(state.frequency))?Number(state.frequency):2;
+      state.savedTips=Array.isArray(state.savedTips)?state.savedTips.filter(x=>Number.isInteger(x)&&x>=0&&x<10):[];
+      state.practiceNotes=Array.isArray(state.practiceNotes)?state.practiceNotes.slice(-100):[];
+      if(state.run&&(!Array.isArray(state.run.path)||state.run.path.length!==121)) {state.run=null;state.month=0;}
+      if(!['story','quest','lab','review','tips','guide'].includes(state.page))state.page='story';
+      if(!state.before)state.page='story';
+    }
+  }catch(e){console.warn('過去の保存内容を復元できませんでした。',e)}
+}
+function save(){try{localStorage.setItem(STORAGE,JSON.stringify(state))}catch(e){console.warn('保存できませんでした（ブラウザの設定を確認してください）。',e)}}
+function selectPage(page){if(state.page==='tips' && $('personal-plan')){state.personalPlan=$('personal-plan').value.trim()}if(!['story','quest','lab','review','tips','guide'].includes(page))return;state.page=page;all('.screen').forEach(el=>el.classList.toggle('active',el.id==='page-'+page));all('.nav [data-page]').forEach(b=>{if(b.dataset.page===page)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});save();window.scrollTo({top:0,behavior:'auto'});if(page==='quest')renderQuest();if(page==='lab')renderLab();if(page==='review')renderReview();if(page==='tips')renderTips();}
+all('[data-page]').forEach(x=>x.addEventListener('click',()=>selectPage(x.dataset.page)));
+all('[data-goto]').forEach(x=>x.addEventListener('click',()=>selectPage(x.dataset.goto)));
+function seedRand(seed){let s=(seed>>>0);return ()=>{s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t^=t+Math.imul(t^(t>>>7),61|t);return ((t^(t>>>14))>>>0)/4294967296}}
+function trial(config,seed){
+ const p=people[config.hero], e=environments[config.environment], m=methods[config.policy], rng=seedRand(seed);
+ const initVar=(rng()-.5)*6,aptitude=.84+.34*rng();let skill=clamp(p.init+initVar,1,98),energy=84,effort=0,active=0;
+ const first=skill, path=[{month:0,skill,effort,energy,active,gain:0,monthly:0,event:'春の始まり',detail:'十年の修行が始まる。'}];
+ let recent='';
+ for(let month=1;month<=120;month++){
+  const eventRoll=rng(),eventPower=rng(),learnRoll=rng(),otherRoll=rng();
+  let event='いつもの練習',detail='一日一日の経験を積み重ねた。',timeFactor=1,qualityFactor=1,energyMove=0;
+  if(eventRoll<.105){event='予定外の出来事',detail='身の回りの事情で、練習時間を取りにくかった。',timeFactor=.42,qualityFactor=.91,energyMove=-4}
+  else if(eventRoll<.17){event='助言をもらった',detail='ヒントが見つかり、次の課題が少し見えた。',qualityFactor=1.16,energyMove=2}
+  else if(eventRoll<.25){event='疲れが残った',detail='集中できない日が続いた。休むことも判断の一つ。',qualityFactor=.88,energyMove=-5}
+  else if(eventRoll<.32){event='小さな発見',detail='今まで苦手だった動きの意味が分かった。',qualityFactor=1.12,energyMove=2}
+  const actual= Math.max(0,config.weekly*4.33*p.time*e.time*timeFactor); effort+=actual;
+  if(actual>.5)active++;
+  const strain=Math.max(0,config.weekly-8)*(config.policy==='balance'?.9:1.65);
+  energy=clamp(energy+2.2-(actual>1?strain*.45:0)+energyMove+(config.policy==='balance'?2.6:0)-(eventPower-.5)*2,26,100);
+  const fatigue=clamp(.67+energy/260,.76,1.05);
+  const innovation=config.policy==='reflect'?Math.min(1.11,1+month/1500):1;
+  const learning= .172*Math.sqrt(actual)*m.eff*p.aptitude*aptitude*e.learning*fatigue*qualityFactor*innovation*(.89+.22*learnRoll);
+  const spacingFactor=({1:.96,2:1,3:1.025})[config.frequency||2]; // 仮想係数。研究で確定した頻度効果ではない。
+  const diminishing=Math.pow(clamp((105-skill)/105,.015,1),1.12);
+  let inc=learning*diminishing*spacingFactor;
+  if(actual<.5){inc-=skill*.0012; if(skill<=0)inc=0}
+  else if(actual<5)inc-=skill*.00022;
+  skill=clamp(skill+inc,0,99.8);
+  if(month%12===0){if(month/12===1)recent='1年目：続けることで、小さな技能の変化が見え始める。';else if(month/12===3)recent='3年目：練習時間は積み上がるが、伸び方は一定ではない。';else if(month/12===5)recent='5年目：停滞は失敗とは限らない。方法を考える時期。';else if(month/12===10)recent='10年目：長く続けた。それでも、結果はまだ確定しない。';else recent=`${month/12}年目：積み重ねた時間と技能を見比べてみよう。`}
+  path.push({month,skill,effort,energy,active,gain:skill-first,monthly:actual,event:month%12===0?'年の節目：'+(month/12)+'年':event,detail:month%12===0?recent:detail});
+ }
+ const chance=clamp((.032+.70/(1+Math.exp(-(skill-63)/11))*p.opportunity*e.opportunity),.015,.86);
+ const gateRoll=rng();
+ return {seed,initial:first,path,skill,effort,active,chance,gateRoll,success:gateRoll<chance};
+}
+function settings(){return {hero:state.hero,policy:state.policy,environment:state.environment,weekly:state.weekly,frequency:state.frequency}}
+function newSeed(){return ((Date.now()&0x7fffffff) ^ Math.floor(Math.random()*2**31))>>>0}
+function buildRun(seed){state.seed=seed;state.run=trial(settings(),seed);state.month=0;state.lab=null;state.after=null;save();renderQuest()}
+function stop(){if(timer!==null){clearInterval(timer);timer=null}updateButtons()}
+function tick(){if(!state.run)return;state.month=Math.min(120,state.month+1);if(state.month%10===0||state.month===120)save();renderQuest();if(state.month>=120){stop();save()}}
+function ensureBefore(){if(state.before)return true;selectPage('story');$('story-error').textContent='ゲームを始める前に、まず最初の判断を記録してください。';return false}
+function begin(){if(!ensureBefore())return;if(!state.run||state.month===120)buildRun(newSeed());stop();if(state.month>=120){renderQuest();return}const delays={slow:210,normal:82,fast:24};timer=setInterval(tick,delays[state.speed]||82);updateButtons()}
+function updateButtons(){const done=state.month>=120,active=timer!==null;$('run').textContent=active?'▶ 進行中':done?'▶ 別の10年を試す':state.month>0?'▶ 続きから自動進行':'▶ 10年を自動で進める';$('run').disabled=active;$('pause').disabled=!active;$('pause').textContent='⏸ 一時停止';$('skip').disabled=done;all('.char,#policy,#hours,#practice-frequency,#setting-env').forEach(el=>el.disabled=active)}
+function editConfig(fn){stop();fn();state.run=null;state.month=0;state.lab=null;state.after=null;save();renderQuest()}
+all('[data-hero]').forEach(btn=>btn.addEventListener('click',()=>editConfig(()=>state.hero=btn.dataset.hero)));
+$('policy').addEventListener('change',ev=>editConfig(()=>state.policy=ev.target.value));
+$('hours').addEventListener('input',ev=>editConfig(()=>state.weekly=clamp(Number(ev.target.value),0,20)));
+$('setting-env').addEventListener('change',ev=>editConfig(()=>state.environment=ev.target.value));
+$('practice-frequency').addEventListener('change',ev=>editConfig(()=>state.frequency=Number(ev.target.value)));
+$('speed').addEventListener('change',ev=>{state.speed=ev.target.value;save();if(timer!==null){stop();begin()}});
+$('run').addEventListener('click',begin);$('pause').addEventListener('click',()=>{stop();save()});
+$('skip').addEventListener('click',()=>{if(!ensureBefore())return;stop();if(!state.run)buildRun(newSeed());state.month=120;save();renderQuest()});
+$('reroll').addEventListener('click',()=>{if(!ensureBefore())return;stop();buildRun(newSeed());begin()});
+function node(name,props={},text=''){const n=document.createElementNS(NS,name);for(const [k,v] of Object.entries(props))n.setAttribute(k,String(v));if(text)n.textContent=text;return n}
+function axisSvg(id,series,maxY=100,label='技能指数',w=740,h=262){const svg=$(id);svg.replaceChildren();svg.setAttribute('viewBox',`0 0 ${w} ${h}`);const L=45,R=15,T=13,B=33,plotW=w-L-R,plotH=h-T-B;
+ const x=v=>L+plotW*(v/120), y=v=>T+plotH*(1-clamp(v/maxY,0,1));
+ for(let k=0;k<=4;k++){const v=maxY*k/4;svg.append(node('line',{x1:L,y1:y(v),x2:w-R,y2:y(v),stroke:'#43546e','stroke-width':1}));svg.append(node('text',{x:L-8,y:y(v)+4,'text-anchor':'end',fill:'#b9c8d0','font-size':11},Math.round(v).toString()))}
+ for(let yr=0;yr<=10;yr+=2){svg.append(node('text',{x:x(yr*12),y:h-9,'text-anchor':'middle',fill:'#b7c8d2','font-size':11},`${yr}年`))}
+ if(series.length===1){const pts=series[0].values.map((v,i)=>`${x(i).toFixed(2)},${y(v).toFixed(2)}`).join(' ');const base=`${x(series[0].values.length-1)},${y(0)} ${x(0)},${y(0)}`;svg.append(node('polygon',{points:pts+' '+base,fill:'#2d8165','fill-opacity':'.19'}))}
+ series.forEach((s,j)=>{const pts=s.values.map((v,i)=>`${x(i).toFixed(2)},${y(v).toFixed(2)}`).join(' ');svg.append(node('polyline',{points:pts,fill:'none',stroke:s.color||colors[j], 'stroke-width':s.stroke||3.5,'stroke-linejoin':'round','stroke-linecap':'square'}));if(series.length===1){const idx=Math.min(state.month,s.values.length-1);svg.append(node('circle',{cx:x(idx),cy:y(s.values[idx]),r:5,fill:'#ffe08c',stroke:'#162437','stroke-width':2}))}});
+ svg.append(node('text',{x:L,y:10,fill:'#d2e0e8','font-size':11},label));}
+function renderMilestones(){const box=$('milestone-box');box.replaceChildren();for(const yr of [1,3,5,10]){const el=document.createElement('div');const pt=state.run&&state.month>=yr*12?state.run.path[yr*12]:null;const label=document.createElement('small');label.textContent=yr+'年目';const b=document.createElement('b');b.textContent=pt?pt.skill.toFixed(1):'--';el.append(label,b);box.appendChild(el)}}
+function renderQuest(){all('[data-hero]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.hero===state.hero)));$('hero-info').textContent=people[state.hero].desc;$('policy').value=state.policy;$('policy-info').textContent=methods[state.policy].note;$('setting-env').value=state.environment;$('hours').value=state.weekly;$('hours-value').textContent=state.weekly+'時間';$('practice-frequency').value=String(state.frequency);const mins=Math.round(state.weekly*60/state.frequency);$('frequency-mini').textContent=`週${state.frequency}回なら1回約${mins}分（週の合計${state.weekly}時間）。1回欠席すると最大${scheduleFor(state.frequency).after}日空く例があります。`;$('speed').value=state.speed;
+ const m=state.month,pt=state.run?state.run.path[m]:null,initial=state.run?state.run.initial:people[state.hero].init;
+ $('progress-fill').style.width=(m/120*100)+'%';$('progress').setAttribute('aria-valuenow',String(m));$('progress-label').textContent=`${m} / 120か月`;
+ const track=$('year-track');track.replaceChildren();for(let k=1;k<=10;k++){let el=document.createElement('div');el.className='yr'+(m>=k*12?' done':m>(k-1)*12?' current':'');el.textContent=k+'年';track.appendChild(el)}
+ $('stat-hours').textContent=fmt(pt?pt.effort:0)+'h';$('stat-skill').textContent=(pt?pt.skill:initial).toFixed(1);$('stat-gain').textContent=pt?(pt.gain>=0?'+':'')+pt.gain.toFixed(1):'±0';$('stat-active').textContent=pt?String(pt.active):'0';$('art-year').textContent=`YEAR ${String(Math.ceil(m/12)).padStart(2,'0')} / 10`;
+ const event=pt&&m>0?pt:null;$('event-title').textContent=event?event.event:'旅の始まり';$('event-story').textContent=event?event.detail:'修行の方法を選んでから開始してください。';$('art-message').textContent=m===0?'▼ 10年間の修行を始めよう':m===120?'▼ 明日の門は、誰に開く？':'▼ '+(event?event.event:'修行中');
+ let vals=Array.from({length:m+1},(_,i)=>state.run?state.run.path[i].skill:initial);axisSvg('skill-chart',[{values:vals,color:'#91f4c1'}]);const hourVals=Array.from({length:m+1},(_,i)=>state.run?state.run.path[i].effort:0);const maxHour=Math.max(500,Math.ceil((state.run?.effort||state.weekly*4.33*120*people[state.hero].time*environments[state.environment].time)/1000)*1000);axisSvg('hours-chart',[{values:hourVals,color:'#ffe08c'}],maxHour,'累積努力時間 (h)',740,185);renderMilestones();drawPixelScene('journey-art',m,state.hero);renderYearTip();updateButtons();
+ $('quest-result').classList.toggle('hidden',!(state.run&&m===120));if(state.run&&m===120){let r=state.run;$('gate-title').textContent=people[state.hero].name+'、10年後の明日の門';$('gate-word').textContent=r.success?'門は、開いた。':'今回は、門が開かなかった。';$('gate-text').textContent=r.success?'長く続けた努力が、今回の試練では結果につながった。ただし、同じ技能でも別の結果になった可能性がある。':'ここまでに身につけた技能は、今回の成功・失敗とは別に残っている。同じ条件でも次は結果が変わる可能性がある。';$('final-skill').textContent=r.skill.toFixed(1);$('final-hours').textContent=fmt(r.effort)+'h';$('final-prob').textContent=(100*r.chance).toFixed(1)+'%'}}
+function makeLabConditions(){if(state.labMode==='frequency'){return [1,2,3].map((f,i)=>({label:`週${f}回`,color:colors[i],cfg:{...settings(),frequency:f}}))}if(state.labMode==='amount'){return [0,3,6,12,18].map((h,i)=>({label:h+'時間/週',color:colors[i],cfg:{...settings(),weekly:h}}))}return Object.keys(methods).map((k,i)=>({label:methods[k].name,color:colors[i],cfg:{...settings(),policy:k}}))}
+function labExecute(){const cases=makeLabConditions(),rows=[],seedBase=state.seed||170101;for(const c of cases){let totalSkill=0,totalHours=0,success=0,means=Array.from({length:121},()=>0),sim=[];
+ for(let n=0;n<100;n++){const seed=(seedBase+n*7919+101)>>>0;const t=trial(c.cfg,seed);totalSkill+=t.skill;totalHours+=t.effort;success+=t.success?1:0;for(let i=0;i<=120;i++)means[i]+=t.path[i].skill;sim.push({index:n+1,seed,skill:t.skill,effort:t.effort,chance:t.chance,success:t.success})}
+ rows.push({label:c.label,color:c.color,avgSkill:totalSkill/100,avgHours:totalHours/100,success,means:means.map(x=>x/100),sim})}
+ state.lab={mode:state.labMode,rows,seedBase,config:settings()};save();renderLab()}
+$('lab-run').addEventListener('click',labExecute);$('lab-mode').addEventListener('change',e=>{state.labMode=e.target.value;state.lab=null;save();renderLab()});
+function renderLab(){if($('lab-mode').value!==state.labMode)$('lab-mode').value=state.labMode;const lab=state.lab;$('lab-csv').disabled=!lab;const table=$('lab-table');table.replaceChildren();$('lab-legend').replaceChildren();if(!lab){$('lab-summary').textContent='「100回ずつ自動比較」を押すと、努力時間・技能・成功回数を比較できます。';$('lab-insight').textContent='モデル内で同じ偶然を使って比較します。シミュレーションの結論が、現実の法則になるわけではありません。';table.innerHTML='<tr><td colspan="4">まだ比較していません。</td></tr>';axisSvg('lab-chart',[{values:Array(121).fill(0),color:'#465574'}]);return}
+ const avg=lab.rows;axisSvg('lab-chart',avg.map(r=>({values:r.means,color:r.color})),100,'100回の平均技能指数');avg.forEach(row=>{let tr=document.createElement('tr');[row.label,fmt(row.avgHours),row.avgSkill.toFixed(1),`${row.success}/100回`].forEach(t=>{let cell=document.createElement('td');cell.textContent=t;tr.appendChild(cell)});table.appendChild(tr);let tag=document.createElement('span');tag.innerHTML=`<span class="square" style="background:${row.color}"></span>`;tag.appendChild(document.createTextNode(row.label));$('lab-legend').appendChild(tag)});
+ const best=avg.reduce((a,b)=>a.avgSkill>b.avgSkill?a:b);const low=avg.reduce((a,b)=>a.avgSkill<b.avgSkill?a:b);
+ $('lab-summary').textContent=`今回の仮想モデルでは、平均技能が最大の条件は「${best.label}」（${best.avgSkill.toFixed(1)}点）でした。`;let text=lab.mode==='method'?'練習時間をほぼ同じにしても、練習方法の効率を変えると平均技能は変わります。これは各方法に設定した係数の結果です。':lab.mode==='frequency'?'週の合計練習時間は揃え、頻度だけで上達係数が少し変わる仮想モデルです。週1回=0.96、週2回=1.00、週3回=1.025という値は研究の測定値ではありません。':'練習時間を増やすと平均技能が伸びる設定ですが、上達の幅は次第に小さくなります。時間を増やすだけでは成功を保証しません。';text+=` 最大と最小の平均技能差は${(best.avgSkill-low.avgSkill).toFixed(1)}点（モデル上）。`;$('lab-insight').textContent=text;}
+function csvEscape(s){let str=String(s??'');if(/^[\t\r\n ]*[=+@]/.test(str))str="'"+str;return /[",\r\n]/.test(str)?'"'+str.replace(/"/g,'""')+'"':str}
+function download(name,content,mime='text/plain;charset=utf-8'){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+function csv(rows){return '\ufeff'+rows.map(r=>r.map(csvEscape).join(',')).join('\r\n')}
+$('year-csv').addEventListener('click',()=>{if(!state.run)return;const r=[['version','seed','year','skill_index','cumulative_effort_hours','active_months','monthly_gain']];for(let yr=0;yr<=10;yr++){const p=state.run.path[yr*12];r.push([VERSION,state.seed,yr,p.skill.toFixed(3),p.effort.toFixed(2),p.active,p.gain.toFixed(3)])}download('GROWTH_QUEST_10year.csv',csv(r),'text/csv;charset=utf-8')});
+$('lab-csv').addEventListener('click',()=>{if(!state.lab)return;const rows=[['version','comparison','condition','frequency_per_week','run','seed','skill_index','practice_hours','gate_probability','success']];state.lab.rows.forEach(group=>group.sim.forEach(x=>rows.push([VERSION,state.lab.mode,group.label,group.label.startsWith('週')?group.label:'',x.index,x.seed,x.skill.toFixed(3),x.effort.toFixed(2),x.chance.toFixed(4),x.success?1:0])));download('GROWTH_QUEST_100worlds.csv',csv(rows),'text/csv;charset=utf-8')});
+function updateReviewControls(){all('input[name="after"]').forEach(el=>el.checked=!!state.after&&el.value===state.after.answer);if(state.after){$('after-scale').value=state.after.scale;$('reason').value=state.after.reason||''}}
+function renderReview(){updateReviewControls();$('review-saved').classList.toggle('hidden',!state.after);if(!state.after)return;const a=state.before,b=state.after;$('before-answer').textContent=a?answers[a.answer]:'未記録';$('after-answer').textContent=answers[b.answer];$('before-rating').textContent=a?`努力の影響：${a.scale}/100`:'—';$('after-rating').textContent=`努力の影響：${b.scale}/100`;const diff=a?b.scale-a.scale:0;$('change-head').textContent=a&&a.answer===b.answer?'選択肢は同じでした':'選択肢が変わりました';$('change-msg').textContent=`主観的な影響評価は${diff>=0?'+':''}${diff}ポイント。変化の有無ではなく、理由を考えることが大切です。`}
+$('save-review').addEventListener('click',()=>{if(!state.run||state.month!==120||!state.before){$('review-error').textContent='まず物語の回答を記録し、10年間の修行を完了してください。';return}const answer=document.querySelector('input[name="after"]:checked')?.value;if(!answer){$('review-error').textContent='いずれかの選択肢を選んでください。';return}state.after={answer,scale:Number($('after-scale').value),reason:$('reason').value.trim(),time:new Date().toISOString()};$('review-error').textContent='';save();renderReview();$('review-saved').scrollIntoView({behavior:'smooth',block:'start'})});
+$('summary-csv').addEventListener('click',()=>{const r=state.run;const rows=[['participant_id','version','before_answer','before_scale','after_answer','after_scale','hero','method','weekly_goal_hours','sessions_per_week','environment','seed','actual_practice_hours','final_skill','gate_probability','gate_success','free_response'],[state.participantId,VERSION,state.before?.answer||'',state.before?.scale??'',state.after?.answer||'',state.after?.scale??'',state.hero,state.policy,state.weekly,state.frequency,state.environment,state.seed??'',r?r.effort.toFixed(2):'',r?r.skill.toFixed(3):'',r?r.chance.toFixed(4):'',r?(r.success?1:0):'',state.after?.reason||'']];download('GROWTH_QUEST_reflection.csv',csv(rows),'text/csv;charset=utf-8')});
+$('full-json').addEventListener('click',()=>{download('GROWTH_QUEST_fullrecord.json',JSON.stringify({...state,model_notice:'Synthetic educational model. These numeric coefficients are not empirical effect sizes.'},null,2),'application/json;charset=utf-8')});
+$('reset-all').addEventListener('click',()=>{if(!confirm('回答と修行の記録を消して、最初から始めますか？　必要なら先にCSVを保存してください。'))return;stop();state=fresh();save();syncStory();updateReviewControls();renderQuest();renderLab();renderReview();selectPage('story')});
+$('go-review').addEventListener('click',()=>selectPage('review'));
+$('go-lab').addEventListener('click',()=>{selectPage('lab');if(!state.lab)labExecute()});
+function syncStory(){all('input[name="before"]').forEach(el=>{el.checked=!!state.before&&el.value===state.before.answer;el.disabled=!!state.before});$('before-saved-note').classList.toggle('hidden',!state.before);$('start-story').textContent=state.before?'記録済みの回答で修行へ ▶':'回答を記録して、10年後へ ▶';$('before-scale').disabled=!!state.before;$('before-scale').value=state.before?.scale??50;$('before-scale-value').textContent=$('before-scale').value+' / 100';$('after-scale').value=state.after?.scale??50;$('after-scale-value').textContent=$('after-scale').value+' / 100'}
+$('before-scale').addEventListener('input',e=>$('before-scale-value').textContent=e.target.value+' / 100');$('after-scale').addEventListener('input',e=>$('after-scale-value').textContent=e.target.value+' / 100');
+$('start-story').addEventListener('click',()=>{const answer=document.querySelector('input[name="before"]:checked')?.value;if(!answer){$('story-error').textContent='はじめの考えを1つ選んでください。';return}if(!state.before)state.before={answer,scale:Number($('before-scale').value),time:new Date().toISOString()};$('story-error').textContent='';syncStory();save();selectPage('quest')});
+function drawAvatar(canvas){const g=canvas.getContext('2d',{alpha:true});if(!g)return;g.clearRect(0,0,24,32);g.imageSmoothingEnabled=false;
+ const id=canvas.dataset.sprite,coat=id==='rina'?'#df895c':id==='sora'?'#a58ae8':'#62c9ad',hair=id==='rina'?'#8c4e42':id==='sora'?'#e2dfc5':'#6c4b32';
+ const px=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
+ px(5,30,14,2,'#0a0a13');px(7,0,10,3,hair);px(5,3,14,4,hair);px(7,7,10,8,'#ffca9b');px(5,8,2,4,hair);px(17,8,2,4,hair);
+ px(9,10,2,2,'#182233');px(15,10,2,2,'#182233');px(10,14,5,1,'#cf856e');px(6,15,12,11,coat);px(3,17,3,8,'#ffca9b');px(18,17,3,8,'#ffca9b');px(9,16,5,7,'#f0dfad');
+ px(7,26,4,5,'#394154');px(14,26,4,5,'#394154');px(6,30,6,2,'#222539');px(13,30,6,2,'#222539');
+ if(id==='sora'){px(4,15,2,15,'#d7ba67');px(2,22,5,4,'#d7ba67')}if(id==='kai'){px(5,3,14,2,'#c5ad67');px(6,0,12,3,'#e3c885')}if(id==='rina'){px(17,5,3,16,hair)}
+}
+function drawPixelScene(canvasId,month=0,hero='kai'){
+ const c=$(canvasId);if(!c)return;
+ const g=c.getContext('2d',{alpha:false});if(!g)return;
+ g.imageSmoothingEnabled=false;
+ const W=c.width,H=c.height,t=clamp(month/120,0,1),season=Math.floor(month/3)%4;
+ const palettes=[
+  {top:'#0e1a39',mid:'#30456b',far:'#405d79',near:'#214b59',leaf:'#2b5b4d',leaf2:'#447664',path:'#777466'},
+  {top:'#163252',mid:'#4d6882',far:'#547c83',near:'#2a615c',leaf:'#326a54',leaf2:'#599278',path:'#807b64'},
+  {top:'#251d49',mid:'#6a4c70',far:'#6b5c83',near:'#46536b',leaf:'#5a5665',leaf2:'#8a6274',path:'#82716c'},
+  {top:'#101b38',mid:'#3e5673',far:'#5d7089',near:'#344e69',leaf:'#3f6576',leaf2:'#7695a0',path:'#697786'}
+ ];
+ const P=palettes[season];
+ const px=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
+ const hash=n=>{let v=Math.sin(n*127.1+13.37)*43758.5453;return v-Math.floor(v)};
+ // 2D pixelated atmospheric sky; no smoothed gradients.
+ for(let y=0;y<H;y+=4){const q=y/H;px(0,y,W,4,q<.35?P.top:q<.59?P.mid:q<.75?P.far:'#253c54')}
+ // horizon light bloom built of aligned translucent rectangles
+ g.globalAlpha=.085;for(let i=0;i<7;i++)px(227-i*6,35-i*4,86+i*12,82+i*8,'#d9eaa8');g.globalAlpha=1;
+ // stars
+ for(let i=0;i<76;i++){let x=Math.floor(hash(i*7+1)*W),y=Math.floor(hash(i*13+7)*91);
+   const bright=(i+Math.floor(month/3))%7===0,clr=bright?'#fff9cf':(i%3?'#8bcadd':'#b1b5e6');
+   px(x,y,bright?2:1,bright?2:1,clr);if(bright){px(x-2,y,1,1,'#6ca7b1');px(x+3,y,1,1,'#6ca7b1')}
+ }
+ // large crescent moon / illuminated disk
+ const moonX=73+Math.round((month%24)*.25),moonY=28;
+ px(moonX+6,moonY,27,4,'#f8e6ac');px(moonX,moonY+4,39,7,'#f8e6ac');
+ px(moonX-4,moonY+11,46,22,'#f3db9e');px(moonX,moonY+33,39,7,'#dfc58e');px(moonX+7,moonY+40,25,4,'#d7b781');
+ px(moonX+26,moonY+13,8,5,'#cdb686');px(moonX+8,moonY+25,5,4,'#dac593');
+ // drifting pixel clouds, use same hue as background
+ const drift=(month*3)%420;
+ for(let j=0;j<5;j++){
+   let x=((j*113+22-drift)%440+440)%440-50,y=33+(j%3)*18;
+   px(x,y,46,5,'#485772');px(x+8,y-4,32,4,'#485772');px(x+13,y-7,21,3,'#485772');
+ }
+ // mountain ranges in discrete 3px columns
+ for(let x=0;x<W;x+=3){
+   const m1=113-39*Math.max(0,Math.cos((x-52)/61))-15*Math.max(0,Math.sin(x/21));
+   px(x,m1,3,150-m1,P.far);
+   const m2=130-19*Math.abs(Math.sin((x+24)/41))-9*Math.max(0,Math.cos(x/14));
+   px(x,m2,3,150-m2,P.near);
+ }
+ // old village roofs on left
+ px(0,130,65,6,'#263b4e');px(5,124,24,6,'#634d52');px(9,116,16,8,'#3d4354');
+ px(12,124,4,4,'#f3d08a');px(20,124,4,4,'#f3d08a');px(43,130,10,9,'#343d47');
+ // pixel fir trees silhouette and highlights
+ function fir(x,y,h,c1,c2){
+   const levels=Math.max(3,Math.round(h/8));
+   for(let k=0;k<levels;k++){
+    const wid=4+k*3, yy=y+k*6;
+    px(x-wid,yy,2*wid+1,7,c1);px(x-wid+3,yy+1,4,2,c2);
+   }
+   px(x-2,y+levels*6,4,6,'#3b3238');
+ }
+ for(const [tx,ty,sz] of [[7,100,29],[34,102,25],[64,109,22],[104,111,17],[173,112,19],[206,105,24],[241,109,18],[315,102,29]]){
+  fir(tx,ty,sz,P.leaf,P.leaf2)
+ }
+ // ground, pebbles, long upward road to portal
+ px(0,143,W,33,'#1c343a');px(0,142,W,3,'#536759');
+ px(15,146,291,30,P.path);px(15,146,W-20,3,'#a59879');
+ for(let i=0;i<110;i++){
+  const xx=Math.floor(hash(i+611)*W),yy=148+Math.floor(hash(i+931)*27);
+  if(xx>12&&xx<312)px(xx,yy,(i%3)+1,1,i%4?'#a39678':'#524d48');
+ }
+ // tiny flowers / grass (unmoving environment, animated time tint)
+ for(let i=0;i<29;i++){
+  const x=Math.floor(hash(i+423)*W),y=144+Math.floor(hash(i+234)*29);
+  px(x,y,3,2,i%4===0?'#d7bc8d':P.leaf2);px(x+1,y-3,1,3,P.leaf)
+ }
+ // luminous Tomorrow Gate: original pixel architecture
+ const bx=254,by=77;
+ g.globalAlpha=.17;for(let i=0;i<7;i++){px(bx-3-i*3,by-7-i*4,49+i*6,72+i*8,'#9ef6cb')};g.globalAlpha=1;
+ // plinth and gate pillars
+ px(bx-13,by+63,69,6,'#544e61');px(bx-7,by+58,57,5,'#b7a173');
+ px(bx-4,by-13,44,7,'#ffdf96');px(bx-10,by-7,58,7,'#c0a36c');
+ px(bx-13,by-2,64,5,'#e4bf7c');px(bx-13,by+3,7,6,'#826c64');px(bx+44,by+3,7,6,'#826c64');
+ px(bx-5,by+4,10,56,'#d7b784');px(bx+35,by+4,10,56,'#d7b784');
+ px(bx-2,by+8,4,44,'#fae4aa');px(bx+38,by+8,3,44,'#fae4aa');
+ px(bx+6,by+7,28,49,'#152d43');px(bx+10,by+12,19,39,'#7ce2cb');px(bx+13,by+15,14,33,'#b8ffdc');
+ px(bx+17,by+19,6,25,'#fff8c8');px(bx+20,by+22,3,18,'#fff');
+ px(bx+16,by-9,7,4,'#86e9cd');px(bx+18,by-12,3,3,'#fff2bd');
+ // floating portal particles
+ for(let i=0;i<12;i++){
+  const xx=bx-21+Math.floor(hash(i+month*.31+211)*79), yy=by-12+Math.floor(hash(i+month*.27+717)*62);
+  px(xx,yy,i%3===0?3:2,i%3===0?3:2,i%2===0?'#fff3be':'#8df7df')
+ }
+ function traveler(x,y,who,frame){
+  const coat=who==='rina'?'#e6a876':who==='sora'?'#ad9bf2':'#62dfc3';
+  const darkCoat=who==='rina'?'#945c48':who==='sora'?'#6c6da8':'#257e7a';
+  const hair=who==='rina'?'#8b4e3d':who==='sora'?'#e8e5c7':'#6a4b3f';
+  px(x+1,y+28,23,2,'#141925');px(x+5,y,15,4,hair);px(x+3,y+4,19,7,hair);
+  px(x+5,y+9,16,9,'#efb88c');px(x+18,y+11,2,3,'#1e253b');
+  px(x+5,y+17,16,8,coat);px(x+8,y+20,9,4,darkCoat);
+  px(x+2,y+18,4,8,'#efb88c');px(x+21,y+18,3,7,'#efb88c');
+  px(x+7,y+25+(frame?1:0),5,5,'#263047');px(x+16,y+25+(frame?0:1),5,5,'#263047');
+  if(who==='kai'){px(x+4,y+1,17,3,'#e2c780');px(x+6,y-3,12,4,'#d5b66f')}
+  if(who==='sora'){px(x+2,y+18,3,15,'#f8d58d');px(x,y+24,7,3,'#a1b1c3')}
+  if(who==='rina'){px(x+20,y+5,4,13,hair)}
+ }
+ const y=114+(month%2),runX=Math.round(39+t*183);
+ if(canvasId==='story-art'){
+  traveler(23,114,'kai',0);traveler(60,118,'rina',1);traveler(101,113,'sora',0);
+ }else{
+  traveler(runX,y,hero,month%2);
+  // track experience as lantern beacons
+  for(let i=0;i<Math.min(10,Math.floor(t*10));i++){
+    const xx=16+i*20;px(xx,139,2,4,'#f1d58b');px(xx-2,136,6,3,'#ffdf96');
+  }
+ }
+ // pixel border light on horizon
+ px(0,174,W,2,'#202d45');
+}
+
+const practiceTips=[
+ {title:'週1回だけに頼らない',bad:'週1回の予定を休むと、次は14日後になる場合がある。',action:'まず2週間、火・金の各30分など、週2回の枠を試す。',question:'予定が1回なくなったとき、次はいつ？',evidence:'分散学習は研究で支持。週2回は実践例で絶対条件ではない。'},
+ {title:'曜日・時刻まで決める',bad:'「時間がある日にやる」は、忙しいと後回しになる。',action:'「火曜19時、夕食後にピアノの前へ行く」とカレンダーに書く。',question:'今週、いつ・どこで始める？',evidence:'実行意図（if-then plan）の研究と関連。'},
+ {title:'最初は低いハードルにする',bad:'いきなり毎日2時間だと、数日で苦しくなる。',action:'最初の2週間は週2回×15分。8割できたら少し増やす。',question:'疲れた日でも続けられる最小単位は？',evidence:'15分や80%は実用的な提案例。普遍的な最適値ではない。'},
+ {title:'今日の目標を測れる形に',bad:'「もっと上手に」だけでは、できたか分からない。',action:'「右手4小節をゆっくり3回、止まらず弾く」と決める。',question:'練習が終わったとき、何ができれば合格？',evidence:'具体的な目標とフィードバックの研究に関連。'},
+ {title:'練習ノートを1行残す',bad:'先週何に困ったかを忘れ、同じ失敗を繰り返す。',action:'日付／分数／できたこと／つまずき／次回の一手を1行。',question:'次の自分に一言だけ残すなら？',evidence:'進捗の記録に関するメタ分析がある。'},
+ {title:'1回を小分けにして練習',bad:'最初から最後まで通すだけで、苦手な所が残る。',action:'20分なら5分準備、10分苦手な部分、5分通して確認。',question:'今週、最も直したい1か所は？',evidence:'課題を絞った練習という考え方。5/10/5分は設計例。'},
+ {title:'最後に見ずに再現する',bad:'読んだ・聴いた直後は分かった気がする。',action:'勉強ならノートを閉じて3問答える。ピアノなら譜面を見ず1フレーズ。',question:'何も見ずにできることは何？',evidence:'想起練習の効果は複数研究で支持。'},
+ {title:'前に学んだことを再登場させる',bad:'新しい課題だけを続け、前にできたことを忘れる。',action:'前回の課題を3分だけ復習。翌回・数日後・1週後に確かめる。',question:'今、もう一度試したい昔の課題は？',evidence:'分散学習の研究に関連。間隔は課題・保持期間で調整。'},
+ {title:'録音・録画や助言を使う',bad:'自分の感覚だけでは、変化に気づきにくい。',action:'週1回、同じ20秒を録音。前週と比べ、改善点を1つ決める。',question:'自分だけでは気づきにくい点は何？',evidence:'フィードバックと自己調整の考え方に関連。回数は設計例。'},
+ {title:'休んでも再開できる仕組み',bad:'1回休んだだけで「もう続かなかった」と諦める。',action:'できない日は休む。再開時は5分から。4週ごとに目標を見直す。',question:'計画が崩れたとき、どうやって戻る？',evidence:'休息と技能保持は課題による。再開の工夫は実践提案。'}
+];
+function scheduleFor(freq){
+ const pattern={1:[0],2:[1,4],3:[0,2,4]}[freq]||[1,4];
+ const sessions=Array.from({length:4},(_,week)=>pattern.map(day=>week*7+day)).flat();
+ const missed=7+pattern[0],kept=sessions.filter(d=>d!==missed);
+ const gap=s=>Math.max(...s.slice(1).map((d,i)=>d-s[i]));
+ return {pattern,sessions,kept,missed,usual:gap(sessions),after:gap(kept)};
+}
+function renderTipCalendar(){
+ const freq=Number(state.tipDemoFrequency)||2,sch=scheduleFor(freq);$('tip-frequency').value=String(freq);
+ $('gap-usual').textContent=sch.usual+'日';$('gap-miss').textContent=sch.after+'日';const board=$('week-grid');board.replaceChildren();
+ const labels=['月','火','水','木','金','土','日'];
+ for(let d=0;d<28;d++){const cell=document.createElement('div');const status=d===sch.missed?'missed':sch.kept.includes(d)?'practice':'free';cell.className='week-cell '+status+(d<7?' weekmark':'');
+ const day=document.createElement('span');day.textContent=(Math.floor(d/7)+1)+'週 '+labels[d%7];const marker=document.createElement('strong');marker.textContent=status==='practice'?'●':status==='missed'?'×':'·';cell.setAttribute('title',`${Math.floor(d/7)+1}週目 ${labels[d%7]} ${status==='practice'?'練習':status==='missed'?'欠席':'練習予定なし'}`);cell.append(day,marker);board.appendChild(cell)}
+ $('week-grid').setAttribute('aria-label',`週${freq}回の4週間予定。2週目の最初の練習を1回休むと最大${sch.after}日空く。`);
+ $('gap-insight').textContent=`週${freq}回では、通常の最大間隔は${sch.usual}日。この例で1回休むと最大${sch.after}日空きます。週の合計60分は同じでも、間隔の空き方が変わることに注目しましょう。`;
+}
+function renderTips(){
+ renderTipCalendar();$('personal-plan').value=state.personalPlan||'';renderPracticeNotes();$('tips-count').textContent=state.savedTips.length+' / 10 選択中';const root=$('tips-cards');root.replaceChildren();
+ practiceTips.forEach((tip,i)=>{const article=document.createElement('article');article.className='tip-card'+(state.savedTips.includes(i)?' selected':'');
+ const num=document.createElement('div');num.className='tip-number';num.textContent='LESSON '+String(i+1).padStart(2,'0');
+ const h=document.createElement('h4');h.textContent=tip.title;
+ const bad=document.createElement('p');bad.className='bad';bad.textContent='ありがちな失敗：'+tip.bad;
+ const act=document.createElement('p');act.className='action';act.textContent='今日から：'+tip.action;
+ const question=document.createElement('p');question.className='question';question.textContent='考える問い：'+tip.question;
+ const ev=document.createElement('div');ev.className='tip-evidence';ev.textContent='根拠・注意：'+tip.evidence;
+ const btn=document.createElement('button');btn.type='button';btn.className='btn ghost tip-save';btn.setAttribute('aria-pressed',String(state.savedTips.includes(i)));btn.textContent=state.savedTips.includes(i)?'✓ 試してみたい':'＋ この工夫を試す';
+ btn.addEventListener('click',()=>{state.savedTips=state.savedTips.includes(i)?state.savedTips.filter(x=>x!==i):[...state.savedTips,i].sort((a,b)=>a-b);save();renderTips()});
+ article.append(num,h,bad,act,question,ev,btn);root.appendChild(article)})
+}
+function renderYearTip(){
+ const idx=Math.min(9,Math.max(0,Math.ceil(state.month/12)-1)),tip=practiceTips[idx];
+ $('year-tip-heading').textContent=`修行の知恵 / YEAR ${String(idx+1).padStart(2,'0')}`;
+ const chip=$('year-tip-heading').nextElementSibling;if(chip)chip.textContent=`ヒント ${String(idx+1).padStart(2,'0')} / 10`;
+ $('year-tip-title').textContent=tip.title;$('year-tip-content').textContent=tip.action;
+}
+
+function renderPracticeNotes(){const box=$('note-list');box.replaceChildren();const notes=state.practiceNotes||[];
+ if(!notes.length){const p=document.createElement('p');p.className='tiny';p.textContent='まだ練習記録がありません。';box.appendChild(p);return}
+ notes.slice(-5).reverse().forEach(n=>{const row=document.createElement('div');row.className='note-entry';
+ const h=document.createElement('b');h.textContent=`${n.date} · ${n.minutes}分`;
+ const a=document.createElement('span');a.textContent='できた：'+n.success;
+ const b=document.createElement('span');b.textContent='次回：'+n.next;
+ row.append(h,a,b);box.appendChild(row)})
+}
+function recordPracticeNote(){const date=$('note-date').value,mins=Number($('note-minutes').value),success=$('note-success').value.trim(),next=$('note-next').value.trim();
+ if(!date||!Number.isFinite(mins)||mins<0||mins>600||!success||!next){$('note-status').textContent='日付・時間（0〜600分）・できたこと・次の一手を入力してください。';return}
+ state.practiceNotes.push({date,minutes:mins,success,next});state.practiceNotes=state.practiceNotes.slice(-100);save();renderPracticeNotes();$('note-success').value='';$('note-next').value='';$('note-status').textContent=`${date}の練習を記録しました（${state.practiceNotes.length}件）。`;
+}
+$('add-practice-note').addEventListener('click',recordPracticeNote);
+$('notes-csv').addEventListener('click',()=>{const rows=[['version','date','minutes','accomplished','next_step']];state.practiceNotes.forEach(n=>rows.push([VERSION,n.date,n.minutes,n.success,n.next]));download('GROWTH_QUEST_practice_notes.csv',csv(rows),'text/csv;charset=utf-8')});
+
+$('tip-frequency').addEventListener('change',ev=>{state.tipDemoFrequency=Number(ev.target.value);save();renderTipCalendar()});
+$('quest-open-tips').addEventListener('click',()=>selectPage('tips'));
+$('year-tip-open').addEventListener('click',()=>selectPage('tips'));
+$('go-tips').addEventListener('click',()=>selectPage('tips'));
+$('personal-plan').addEventListener('input',ev=>{state.personalPlan=ev.target.value;save()});
+$('apply-frequency').addEventListener('click',()=>{editConfig(()=>state.frequency=Number(state.tipDemoFrequency)||2);selectPage('quest')});
+$('save-personal-plan').addEventListener('click',()=>{state.personalPlan=$('personal-plan').value.trim();save();$('tips-save-status').textContent='練習計画を保存しました。授業用CSVにも含まれます。'});
+$('tips-csv').addEventListener('click',()=>{const rows=[['version','type','item','text'],[VERSION,'plan','practice_plan',state.personalPlan||$('personal-plan').value.trim()],[VERSION,'comparison','sessions_per_week',state.tipDemoFrequency]];practiceTips.forEach((t,i)=>rows.push([VERSION,'tip',String(i+1),state.savedTips.includes(i)?'選択: '+t.title:'未選択: '+t.title]));download('GROWTH_QUEST_practice_tips.csv',csv(rows),'text/csv;charset=utf-8')});
+
+function bootstrap(){restore();all('canvas[data-sprite]').forEach(drawAvatar);syncStory();updateReviewControls();renderQuest();renderLab();renderReview();renderTips();$('note-date').value=new Date().toLocaleDateString('sv-SE');drawPixelScene('story-art',0,'kai');selectPage(state.page);const root=document.documentElement;root.dataset.ready='1'}
+bootstrap();
+})();
+</script>
+</body>
+</html>
