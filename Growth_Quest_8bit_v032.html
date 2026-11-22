@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1021">
+<meta name="description" content="GROWTH QUEST｜努力は、たまに報われる。物語から始まる放置型シミュレーションで、努力・技能・環境・運を探究する心理学教材。">
+<title>GROWTH QUEST｜努力は、たまに報われる。 Ver.0.3.2 8-bit</title>
+<style>
+:root{color-scheme:dark;--bg:#081426;--ink:#f2f6fd;--muted:#b2c0d2;--dim:#8399b1;--line:#344961;--panel:#102238;--panel2:#172c44;--mint:#76e8c9;--gold:#f0cc87;--rose:#f1a0a9;--blue:#91b7ff;--violet:#c4a9f1;--radius:21px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse 70% 28% at 85% 0%,#2645688a,transparent 75%),radial-gradient(ellipse 60% 30% at 0% 100%,#183e4870,transparent 70%),#081426;color:var(--ink);font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;line-height:1.74}
+button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.55}button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #fff0b0;outline-offset:3px}a{color:#a9e2fc}a:hover{color:#d4f2ff}h1,h2,h3,h4,p{margin-top:0}h1,h2,h3{line-height:1.36}h2{font-size:clamp(24px,3.2vw,36px);letter-spacing:.01em}h3{font-size:18px}p{margin-bottom:13px}strong{color:#fbf3e2}.container{width:min(1140px,calc(100% - 32px));margin-inline:auto}.skip{position:absolute;left:-9999px;top:0;background:#fff;color:#111;padding:10px}.skip:focus{left:8px;z-index:999}
+.apphead{border-bottom:1px solid #ffffff14;padding:19px 0 17px}.brandline{display:flex;gap:13px;align-items:center;flex-wrap:wrap}.logo{display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:linear-gradient(145deg,#ffe2a0,#75dfd4);color:#122032;font-weight:1000;letter-spacing:-.06em;font-size:18px;box-shadow:0 3px 21px #71e6be30}.eyebrow{color:var(--mint);font-size:11px;font-weight:800;letter-spacing:.15em}.brandline h1{margin:1px 0 0;font-size:clamp(22px,3.1vw,30px);font-weight:850}.tagline{margin:5px 0 0 59px;color:#e8d5ae;font-weight:720;font-size:13px}.topbadges{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.badge{font-size:11px;border:1px solid #42607b;background:#ffffff06;color:#c2d4e6;padding:3px 9px;border-radius:100px}.badge.em{color:#c2f5df;border-color:#477b75}.layout{padding-bottom:36px}
+.stepnav{display:flex;gap:8px;margin:18px 0 23px;overflow-x:auto;padding-bottom:5px;scrollbar-width:thin}.step{flex:0 0 auto;border:1px solid #354d66;color:#aabfd6;background:#0d1b2e;border-radius:12px;padding:9px 12px;font-size:12px;font-weight:750;white-space:nowrap}.step.active{background:var(--mint);color:#0c2230;border-color:var(--mint)}.step.complete:not(.active){border-color:#529586;color:#c5eee4}.step:disabled{opacity:.4}.screen{display:none;animation:reveal .25s ease}.screen.active{display:block}@keyframes reveal{from{opacity:.2;transform:translateY(7px)}to{opacity:1;transform:none}}.sectionlead{max-width:850px;color:var(--muted);margin:5px 0 21px}.label{font-size:11px;letter-spacing:.15em;font-weight:800;text-transform:uppercase;color:var(--mint);margin-bottom:7px}
+.panel{background:linear-gradient(148deg,#162b43f6,#0f2035f8);border:1px solid #324b63;border-radius:var(--radius);padding:clamp(16px,2vw,24px);box-shadow:0 10px 40px #0002;min-width:0}.panel.soft{background:#102439}.panel.emphasis{border-color:#4b817c;background:linear-gradient(150deg,#123a40,#10263b)}.panel h3{margin:0 0 12px}.panel p:last-child{margin-bottom:0}.grid{display:grid;gap:17px}.cols2{grid-template-columns:minmax(0,1.5fr) minmax(275px,1fr)}.cols3{grid-template-columns:repeat(3,minmax(0,1fr))}.twoequal{grid-template-columns:repeat(2,minmax(0,1fr))}.spaced{margin-top:17px}.hrow{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}.small{font-size:13px}.tiny{font-size:12px;color:var(--muted)}.subtle{color:var(--muted)}.muted{color:var(--dim)}.mint{color:var(--mint)}.gold{color:var(--gold)}.rose{color:var(--rose)}.blue{color:var(--blue)}.notebox{border-radius:12px;background:#0e2b36;border:1px solid #427776;padding:12px 15px;font-size:13px;color:#d4f1ed}.warning{border-radius:12px;background:#382f29;border:1px solid #8c7556;padding:12px 15px;font-size:13px;color:#f1dbb2}.btnrow{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px}.btn{border-radius:12px;padding:11px 17px;border:1px solid #5a7695;background:#203951;color:#eef6fb;font-weight:780;min-height:45px}.btn.primary{background:linear-gradient(105deg,#70e7c7,#87c9e8);color:#091e2c;border-color:transparent}.btn.goldbtn{background:linear-gradient(115deg,#f4d997,#deb97b);color:#1b2530;border-color:transparent}.btn.secondary{background:#162a41}.btn.plain{background:transparent}.btn.smallbtn{padding:7px 11px;font-size:12px;min-height:34px}.btn:hover:not(:disabled){filter:brightness(1.07)}.btn.full{width:100%}.radioopt{display:block;border:1px solid #45607b;border-radius:13px;background:#102036;padding:13px 14px;margin:8px 0;cursor:pointer}.radioopt:has(input:checked){border-color:var(--mint);background:#153748;box-shadow:inset 0 0 0 1px #64efcf40}.radioopt input{accent-color:var(--mint);width:17px;height:17px;vertical-align:-3px;margin-right:10px}.fieldlabel{display:block;font-weight:720;margin-bottom:8px;font-size:14px}.sliderline{display:flex;justify-content:space-between;gap:12px;align-items:center}.range{width:100%;accent-color:var(--mint)}.textarea{width:100%;resize:vertical;min-height:90px;background:#0a1a2d;border:1px solid #486581;border-radius:11px;color:var(--ink);padding:12px;line-height:1.65}.error{color:#ffc0bf;font-size:13px;min-height:20px}.choicegrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.selectcard{color:var(--ink);background:#0d2136;border:1px solid #405e78;padding:15px;text-align:left;border-radius:15px;width:100%;transition:background .15s,border-color .15s}.selectcard.active{border:2px solid var(--mint);background:#163b49;padding:14px}.selectcard b{display:block}.selectcard small{display:block;color:#aec8dc;font-size:12px}.selectcard .emoji{font-size:25px}.statgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.stat{background:#0a1a2e;border:1px solid #324a61;border-radius:14px;padding:14px;min-width:0}.stat small{display:block;color:#abc1d6;font-size:11px}.stat .number{font-weight:850;font-size:clamp(23px,2.8vw,31px);line-height:1.25;margin:3px 0;font-variant-numeric:tabular-nums}.stat .note{font-size:11px;color:#93aabe}.progress{background:#0a1829;border-radius:100px;height:11px;border:1px solid #35546e;overflow:hidden}.progress>div{height:100%;background:linear-gradient(100deg,#64e1c2,#e5c27f);transition:width .25s}.chart{width:100%;height:auto;display:block;min-height:190px}.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#c4d4e6;margin-top:5px}.dot{width:16px;height:4px;display:inline-block;border-radius:5px;margin-right:6px;vertical-align:3px}.tablewrap{overflow-x:auto}.datatable{width:100%;border-collapse:collapse;font-size:13px}.datatable th,.datatable td{border-bottom:1px solid #314d62;padding:9px 7px;text-align:right;white-space:nowrap}.datatable th:first-child,.datatable td:first-child{text-align:left}.datatable thead{color:#b0c8e3}.collapsible{border-top:1px solid #38526a;margin-top:15px;padding-top:12px}.collapsible summary{cursor:pointer;font-weight:740;color:#d4e9f6}.splitline{height:1px;background:#37536e;margin:15px 0}.stagecopy{font-size:13px;color:#d3e4f2}.resultword{font-size:clamp(27px,4.5vw,43px);font-weight:850;letter-spacing:.03em;line-height:1.25}.center{text-align:center}
+/* The portal illustration is authored as SVG and CSS; no external assets or network access. */
+.portal{position:relative;min-height:320px;overflow:hidden;border-radius:19px;background:radial-gradient(circle at 70% 17%,#d5c29745 0 4%,transparent 16%),linear-gradient(180deg,#233b64 0%,#173650 50%,#0c2236 80%,#081526 100%);border:1px solid #526276}.portal::before{content:"";position:absolute;inset:0;background-image:radial-gradient(#ffffffb8 1px,transparent 1px),radial-gradient(#ffffff61 1px,transparent 1px);background-size:61px 69px,93px 113px;background-position:0 7px,21px 19px;mask-image:linear-gradient(#000,transparent 72%);opacity:.45}.portal svg{display:block;width:100%;height:320px;position:absolute;inset:0}.portal .portallabel{position:absolute;top:17px;left:18px;border:1px solid #b9d1de6e;background:#0b1b2d95;padding:4px 11px;border-radius:50px;font-size:11px;letter-spacing:.09em;font-weight:750;color:#f0ddae}.novel{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:clamp(14px,1.6vw,16px);line-height:2.1;letter-spacing:.03em}.novel p{margin-bottom:1.05em}.novel .final{color:#ffe0a2;font-weight:750}.scenarioBox{border-left:3px solid var(--gold);padding-left:15px;color:#d5e6f5}.avatar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.avatar{background:linear-gradient(150deg,#213b54,#0d2336);border:1px solid #42607a;border-radius:17px;text-align:left;padding:0;overflow:hidden;color:var(--ink)}.avatar.selected{border:2px solid var(--mint);box-shadow:0 0 0 2px #1e6d6547}.avatar .portrait{height:145px;display:grid;place-items:center;position:relative;overflow:hidden;font-size:73px;background:radial-gradient(circle at 50% 35%,#ffffff22,transparent 45%),linear-gradient(140deg,#426b78,#193f53)}.avatar.rina .portrait{background:radial-gradient(circle at 50% 35%,#eaf8d922,transparent 45%),linear-gradient(140deg,#58715b,#203b55)}.avatar.sora .portrait{background:radial-gradient(circle at 50% 35%,#f7d8b633,transparent 45%),linear-gradient(140deg,#655e88,#27314c)}.avatar .portrait::after{content:"";position:absolute;bottom:-20px;width:160px;height:55px;border-radius:100% 100% 0 0;background:#061b2f8a}.avatar .portrait span{position:relative;z-index:1;filter:drop-shadow(0 7px 9px #0b152e80)}.avatar .text{padding:12px 13px 16px}.avatar .text b{display:block;font-size:18px}.avatar .text small{display:block;color:#bed1e1;font-size:12px}.avatar .text em{display:block;color:var(--gold);font-size:11px;font-style:normal;margin-top:5px}.avatar:hover{filter:brightness(1.09)}.script{background:#0d1d31;border:1px solid #3a536b;border-radius:17px;padding:17px 19px}.script .headline{color:var(--gold);font-weight:800;margin-bottom:4px}.timetrack{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;margin:12px 0}.timetrack span{height:9px;background:#263d55;border-radius:30px}.timetrack span.past{background:var(--mint)}.timetrack span.current{background:var(--gold)}.emphasisnum{font-size:32px;line-height:1.2;font-weight:850;color:var(--mint)}.miniCompare{display:grid;grid-template-columns:1fr 1fr;gap:10px}.miniCompare>div{border-radius:14px;border:1px solid #3a5269;padding:12px;background:#0b1b2e}.miniCompare .n{font-size:27px;font-weight:850;font-variant-numeric:tabular-nums}.pass{color:var(--mint)}.fail{color:var(--rose)}.debate{border-radius:13px;background:linear-gradient(130deg,#284137,#152c41);border:1px solid #63836d;padding:12px 14px}.badge-step{display:inline-block;border:1px solid #64817a;border-radius:999px;padding:2px 8px;font-size:12px;color:#bdeada}.logline{font-size:13px;color:#b4cbdc}.tip{background:#0a1d2c;border:1px solid #315a63;padding:13px;border-radius:12px;font-size:13px;color:#bfddd9}.citebox{background:#0a1b2d;border:1px solid #2c4257;border-radius:13px;padding:11px 13px;margin:9px 0;font-size:12px;overflow-wrap:anywhere}.sitefoot{border-top:1px solid #2e435b;color:#9db3c8;font-size:12px;padding:20px 0 32px}.hidden{display:none!important}
+@media(max-width:880px){.cols2,.cols3{grid-template-columns:1fr}.statgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.portal{min-height:265px}.portal svg{height:265px}.tagline{margin-left:0}.avatar-grid{gap:8px}}
+@media(max-width:560px){.avatar-grid{grid-template-columns:1fr}.avatar{display:flex}.avatar .portrait{height:102px;min-width:113px;flex:0 0 113px;font-size:54px}.avatar .text{padding:12px}.choicegrid,.twoequal,.miniCompare{grid-template-columns:1fr}.btnrow .btn{flex:1 1 auto}.step{padding:8px 10px}.novel{font-size:14px;line-height:2}.panel{padding:16px}.stat .number{font-size:25px}.portal{min-height:230px}.portal svg{height:230px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.screen,.progress>div{animation:none;transition:none}}
+
+/* Idle-mode v0.3: visualize the passage of twelve months without requiring monthly clicks. */
+.idle-hero-panel{overflow:hidden}.idle-state{display:inline-flex;align-items:center;gap:6px;border-radius:50px;background:#1b3944;border:1px solid #6ab5a2;padding:4px 12px;font-size:12px;font-weight:800;color:#baf5dd}
+.idle-state::before{content:"";width:8px;height:8px;border-radius:50%;background:#7be8c9;box-shadow:0 0 12px #4ee5bd}
+.idle-scene{height:138px;margin:15px 0 11px;position:relative;overflow:hidden;border:1px solid #5b7087;border-radius:16px;background:radial-gradient(ellipse at 78% 0,#eed68d38,transparent 24%),linear-gradient(180deg,#233b5e,#163c52 66%,#102633)}
+.idle-scene-glow{position:absolute;right:17px;top:22px;width:48px;height:71px;border:8px solid #f8dd9c;border-bottom:0;border-radius:50% 50% 0 0;box-shadow:0 0 32px #fff0a285,inset 0 0 17px #fff1bf44;background:#faf0bb21}
+.idle-orbit{position:absolute;left:46%;top:7px;font-size:23px;color:#f5dfa1;animation:floatstar 3s ease-in-out infinite}
+.idle-hills{position:absolute;bottom:0;left:0;right:0;height:47px;background:#0d2b3d;clip-path:polygon(0 70%,12% 28%,23% 70%,36% 17%,46% 65%,59% 20%,71% 66%,88% 12%,100% 62%,100% 100%,0 100%)}
+.idle-season-left,.idle-season-right{position:absolute;top:12px;color:#f2e7c7;font-size:12px;font-weight:800}.idle-season-left{left:17px}.idle-season-right{right:15px}
+.idle-path{position:absolute;bottom:27px;left:7%;width:84%;height:4px;border-radius:9px;background:repeating-linear-gradient(90deg,#f1d5a8 0 12px,transparent 12px 22px);z-index:1}
+.idle-runner{position:absolute;bottom:-7px;left:0;transform:translateX(-50%);font-size:29px;transition:left .46s ease;filter:drop-shadow(1px 3px 3px #071a25aa)}
+.idleselect{padding:8px 9px;border:1px solid #54758e;border-radius:10px;color:#eef8fc;background:#0a1d30;max-width:210px}
+.idle-controls .btn{flex:1 1 150px}.idle-hero-panel h3{margin:0;color:#f2e1af}
+@keyframes floatstar{50%{transform:translateY(10px);opacity:.65}}
+@media(prefers-reduced-motion:reduce){.idle-runner{transition:none}.idle-orbit{animation:none}}
+@media(max-width:590px){.idle-scene{height:116px}.idle-controls{gap:7px}.idle-controls .btn{flex:1 1 100%;padding:10px 12px}.idleselect{max-width:165px}.idle-scene-glow{right:8px}}
+
+/* === 8-bit retro skin, tested for GitHub Pages === */
+:root{
+  --bg:#0d1021;
+  --ink:#f6f7e8;
+  --muted:#c7cfb6;
+  --dim:#95a18a;
+  --line:#6b735d;
+  --panel:#1a1f33;
+  --panel2:#222841;
+  --mint:#74f0a7;
+  --gold:#f7d66b;
+  --rose:#ff8d80;
+  --blue:#7bc5ff;
+  --violet:#c7a2ff;
+  --radius:0px;
+}
+html,body{image-rendering:pixelated}
+body{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height:1.6;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.04) 50%, transparent 50%) 0 0/100% 4px,
+    linear-gradient(90deg, #12162a 0 25%, #0c1020 25% 50%, #12162a 50% 75%, #0c1020 75% 100%);
+  color:var(--ink);
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; opacity:.12;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.15) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.08) 0 1px, transparent 1px 3px);
+  mix-blend-mode:soft-light;
+}
+*{text-rendering:optimizeSpeed}
+.apphead{border-bottom:4px solid #4e5748; background:#0f1426; box-shadow:0 4px 0 #05070f}
+.logo,.badge,.step,.btn,.selectcard,.radioopt,.panel,.stat,.avatar,.script,.notebox,.warning,.idle-state,.datatable,.progress,.textarea,.idleselect{
+  border-radius:0 !important;
+}
+.logo{
+  width:52px;height:52px;border:4px solid #efe7b0;background:#1f2844;color:#f7d66b;
+  box-shadow:4px 4px 0 #06080f, inset -4px -4px 0 #16203d;
+  font-size:20px;
+}
+.eyebrow,.label,.badge,.step,.btn,.fieldlabel, .datatable thead, .topbadges, .tiny, .small, .notebox, .warning, .portallabel{
+  letter-spacing:.06em;
+}
+.eyebrow,.label{color:var(--gold)}
+.brandline h1,h2,h3,h4,.resultword,.number,.headline{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  text-shadow:2px 2px 0 rgba(0,0,0,.55);
+}
+.tagline{margin-left:59px;color:#9fe8c0}
+.badge,.step,.idle-state,.portallabel{
+  border:2px solid #707860; background:#1a2238; color:#e7efdb; padding:4px 10px;
+  box-shadow:3px 3px 0 #070a12;
+}
+.step.active{background:#2d6246; border-color:#8ef0ba; color:#f2fff7}
+.step.complete:not(.active){background:#23342c;border-color:#81d79d;color:#d9f5dd}
+.panel,.stat,.script,.avatar,.selectcard,.radioopt,.notebox,.warning,.portal,.idle-hero-panel,.miniCompare,.miniCompare2,.miniCompare3{
+  border:4px solid var(--line) !important;
+  background:var(--panel) !important;
+  box-shadow:6px 6px 0 #060911;
+}
+.panel.emphasis{background:#1d2a2a !important;border-color:#7aa08b !important}
+.panel.soft{background:#1c2440 !important}
+.btn{
+  border:3px solid #d8debf;
+  background:#293252;
+  color:#f4f5ea;
+  box-shadow:4px 4px 0 #070910;
+  padding:12px 16px;
+  font-weight:800;
+}
+.btn:hover:not(:disabled){filter:none;background:#33406a}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 #070910}
+.btn.primary{background:#2f6e56;color:#f6fff9;border-color:#a0f3bf}
+.btn.goldbtn{background:#8d6f27;color:#fff9df;border-color:#f6d66e}
+.btn.secondary{background:#293252}
+.btn.plain{background:#1a2138}
+.selectcard.active,.radioopt:has(input:checked){background:#243b31 !important;border-color:#8ef0ba !important;box-shadow:6px 6px 0 #060911, inset 0 0 0 2px #8ef0ba33}
+.stat .number{font-size:clamp(24px,3vw,34px)}
+.progress{
+  height:16px; background:#0e1322; border:3px solid #6d755d; box-shadow:3px 3px 0 #070910; overflow:hidden;
+}
+.progress>div{
+  background:repeating-linear-gradient(90deg,#f7d66b 0 12px,#6fe4a1 12px 24px);
+}
+.textarea,.idleselect,input[type="range"]{
+  background:#12182a; color:var(--ink); border:3px solid #66705b;
+}
+.idleselect{padding:9px 11px}
+.datatable th,.datatable td{border-bottom:2px solid #49513f}
+.portal,.idle-scene{
+  background:
+    linear-gradient(180deg,#26345c 0 35%, #1b2a47 35% 65%, #0f1a2f 65% 100%) !important;
+  position:relative;
+}
+.portal::after,.idle-scene::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.14;
+  background:repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 4px), repeating-linear-gradient(90deg,#fff 0 1px,transparent 1px 4px);
+}
+.portal::before{opacity:.18}
+.novel{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace; line-height:1.95}
+.avatar .portrait,.avatar.rina .portrait,.avatar.sora .portrait{
+  height:150px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 32%),
+    repeating-linear-gradient(90deg,#2e4660 0 8px,#23364b 8px 16px) !important;
+}
+.avatar.rina .portrait{background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 32%),
+    repeating-linear-gradient(90deg,#365045 0 8px,#253a34 8px 16px) !important;}
+.avatar.sora .portrait{background:
+    linear-gradient(180deg, rgba(255,255,255,.08), transparent 32%),
+    repeating-linear-gradient(90deg,#4b3f68 0 8px,#322b48 8px 16px) !important;}
+.avatar .portrait::after{filter:contrast(1.2) saturate(.8)}
+.idle-scene-glow{background:radial-gradient(circle at 80% 28%, rgba(247,214,107,.65) 0 0, rgba(247,214,107,.12) 16%, transparent 42%) !important}
+.idle-path{border:3px solid #75815f; background:#131a2c}
+.idle-runner{filter:drop-shadow(2px 2px 0 #000)}
+.script,.notebox,.warning{padding:14px 16px}
+.script{background:#161f35 !important}
+.notebox{background:#173126 !important;color:#ddf4e2;border-color:#81af95 !important}
+.warning{background:#3a2d1f !important;color:#ffebb8;border-color:#c3a567 !important}
+.dot{height:6px;border-radius:0}
+.resultword{color:#f7d66b}
+hr,.splitline{height:4px;background:#49513f;border:none}
+@media (max-width:860px){
+  .tagline{margin-left:0}
+  .panel,.stat,.script,.avatar,.selectcard,.radioopt,.notebox,.warning,.portal,.idle-hero-panel{box-shadow:4px 4px 0 #060911}
+  .btn{box-shadow:3px 3px 0 #070910}
+}
+
+</style>
+</head>
+<body>
+<noscript><div style="background:#332419;color:#fff;padding:20px;border:4px solid #f0cc87;margin:14px;font-size:16px"><strong>JavaScriptが無効になっています。</strong> このアプリはHTMLプレビューではなくSafariやChromeなどの通常のブラウザで開いてください。</div></noscript>
+<a class="skip" href="#main">本文へ移動</a>
+<header class="apphead"><div class="container">
+ <div class="brandline"><div class="logo" aria-hidden="true">GQ</div><div><div class="eyebrow">A STORY-DRIVEN PSYCHOLOGY EXPERIMENT</div><h1>GROWTH QUEST <span style="font-size:.51em;color:#a7d5e2;white-space:nowrap">努力の積み上げ</span></h1></div></div>
+ <p class="tagline">努力は、たまに報われる。</p>
+ <div class="topbadges"><span class="badge em">Ver.0.3.2｜8-bit放置型</span><span class="badge">小説 × 放置で365日 × 100回比較</span><span class="badge">外部送信なし／Safari・Chrome対応</span></div>
+</div></header>
+<main id="main" class="container layout">
+<nav class="stepnav" aria-label="物語の進行" id="navigation">
+ <button type="button" class="step active" data-step="story">00 物語</button>
+ <button type="button" class="step" data-step="pre">01 最初の判断</button>
+ <button type="button" class="step" data-step="choose">02 主人公</button>
+ <button type="button" class="step" data-step="play">03 放置観察</button>
+ <button type="button" class="step" data-step="outcome">04 結果・再試行</button>
+ <button type="button" class="step" data-step="post">05 振り返り</button>
+ <button type="button" class="step" data-step="lab">研究室</button>
+</nav>
+
+<!-- 00: Prologue -->
+<section id="screen-story" class="screen active" aria-labelledby="story-heading">
+ <div class="label">PROLOGUE / 第0章</div><h2 id="story-heading">明日の門</h2>
+ <p class="sectionlead">最初に約400字の短い物語を読んでください。まだ「正しい答え」を探す必要はありません。</p>
+ <div class="grid cols2">
+ <article class="panel novel" aria-label="導入小説「明日の門」">
+  <p>毎年、春になると、村の丘に「明日の門」が現れる。門をくぐれるのは、試練に勝った一人だけだった。</p>
+  <p>カイは365日、欠かさず走った。昨日より一歩遠くへ。疲れた日は記録をつけ、練習方法を変えた。</p>
+  <p>リナは家族の世話で、走れない日が多かった。それでも空いた時間に坂道を駆け上がり、少しずつ力をつけた。</p>
+  <p>ソラはあまり練習しなかったが、生まれつき足が速かった。父親はかつて門をくぐった英雄で、試練の秘密も教えてくれた。</p>
+  <p>そして春。三人は同じ丘を駆け上がった。</p>
+  <p>最初に門へ着いたのはソラだった。途中で深い霧に迷ったカイは二着。リナは足を痛め、最後まで走れなかった。</p>
+  <p>翌日の新聞には、ソラの笑顔と「努力の末につかんだ栄光」という見出しが大きく載った。</p>
+  <p>カイは一年間の練習帳を閉じた。</p>
+  <p>「僕の努力は、無駄だったのだろうか」</p>
+  <p>リナが静かに答えた。</p>
+  <p class="final">「それは、まだ分からないんじゃない？」</p>
+  <p>丘の上では、明日の門が静かに消えていた。</p>
+ </article>
+ <aside>
+  <div class="portal" aria-label="星の下の山道と光る明日の門のイラスト">
+    <span class="portallabel">THE GATE OF TOMORROW</span>
+    <svg viewBox="0 0 560 320" preserveAspectRatio="xMidYMid slice" role="img" aria-label="月に照らされた山と金色に輝く門">
+      <defs><radialGradient id="aura"><stop stop-color="#fff3c1" stop-opacity=".95"/><stop offset=".38" stop-color="#f9d285" stop-opacity=".55"/><stop offset="1" stop-color="#f9d285" stop-opacity="0"/></radialGradient><linearGradient id="door" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fbe0a2"/><stop offset=".5" stop-color="#fff6ce"/><stop offset="1" stop-color="#d18f57"/></linearGradient></defs>
+      <circle cx="390" cy="126" r="124" fill="url(#aura)"/>
+      <path d="M0 200 L78 118 L158 197 L246 92 L344 198 L445 123 L560 214 L560 320 L0 320Z" fill="#112d43" opacity=".82"/>
+      <path d="M0 251 L80 210 L154 255 L260 189 L367 238 L451 186 L560 250 L560 320 L0 320Z" fill="#0c2338"/>
+      <path d="M0 285 Q135 250 226 284 T560 260 L560 320 L0 320Z" fill="#091a2b"/>
+      <path d="M210 320 L300 264 L343 264 L445 320" fill="#304d56" opacity=".75"/>
+      <path d="M306 260 L306 167 Q306 124 350 124 Q394 124 394 167 L394 260" fill="none" stroke="#5c3b2f" stroke-width="19"/>
+      <path d="M312 260 L312 168 Q312 129 350 129 Q388 129 388 168 L388 260" fill="none" stroke="url(#door)" stroke-width="10"/>
+      <path d="M325 251 L325 169 Q325 142 350 142 Q375 142 375 169 L375 251Z" fill="#fbeab4" opacity=".38"/>
+      <path d="M296 269 L405 269" stroke="#f7d49e" stroke-width="4" opacity=".8"/>
+      <path d="M350 265 L350 320" stroke="#d4b078" stroke-width="2" stroke-dasharray="2 12" opacity=".7"/>
+      <circle cx="153" cy="245" r="8" fill="#152336"/><path d="M149 252 L144 280 L131 299 M156 252 L160 279 L174 297 M147 262 L128 273 M155 261 L173 259" stroke="#0a1425" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <circle cx="128" cy="257" r="7" fill="#152336"/><path d="M128 265 L126 286 L112 302 M128 285 L145 305" stroke="#091426" stroke-width="7" stroke-linecap="round" fill="none"/>
+      <circle cx="183" cy="256" r="7" fill="#152336"/><path d="M183 264 L186 284 L172 304 M186 285 L197 305" stroke="#091426" stroke-width="7" stroke-linecap="round" fill="none"/>
+    </svg>
+  </div>
+  <div class="panel spaced emphasis"><div class="label">READER'S QUESTION</div><h3>あなたは、どう考えますか？</h3><p>同じ一年を過ごしても、努力の量、もともとの能力、利用できる時間、出会い、偶然の出来事は違います。</p><p class="tiny">次の画面で「今の考え」を記録します。正誤判定はありません。</p><button class="btn goldbtn full" id="story-next">読んだ。最初の判断へ →</button></div>
+ </aside>
+ </div>
+</section>
+
+<!-- 01: Pre -->
+<section id="screen-pre" class="screen" aria-labelledby="pre-heading">
+ <div class="label">CHAPTER 01 / 最初の判断</div><h2 id="pre-heading">努力と成功について、今どう考える？</h2>
+ <p class="sectionlead">ゲームの前に、自分の考えを記録します。あとから変更せず、最後に同じ質問にもう一度答えます。</p>
+ <div class="grid cols2">
+  <div class="panel"><h3>Q1. あなたの考えに最も近いもの</h3>
+   <fieldset id="pre-options" style="border:0;margin:0;padding:0"><legend class="tiny">3つのうち1つを選択</legend>
+    <label class="radioopt"><input type="radio" name="pre-belief" value="A">A　努力を続ければ、いつか必ず成功する</label>
+    <label class="radioopt"><input type="radio" name="pre-belief" value="B">B　成功は、ほとんど運で決まる</label>
+    <label class="radioopt"><input type="radio" name="pre-belief" value="C">C　努力は成功の可能性を変えるが、結果は保証されない</label>
+   </fieldset>
+   <button class="btn smallbtn secondary" id="apply-example" type="button">この会話の回答「C」をセット</button><p class="tiny" id="pre-lock" aria-live="polite"></p>
+   <div class="splitline"></div>
+   <label class="fieldlabel" for="pre-impact">Q2. 努力は結果にどの程度影響すると思う？（主観的評価）</label>
+   <div class="sliderline"><span class="tiny">0＝影響が小さい</span><strong class="gold" id="pre-impact-value">50 / 100</strong><span class="tiny">100＝影響が大きい</span></div>
+   <input class="range" type="range" id="pre-impact" min="0" max="100" value="50">
+   <label class="fieldlabel spaced" for="pre-reason">Q3. そう思う理由（任意）</label>
+   <textarea class="textarea" id="pre-reason" maxlength="1200" placeholder="たとえば、努力と運の役割について……"></textarea>
+   <p class="error" id="pre-error" role="alert"></p>
+   <div class="btnrow"><button class="btn primary" id="pre-save">判断を記録して物語の続きを読む →</button></div>
+  </div>
+  <aside class="panel emphasis"><h3>この判断は、何に使う？</h3><p>最後にもう一度同じ質問をします。回答が変わっても変わらなくても、考えた理由を比べます。</p><div class="notebox"><strong>重要：</strong> この3択には、心理学的に唯一の正解を定めません。Cを選んだから高得点、という仕組みでもありません。</div><p class="tiny spaced">「Cをセット」は教員が会話中の回答を引き継いで動作確認するための機能です。通常の授業では学生が自分で回答してください。</p><p class="tiny">記録はこの端末のブラウザにのみ保存されます。個人名や学籍番号は入力しません。</p></aside>
+ </div>
+</section>
+
+<!-- 02: Character -->
+<section id="screen-choose" class="screen" aria-labelledby="choose-heading">
+ <div class="label">CHAPTER 02 / 時計が巻き戻る</div><h2 id="choose-heading">もう一度、あの春から。</h2>
+ <div class="grid cols2">
+  <div>
+   <div class="panel"><p class="novel">「僕の努力は、無駄だったのだろうか」</p><p>そのとき、古い時計が光り始めた。針は365日前を指している。</p><div class="scenarioBox"><p>「もし、あの日からやり直せるなら、結末は変わるだろうか？」</p><p>あなたは三人のうち一人の人生を引き受け、365日の歩みを見守ることになった。最初に「一年間の方針」を一つ決めれば、あとは自動で進む。天候も、出会いも、門が開くかどうかも、思い通りにはならない。</p></div><p class="gold"><strong>努力は、たまに報われる。</strong> では、あなたは何を積み上げる？</p></div>
+   <div class="panel spaced"><h3>主人公を一人選ぶ</h3><p class="tiny">三人は初期技能、使える時間、支援機会が異なります。人物の優劣を評価するものではありません。</p><div id="hero-explain" class="notebox">人物を選ぶと、特徴が表示されます。</div><div class="btnrow"><button class="btn primary" id="choose-start" disabled>この人物の方針を決める →</button></div></div>
+  </div>
+  <div class="avatar-grid" style="align-self:start">
+   <button class="avatar kai" type="button" data-hero="kai" aria-pressed="false"><div class="portrait"><span aria-hidden="true">🛡️</span></div><div class="text"><b>カイ</b><small>継続する練習者</small><em>積み上げ・工夫</em></div></button>
+   <button class="avatar rina" type="button" data-hero="rina" aria-pressed="false"><div class="portrait"><span aria-hidden="true">🌿</span></div><div class="text"><b>リナ</b><small>時間に制約がある</small><em>選択・生活</em></div></button>
+   <button class="avatar sora" type="button" data-hero="sora" aria-pressed="false"><div class="portrait"><span aria-hidden="true">✨</span></div><div class="text"><b>ソラ</b><small>恵まれた初期条件</small><em>才能・機会</em></div></button>
+  </div>
+ </div>
+</section>
+
+<!-- 03: Idle Play -->
+<section id="screen-play" class="screen" aria-labelledby="play-heading">
+ <div class="label">CHAPTER 03 / 放置して観察する365日</div>
+ <div class="hrow"><h2 id="play-heading">明日の門への道</h2><span class="badge-step" id="month-label">春の始まり / 全12月</span></div>
+ <p class="sectionlead">最初に一年間の努力の<strong>方針を一つだけ</strong>決めます。あとは自動で季節が巡り、偶然の出来事が起こります。毎月操作する必要はありません。</p>
+ <div class="panel emphasis idle-hero-panel">
+  <div class="hrow"><div><div class="label">見守っている主人公</div><h3 id="idle-hero-display">主人公</h3></div><span class="idle-state" id="idle-status" role="status">準備中</span></div>
+  <div class="idle-scene" aria-label="明日の門へ続く12か月の道">
+   <div class="idle-scene-glow"></div><div class="idle-orbit" aria-hidden="true">✦</div><div class="idle-hills" aria-hidden="true"></div>
+   <span class="idle-season-left">🌱 春</span><span class="idle-season-right">🏛️ 明日の門</span>
+   <div class="idle-path" id="idle-path" aria-hidden="true"><span class="idle-runner" id="idle-runner">🚶</span></div>
+  </div>
+  <div class="progress" role="progressbar" aria-label="経過月数" aria-valuemin="0" aria-valuemax="12" aria-valuenow="0" id="year-progress"><div id="year-progress-fill" style="width:0%"></div></div>
+  <div class="timetrack" aria-hidden="true" id="time-track"></div>
+ </div>
+ <div class="statgrid spaced">
+  <div class="stat"><small>積み重ねた努力</small><div class="number gold" id="play-hours">0.0h</div><div class="note">一年の練習時間</div></div>
+  <div class="stat"><small>身についた技能</small><div class="number mint" id="play-skill">—</div><div class="note">モデル上の0〜100点</div></div>
+  <div class="stat"><small>心身の余力</small><div class="number blue" id="play-energy">—</div><div class="note">休息や出来事で変化</div></div>
+  <div class="stat"><small>環境・支援機会</small><div class="number" id="play-support">—</div><div class="note">助言・支援の利用可能性</div></div>
+ </div>
+ <div class="grid cols2 spaced">
+  <div class="panel">
+   <div class="hrow"><h3>最初に決める「一年の方針」</h3><span class="badge" id="hero-name-mini">主人公</span></div>
+   <p class="small subtle" id="month-intro">何を積み重ねるか、方針を決めましょう。</p>
+   <div class="choicegrid" id="policy-choices">
+    <button type="button" class="selectcard active" data-plan="steady" aria-pressed="true"><span class="emoji">⚔️</span><b>コツコツ続ける</b><small>反復中心。疲れたら休む</small></button>
+    <button type="button" class="selectcard" data-plan="reflect" aria-pressed="false"><span class="emoji">🧭</span><b>工夫して学ぶ</b><small>練習を振り返り、方法を修正する</small></button>
+    <button type="button" class="selectcard" data-plan="balance" aria-pressed="false"><span class="emoji">🌙</span><b>休息も大切に</b><small>休息と練習を交互に取り入れる</small></button>
+    <button type="button" class="selectcard" data-plan="support" aria-pressed="false"><span class="emoji">🤝</span><b>仲間の力を借りる</b><small>助言や支援を探しながら進む</small></button>
+    <button type="button" class="selectcard" data-plan="none" aria-pressed="false"><span class="emoji">🪑</span><b>練習しない</b><small>練習せず、元の力と偶然で挑戦</small></button>
+   </div>
+   <div class="notebox spaced" id="policy-info">選んだ方針は毎月の行動を自動で決めます。疲れた場合などには、方針に応じて休息も選択されます。</div>
+   <div class="hrow spaced"><label class="fieldlabel" for="idle-speed" style="margin:0">時間の流れる速さ</label><select id="idle-speed" class="idleselect"><option value="slow">じっくり観察</option><option value="normal" selected>ふつう（約10秒）</option><option value="fast">早く進める</option></select></div>
+   <div class="btnrow idle-controls"><button class="btn goldbtn" id="idle-start">▶ 365日を自動で進める</button><button class="btn secondary" id="idle-pause" disabled>一時停止</button><button class="btn secondary" id="idle-skip">最後まで一気に進める</button></div>
+   <p class="tiny spaced">この「放置」は、開いている画面上での自動進行です。365日を約10秒に圧縮して観察します。画面を閉じた間に現実時間で進行する仕組みではありません。ページ再読込時は一時停止します。</p>
+   <div class="script spaced" aria-live="polite"><div class="headline" id="event-head">春の始まり</div><p id="event-text">新しい練習帳が開かれた。まだ結末は決まっていない。</p><p class="logline" id="event-numbers">方針を選び、「365日を自動で進める」を押してください。</p></div>
+   <div class="btnrow" id="finish-wrap" style="display:none"><button class="btn primary" id="go-outcome">365日目。明日の門へ →</button></div>
+  </div>
+  <aside class="panel"><h3>努力と成長を見守る</h3><svg class="chart" id="journey-chart" role="img" aria-label="月別の技能と累積努力時間の推移"></svg>
+   <div class="legend"><span><i class="dot" style="background:var(--mint)"></i>技能（点）</span><span><i class="dot" style="background:var(--gold)"></i>累積努力（別軸・割合表示）</span></div>
+   <p class="tiny spaced">努力時間と技能は単位が異なります。2本の曲線は視覚的な比較用に表示しており、数値は上部とログで確認できます。</p>
+   <div class="splitline"></div><h3>自動で書かれる旅の日誌</h3><div class="tablewrap"><table class="datatable"><thead><tr><th>月</th><th>自動選択</th><th>努力(h)</th><th>技能</th></tr></thead><tbody id="play-log-rows"><tr><td colspan="4">まだ記録がありません。</td></tr></tbody></table></div>
+   <div class="btnrow"><button class="btn smallbtn" id="download-months">12か月の記録CSV</button></div>
+  </aside>
+ </div>
+</section>
+
+<!-- 04: Outcome -->
+<section id="screen-outcome" class="screen" aria-labelledby="outcome-heading">
+ <div class="label">CHAPTER 04 / 門が開くかどうか</div><h2 id="outcome-heading">365日目。明日の門。</h2><p class="sectionlead">技能が伸びたことと、最後の試練に通過したことを分けて確認します。</p>
+ <div class="grid cols2">
+  <div class="panel"><div class="label">YOUR STORY</div><div class="resultword" id="result-message">—</div><p class="stagecopy spaced" id="result-story"></p>
+   <div class="statgrid" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="stat"><small>努力の累積</small><div class="number gold" id="result-hours">—</div><div class="note">1年間の練習時間</div></div><div class="stat"><small>技能の伸び</small><div class="number mint" id="result-growth">—</div><div class="note">開始時からの増減</div></div><div class="stat"><small>最終技能</small><div class="number blue" id="result-skill">—</div><div class="note">100点満点の仮想指標</div></div><div class="stat"><small>この条件の通過確率</small><div class="number" id="result-probability">—</div><div class="note">仮想モデルから算出</div></div></div>
+   <div class="notebox spaced">1回の成功・失敗から、その人の努力の価値を決められるでしょうか。同じ方針で、もう一度世界を動かしてみます。</div>
+   <div class="btnrow"><button class="btn primary" id="rerun-100">別の100世界でも試す</button><button class="btn secondary" id="try-other-plan">同じ運で方針を変えてみる</button></div><div class="script spaced hidden" id="past-trial-box"><b>これまでの試行</b><div id="past-trial-list"></div></div>
+  </div>
+  <div class="panel"><h3>100回の並行世界</h3><p class="tiny">1年間の自動方針を固定し、毎月の出来事と最終試練の運を変えて100回再試行します。同じ初期条件・同じ偶然で「練習しない場合」も対応比較します。</p>
+   <div id="compare-empty" class="script"><p>365日が終了すると自動で100回の比較を表示します。</p></div>
+   <div id="compare-ready" class="hidden">
+    <div class="miniCompare"><div><div class="tiny">あなたの方針</div><div class="n mint" id="repeat-success">—</div><div class="tiny">100回中の通過数</div></div><div><div class="tiny">練習なし・休息のみ</div><div class="n rose" id="baseline-success">—</div><div class="tiny">100回中の通過数</div></div></div>
+    <svg class="chart" id="compare-chart" role="img" aria-label="100回の再試行による通過回数の比較" style="min-height:125px"></svg>
+    <div class="script"><p id="paired-insight"></p><p class="tiny">比較では同じ100組の乱数シードを使用しています。確率と差は仮定したモデルによって決まり、実際の人間の成功率ではありません。</p></div>
+    <div class="btnrow"><button class="btn smallbtn" id="download-runs">100回比較のCSV</button></div>
+   </div>
+   <div class="splitline"></div><h3>考えてみよう</h3><p>「努力した人が成功する」と「成功した人が努力していた」は同じ意味でしょうか？ 成功した人だけを見ていると何を見落とすでしょうか？</p>
+  </div>
+ </div>
+ <div class="btnrow"><button class="btn goldbtn" id="go-post">最後の判断へ進む →</button></div>
+</section>
+
+<!-- 05: Post -->
+<section id="screen-post" class="screen" aria-labelledby="post-heading">
+ <div class="label">EPILOGUE / 判断を振り返る</div><h2 id="post-heading">同じ問いに、もう一度答える。</h2><p class="sectionlead">最初の回答はまだ見返さず、今の考えを選んでください。正解に近づくことではなく、判断がどう変化したかを見るための質問です。</p>
+ <div id="post-form" class="grid cols2">
+  <div class="panel"><h3>Q1. 今の考えに最も近いもの</h3>
+   <fieldset style="border:0;margin:0;padding:0"><legend class="tiny">3つのうち1つを選択</legend>
+    <label class="radioopt"><input type="radio" name="post-belief" value="A">A　努力を続ければ、いつか必ず成功する</label>
+    <label class="radioopt"><input type="radio" name="post-belief" value="B">B　成功は、ほとんど運で決まる</label>
+    <label class="radioopt"><input type="radio" name="post-belief" value="C">C　努力は成功の可能性を変えるが、結果は保証されない</label>
+   </fieldset>
+   <div class="splitline"></div><label class="fieldlabel" for="post-impact">Q2. 努力は結果にどの程度影響すると思う？（主観的評価）</label>
+   <div class="sliderline"><span class="tiny">0＝影響が小さい</span><strong class="gold" id="post-impact-value">50 / 100</strong><span class="tiny">100＝影響が大きい</span></div><input class="range" type="range" id="post-impact" min="0" max="100" value="50">
+   <label class="fieldlabel spaced" for="post-reason">Q3. その理由や、ゲームで考えたこと</label><textarea class="textarea" id="post-reason" maxlength="1200" placeholder="努力・能力・偶然・環境の関係について……"></textarea>
+   <p class="error" id="post-error" role="alert"></p><div class="btnrow"><button class="btn primary" id="post-save">回答を記録して比較する →</button></div>
+  </div>
+  <aside class="panel emphasis"><h3>ゲームに正解はありません</h3><p>最初の回答と同じでもかまいません。意見が変わったかではなく、<strong>なぜそのように考えたか</strong>が重要です。</p><div class="notebox">行動を選んだのはあなたですが、運や環境まで選べたわけではありません。努力・能力・成功を分けて振り返りましょう。</div></aside>
+ </div>
+ <div id="post-report" class="hidden">
+  <div class="grid cols2"><div class="panel"><h3>開始前と終了後</h3><div class="miniCompare"><div><div class="tiny">最初の判断</div><p id="review-pre"></p><div class="tiny" id="review-pre-impact"></div></div><div><div class="tiny">最後の判断</div><p id="review-post"></p><div class="tiny" id="review-post-impact"></div></div></div><div class="notebox spaced" id="review-note"></div></div>
+   <div class="panel"><h3>このゲームから見えてくること</h3><p>同じ努力でも、能力の伸び方や最終結果は同じとは限りません。逆に、失敗した一度の結果だけでは、努力の効果がなかったと断定できません。</p><p>シミュレーションの結果はあくまで設定した規則の帰結です。現実の人間の学習・成功に当てはまるかどうかは、別途実験で確かめる必要があります。</p><div class="btnrow"><button class="btn primary" id="go-lab">研究室で条件を確かめる →</button></div></div></div>
+  <div class="panel spaced"><h3>授業用データを保存する</h3><p class="tiny">前後の回答、12か月の自動記録、100回の再試行を、匿名ID付きで出力します。ブラウザから外部には送信しません。</p><div class="btnrow"><button class="btn" id="download-summary">回答・結果CSV</button><button class="btn" id="download-full">全記録JSON</button><button class="btn secondary" id="download-all-months">月別ログCSV</button></div></div>
+ </div>
+</section>
+
+<!-- Lab / Guide -->
+<section id="screen-lab" class="screen" aria-labelledby="lab-heading">
+ <div class="label">RESEARCH LAB / 研究室</div><h2 id="lab-heading">努力は、どの条件で成果につながる？</h2>
+ <p class="sectionlead">物語の世界で起こったことは、仮定した数式の結果です。ここでは条件を揃えて比較し、因果関係を考えます。</p>
+ <div class="grid cols2">
+  <div class="panel"><h3>実験A：学習のつながりを操作する</h3>
+   <p class="small subtle">両条件で<strong>練習時間・初期能力・環境の出来事・乱数</strong>を揃えます。違うのは、すでに身につけた技能が次の学習を助ける程度だけです。</p>
+   <label class="fieldlabel" for="lab-coupling">既有技能が次の学習を助ける強さ</label><div class="sliderline"><span class="tiny">0＝効果なし</span><strong class="gold" id="lab-coupling-text">0.70</strong><span class="tiny">1.5＝強い</span></div><input class="range" type="range" min="0" max="1.5" step="0.05" value="0.7" id="lab-coupling">
+   <label class="fieldlabel spaced" for="lab-efficiency">練習の質（共通条件）</label><div class="sliderline"><span class="tiny">低い</span><strong class="gold" id="lab-efficiency-text">1.00倍</strong><span class="tiny">高い</span></div><input class="range" type="range" min="0.7" max="1.4" step="0.05" value="1" id="lab-efficiency">
+   <label class="fieldlabel spaced" for="lab-duration">期間</label><select id="lab-duration" style="padding:10px;border:1px solid #4d6a81;background:#091a2b;color:white;border-radius:10px"><option value="6">6か月</option><option value="12" selected>12か月</option><option value="24">24か月</option></select>
+   <div class="btnrow"><button class="btn primary" id="lab-run">条件を揃えて100人ずつ実験</button><button class="btn secondary" id="lab-reset">初期設定</button></div>
+   <p class="tiny spaced">「複利に近い仕組み」は、既有技能の増加が次の獲得量に正の影響を与えることとして試験的に定義します。ただし上達には上限もあるため、常に指数関数的に成長するわけではありません。</p>
+  </div>
+  <div class="panel emphasis"><h3>実験Aの結果</h3><div class="miniCompare"><div><div class="tiny">A：つながりなし</div><div class="n blue" id="lab-final-a">—</div><div class="tiny">最終技能の平均</div></div><div><div class="tiny">B：つながりあり</div><div class="n mint" id="lab-final-b">—</div><div class="tiny">最終技能の平均</div></div></div><svg class="chart" id="lab-chart" role="img" aria-label="既有知識接続の有無による平均技能の比較"></svg><div class="legend"><span><i class="dot" style="background:var(--blue)"></i>A つながりなし</span><span><i class="dot" style="background:var(--mint)"></i>B つながりあり</span></div><div class="script spaced"><p class="small" id="lab-conclusion">実験を実行すると、条件間の差が表示されます。</p><p class="tiny">100人はすべて架空の学習者です。モデルが仮定した効果を確認する実験であり、実証研究による推定ではありません。</p></div><button class="btn smallbtn spaced" id="lab-csv">実験AのCSVを保存</button></div>
+ </div>
+ <div class="panel spaced"><h3>実験B：単純な複利と人間の学習曲線を分ける</h3><p class="small subtle">もとのMONEY QUESTの「1.01の365乗」は数学的な増加率の例です。努力や技能が現実に同じ曲線になるという証拠ではありません。</p>
+  <div class="grid cols3"><div class="stat"><small>毎日1%増える</small><div class="number mint">37.78倍</div><div class="note">1.01<sup>365</sup></div></div><div class="stat"><small>現状を維持</small><div class="number blue">1.00倍</div><div class="note">1.00<sup>365</sup></div></div><div class="stat"><small>毎日1%減少（仮定）</small><div class="number rose">0.026倍</div><div class="note">0.99<sup>365</sup></div></div></div>
+  <svg class="chart" id="models-chart" role="img" aria-label="加算、複利、飽和、段階的成長の模式的比較" style="margin-top:12px"></svg>
+  <div class="legend"><span><i class="dot" style="background:var(--blue)"></i>加算型</span><span><i class="dot" style="background:var(--mint)"></i>複利型</span><span><i class="dot" style="background:var(--gold)"></i>頭打ち型</span><span><i class="dot" style="background:var(--rose)"></i>段階的成長型</span></div>
+  <p class="tiny spaced">いずれも模式図です。人間の成長を4種類に分類できるという科学的主張ではありません。技能は休息日だけで自動的に1%低下するわけではありません。</p>
+ </div>
+ <div class="grid cols2 spaced">
+  <div class="panel"><h3>授業での使い方｜45〜60分</h3><ol><li>『明日の門』を黙読（3分）</li><li>最初の判断を記録（3分）</li><li>人物と方針を選び365日の変化を見守る（5〜10分）</li><li>1回の結末と100回の再試行を比べる（10分）</li><li>最後の判断と振り返り（7分）</li><li>条件実験と議論（7〜20分）</li></ol><p class="tiny">授業前の説明では、結論となる選択肢を正解として示さないでください。前後の回答が変わらないことも重要な結果です。</p></div>
+  <div class="panel"><h3>研究としての位置づけ</h3><p>観察するのは、<strong>努力時間</strong>、<strong>技能の変化</strong>、<strong>試練の成功</strong>、<strong>最初と最後の判断</strong>です。これらを混同しないことが学習目標です。</p><p>授業活動の前後変化は、直ちに教材の因果効果を示すものではありません。実証研究には比較群、設問の妥当性、倫理審査、同意、測定尺度の検討が必要です。</p><p class="tiny">3択の「C」はもっともらしく見えるため、研究用途では尺度改良や回答順の影響の検討が必要です。</p></div>
+ </div>
+ <div class="panel spaced"><h3>FAQ・学術的な限界</h3>
+  <details class="collapsible" open><summary>Q. 努力をすれば必ず技能が伸びますか？</summary><p class="small spaced">いいえ。ゲーム内では技能が伸びる場合がありますが、現実の学習には個人差、課題の特性、疲労、忘却、練習の質など多くの要因があります。</p></details>
+  <details class="collapsible"><summary>Q. ゲーム内の技能点や成功確率は実証値ですか？</summary><p class="small spaced">いいえ。すべて説明用に設定した係数から計算しています。心理検査や実際の成功確率の推定に使わないでください。</p></details>
+  <details class="collapsible"><summary>Q. 1日休むと能力は1%下がりますか？</summary><p class="small spaced">一律に下がるという根拠はありません。技能の保持、当日のパフォーマンス、練習機会の損失は異なります。休息や睡眠が技能学習を助ける場合もあります。</p></details>
+  <details class="collapsible"><summary>Q. 成功した人だけの記録を見ると何が問題ですか？</summary><p class="small spaced">成功者だけを調べると、同じように努力しても成功しなかった人を見落とします。このゲームでは成功と失敗の両方を記録します。</p></details>
+  <details class="collapsible"><summary>Q. データはどこに保存されますか？</summary><p class="small spaced">現在の端末のブラウザのlocalStorageに保存します。外部には送信しません。匿名IDは本アプリ内の照合用です。共有端末では、授業後に「最初から」を使うかブラウザのサイトデータを消してください。</p></details>
+  <div class="splitline"></div><h3>関連文献（ゲームの数値係数の根拠ではありません）</h3>
+  <div class="citebox">Cepeda, N. J., et al. (2006). Distributed practice in verbal recall tasks: A review and quantitative synthesis. <i>Psychological Bulletin</i>. <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener noreferrer">原著論文 DOI</a></div>
+  <div class="citebox">Dunlosky, J., et al. (2013). Improving students' learning with effective learning techniques. <i>Psychological Science in the Public Interest</i>. <a href="https://doi.org/10.1177/1529100612453266" target="_blank" rel="noopener noreferrer">原著論文 DOI</a></div>
+  <div class="citebox">Lally, P., et al. (2010). How are habits formed: Modelling habit formation in the real world. <i>European Journal of Social Psychology</i>. <a href="https://doi.org/10.1002/ejsp.674" target="_blank" rel="noopener noreferrer">原著論文 DOI</a></div>
+ </div>
+</section>
+
+<div class="panel spaced hrow" style="margin-top:24px"><div><strong>授業用の匿名セッション</strong><div class="tiny">端末内に自動保存／外部送信なし ｜ ID: <span id="session-id">—</span></div></div><div class="btnrow" style="margin:0"><button class="btn smallbtn plain" id="restart">最初から（全記録を消去）</button></div></div>
+</main>
+<footer class="sitefoot"><div class="container">GROWTH QUEST Ver.0.3.2｜「努力は、たまに報われる。」　心理学授業用の仮想モデルです。現実の能力・幸福度・成功確率を測定するものではありません。</div></footer>
+<script>
+(()=>{'use strict';
+ const VERSION='0.3.2';const KEY='growth-quest-v032-8bit';const teacherMode=new URLSearchParams(location.search).get('teacher')==='1';
+ const $=id=>document.getElementById(id);const $$=sel=>Array.from(document.querySelectorAll(sel));
+ const cap=(v,min,max)=>Math.min(max,Math.max(min,v));const num=(v,d=1)=>Number(v).toFixed(d);
+ const answers={A:'努力を続ければ、いつか必ず成功する',B:'成功は、ほとんど運で決まる',C:'努力は成功の可能性を変えるが、結果は保証されない'};
+ const steps=['story','pre','choose','play','outcome','post','lab'];
+ const people={
+  kai:{name:'カイ',skill:32,energy:82,support:50,hours:20,description:'継続して練習する時間は比較的確保できる。もともとの技能は発展途上。毎日の努力と方法の工夫が課題。'},
+  rina:{name:'リナ',skill:26,energy:79,support:34,hours:12,description:'家族の世話があり、練習時間は限られる。工夫や支援を活用できるかが重要。練習できない日も本人の責任とは限らない。'},
+  sora:{name:'ソラ',skill:57,energy:85,support:73,hours:16,description:'最初から高い技能があり、支援や情報へのアクセスもよい。それでも最後の試練の成功は保証されない。'}
+ };
+ const methods={
+  steady:{label:'コツコツ練習',hours:1,quality:1,energy:-12,support:0,text:'練習帳に印が増えた。反復は積み上がったが、疲労にも目を向けたい。'},
+  reflect:{label:'方法を見直す',hours:.87,quality:1.26,energy:-7,support:0,text:'同じ失敗を繰り返さないように方法を変えた。時間は少し減ったが、学び方に工夫が生まれた。'},
+  rest:{label:'休息を交える',hours:.55,quality:.98,energy:15,support:0,text:'休みながら練習を続けた。練習時間は減ったが、心身の余力が戻ってきた。'},
+  support:{label:'助言や協力を探す',hours:.73,quality:1.10,energy:-3,support:8,text:'近くの人に相談した。すぐに実力が伸びるとは限らないが、利用できる機会が増えた。'},
+  none:{label:'練習しない',hours:0,quality:0,energy:16,support:0,text:'練習は行わなかった。休息を取れたが、新たな練習経験は得られなかった。'}
+ };
+ const months=['芽吹きの月','若葉の月','風の月','雨の月','夏の月','陽炎の月','実りの月','星の月','霧の月','木枯らしの月','雪の月','門の月'];
+ const events=[
+  {id:'calm',name:'静かな日々',text:'落ち着いた日々が続き、予定していた練習に取り組めた。',hours:1,energy:0,support:0,quality:1},
+  {id:'rain',name:'長雨',text:'長雨で練習場が使いにくくなった。できる範囲で工夫を続けた。',hours:.82,energy:-3,support:0,quality:1},
+  {id:'mentor',name:'旅の先生との出会い',text:'旅の先生が練習の様子を見て、ひとつ助言を残した。',hours:1,energy:0,support:6,quality:1.09},
+  {id:'family',name:'急な用事',text:'家族や村の用事が重なり、予定どおりに時間を使えなかった。',hours:.69,energy:-4,support:0,quality:1},
+  {id:'festival',name:'村の祭り',text:'村の祭りで、新しい仲間や練習の機会に出会った。',hours:.92,energy:2,support:5,quality:1},
+  {id:'fatigue',name:'疲れの蓄積',text:'少し疲れが強く、思うように練習が進まなかった。',hours:.84,energy:-8,support:0,quality:.96},
+  {id:'insight',name:'小さな発見',text:'偶然のヒントから、苦手だった動作の意味が分かった気がした。',hours:1,energy:0,support:0,quality:1.11}
+ ];
+ function newId(){try{const a=new Uint32Array(2);crypto.getRandomValues(a);return 'GQ-'+Array.from(a).map(v=>v.toString(36).toUpperCase().slice(-5)).join('-')}catch(_){return 'GQ-'+Math.floor(Math.random()*1e12).toString(36).toUpperCase()}}
+ function newSeed(){try{const a=new Uint32Array(1);crypto.getRandomValues(a);return (a[0]||1)>>>0}catch(_){return Math.floor(Math.random()*2147483647)+1}}
+ function emptySession(){return {version:VERSION,id:newId(),createdAt:new Date().toISOString(),screen:'story',maxStep:0,pre:null,post:null,hero:null,seed:null,monthRows:[],plan:null,comparisonBatch:0,trialHistory:[],lastEvent:null,final:null,comparison:null,lab:null}}
+ let session=emptySession(),heroChoice=null,labResult=null,idleTimer=null,idleRunning=false;
+ try{const old=JSON.parse(localStorage.getItem(KEY)||'null');if(old&&old.version===VERSION&&old.id&&Array.isArray(old.monthRows)&&steps.includes(old.screen)){session=old;heroChoice=old.hero;labResult=old.lab;}}catch(_){}
+ function persist(){try{localStorage.setItem(KEY,JSON.stringify(session))}catch(_){}}
+ function navigate(step){if(step!=='play')stopIdle();if(step==='lab'&&!teacherMode&&!session.post)return;if(step!=='lab'&&steps.indexOf(step)>session.maxStep)return;session.screen=step;persist();drawApp();window.scrollTo({top:0,behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+ function unlock(step){session.maxStep=Math.max(session.maxStep,steps.indexOf(step));persist()}
+ function renderPreLock(){const done=!!session.pre;for(const input of $$('input[name="pre-belief"]'))input.disabled=done;$('pre-impact').disabled=done;$('pre-reason').disabled=done;$('apply-example').disabled=done;$('pre-lock').textContent=done?'回答は記録済みです。開始前の判断を維持するため、変更できません。':'';$('pre-save').textContent=done?'記録済み。物語の続きを読む →':'判断を記録して物語の続きを読む →';}
+ function drawNavigation(){for(const b of $$('#navigation [data-step]')){const step=b.dataset.step,idx=steps.indexOf(step),active=step===session.screen;b.disabled=step==='lab'?(!teacherMode&&!session.post):(idx>session.maxStep);b.classList.toggle('active',active);b.classList.toggle('complete',idx<session.maxStep);b.setAttribute('aria-current',active?'step':'false');}}
+ function drawApp(){renderPreLock();drawNavigation();for(const s of $$('.screen'))s.classList.toggle('active',s.id==='screen-'+session.screen);$('session-id').textContent=session.id;if(session.screen==='choose')renderChoose();if(session.screen==='play')renderPlay();if(session.screen==='outcome')renderOutcome();if(session.screen==='post')renderPost();if(session.screen==='lab'){renderLab();renderModels();}}
+ function rngFactory(seed){let a=(seed>>>0)||1;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}}
+ const round=v=>Math.round(v*1000)/1000;
+ function initialState(id){const h=people[id];return {skill:h.skill,energy:h.energy,support:h.support,totalHours:0};}
+ function successProbability(s){const logistic=1/(1+Math.exp(-(s.skill-60)/11));return cap(.06+.84*logistic+.001*(s.support-50)+.0008*(s.energy-50),.035,.95);}
+ function simulate(id,choices,seed){const current=initialState(id),rnd=rngFactory(seed),rows=[],h=people[id];
+  for(let i=0;i<choices.length;i++){
+   const action=methods[choices[i]]||methods.steady,ev=events[Math.floor(rnd()*events.length)],luck=rnd(),prevSkill=current.skill;
+   const available=h.hours*action.hours*ev.hours*(.85+.15*current.energy/100);
+   const hours=Math.max(0,available*(.94+.12*luck));
+   const fatigueScale=.60+current.energy/240;
+   const opportunityScale=.87+current.support/340;
+   const ceiling=Math.max(.035,1-current.skill/118);
+   const learningNoise=.93+.14*luck;
+   const gain=hours*.25*action.quality*ev.quality*fatigueScale*opportunityScale*ceiling*learningNoise;
+   const retentionLoss=choices[i]==='none'?Math.max(0,current.skill-35)*.0018:0;
+   current.skill=cap(current.skill+gain-retentionLoss,0,100);
+   current.energy=cap(current.energy+action.energy+ev.energy+3,10,100);
+   current.support=cap(current.support+action.support+ev.support,5,100);
+   current.totalHours+=hours;
+   rows.push({month:i+1,monthName:months[i%12],method:choices[i],methodLabel:action.label,event:ev.id,eventName:ev.name,eventText:ev.text,practiceHours:round(hours),cumulativeHours:round(current.totalHours),gain:round(gain),retentionLoss:round(retentionLoss),skillBefore:round(prevSkill),skill:round(current.skill),energy:round(current.energy),support:round(current.support),eventTip:action.text});
+  }
+  const probability=successProbability(current);const finalLuck=rnd();const passed=finalLuck<probability;
+  return {state:current,rows,final:{passed,probability,finalLuck,skill:current.skill,hours:current.totalHours,energy:current.energy,support:current.support}};
+ }
+ const policies={
+  steady:{name:'コツコツ続ける',description:'原則は反復練習。余力が減りすぎた月は休息します。'},
+  reflect:{name:'工夫して学ぶ',description:'練習方法を見直し、疲れが強いときは休みます。'},
+  balance:{name:'休息も大切に',description:'毎月の余力を見て、練習と休息を交互に組み込みます。'},
+  support:{name:'仲間の力を借りる',description:'助言を求める月と練習する月を組み合わせます。'},
+  none:{name:'練習しない',description:'12か月を練習なしで過ごします。元の技能や運にも注目します。'}
+ };
+ function autoMethod(plan,month,last){const energy=last?last.energy:84,support=last?last.support:50;
+  if(plan==='none')return 'none';
+  if(plan==='steady')return energy<33?'rest':'steady';
+  if(plan==='reflect')return energy<35?'rest':month%4===3?'support':'reflect';
+  if(plan==='balance')return (energy<65||month%4===3)?'rest':month%3===1?'reflect':'steady';
+  if(plan==='support')return energy<42?'rest':(support<65||month%4===0)?'support':'reflect';
+  return 'steady';
+ }
+ function simulateAuto(id,plan,seed){let choices=[];for(let m=0;m<12;m++){const last=choices.length?simulate(id,choices,seed).rows.at(-1):null;choices.push(autoMethod(plan,m,last));}return simulate(id,choices,seed);}
+ function stopIdle(){idleRunning=false;if(idleTimer!==null){clearTimeout(idleTimer);idleTimer=null;}if($('idle-status')&&session.hero&&session.monthRows.length<12){$('idle-status').textContent=session.monthRows.length?'一時停止中':'待機中';}}
+ function idleDelay(){return {slow:1700,normal:770,fast:190}[$('idle-speed').value]||770;}
+ function finishIdle(){stopIdle();if(session.monthRows.length!==12)return;if(!session.comparison){createComparison(true);}renderPlay();idleTimer=setTimeout(()=>{idleTimer=null;if(session.screen==='play')navigate('outcome');},1100);}
+ function scheduleIdle(){if(!idleRunning)return;idleTimer=setTimeout(()=>{idleTimer=null;if(!idleRunning||session.screen!=='play')return;advance(1);if(session.monthRows.length===12){finishIdle();return;}scheduleIdle();},idleDelay());}
+ function runIdle(){if(!session.hero||session.monthRows.length>=12)return;if(!session.plan){session.plan='steady';}idleRunning=true;persist();renderPlay();scheduleIdle();}
+ const $belief=(phase)=>document.querySelector(`input[name="${phase}-belief"]:checked`);
+ for(const p of ['pre','post']){$(p+'-impact').addEventListener('input',()=>{$(p+'-impact-value').textContent=$(p+'-impact').value+' / 100';});}
+ $('story-next').addEventListener('click',()=>{unlock('pre');navigate('pre')});
+ $('apply-example').addEventListener('click',()=>{const c=document.querySelector('input[name="pre-belief"][value="C"]');c.checked=true;$('pre-error').textContent='会話で選んだCをセットしました。必要なら変更できます。';});
+ $('pre-save').addEventListener('click',()=>{if(session.pre){unlock('choose');navigate('choose');return;}const a=$belief('pre');if(!a){$('pre-error').textContent='先にA〜Cのいずれかを選択してください。';return;}session.pre={answer:a.value,impact:+$('pre-impact').value,reason:$('pre-reason').value.trim(),at:new Date().toISOString()};persist();unlock('choose');navigate('choose');});
+ for(const b of $$('[data-hero]'))b.addEventListener('click',()=>{if(session.monthRows.length)return;heroChoice=b.dataset.hero;renderChoose()});
+ function renderChoose(){if(session.hero)heroChoice=session.hero;for(const b of $$('[data-hero]')){const on=b.dataset.hero===heroChoice;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on));b.disabled=!!session.hero&&session.hero!==b.dataset.hero;}$('choose-start').disabled=!heroChoice;if(heroChoice){$('hero-explain').textContent=people[heroChoice].name+'：'+people[heroChoice].description;}if(session.hero){$('choose-start').textContent='この人物の旅を続ける →';}}
+ $('choose-start').addEventListener('click',()=>{if(!heroChoice)return;if(!session.hero){session.hero=heroChoice;session.seed=newSeed();session.monthRows=[];session.plan=null;session.comparisonBatch=0;session.trialHistory=[];session.lastEvent=null;session.final=null;session.comparison=null;}unlock('play');navigate('play')});
+ for(const b of $$('[data-plan]'))b.addEventListener('click',()=>{if(session.monthRows.length||idleRunning)return;session.plan=b.dataset.plan;persist();renderPlanButtons();});
+ function renderPlanButtons(){for(const b of $$('[data-plan]')){const on=b.dataset.plan===(session.plan||'steady');b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));b.disabled=session.monthRows.length>0||idleRunning;}
+  const p=policies[session.plan||'steady'];$('policy-info').textContent='選択した方針｜'+p.name+'：'+p.description+'　※実際の人間の行動や成長率を示すものではありません。';}
+ function playChoices(){return session.monthRows.map(r=>r.method)}
+ function advance(count){if(!session.hero)return;let remaining=12-session.monthRows.length;if(remaining<=0)return;for(let i=0;i<Math.min(count,remaining);i++){const choices=playChoices(),last=session.monthRows.at(-1)||null;choices.push(autoMethod(session.plan||'steady',choices.length,last));const result=simulate(session.hero,choices,session.seed);session.monthRows=result.rows;session.lastEvent=result.rows.at(-1)||null;if(session.monthRows.length===12){session.final=result.final;unlock('outcome');}}
+  persist();renderPlay();}
+ $('idle-start').addEventListener('click',()=>{if(idleRunning)return;runIdle();});
+ $('idle-pause').addEventListener('click',()=>{if(!idleRunning)return;stopIdle();renderPlay();});
+ $('idle-skip').addEventListener('click',()=>{if(!session.hero)return;stopIdle();advance(12-session.monthRows.length);finishIdle();});
+ $('go-outcome').addEventListener('click',()=>{if(session.final)navigate('outcome')});
+ function renderPlay(){if(!session.hero)return;const h=people[session.hero],row=session.monthRows.at(-1),start=initialState(session.hero),state=row?{skill:row.skill,energy:row.energy,support:row.support,totalHours:row.cumulativeHours}:start;
+  $('hero-name-mini').textContent=h.name;$('idle-hero-display').textContent=h.name+'の一年';$('month-label').textContent=session.monthRows.length>=12?'365日終了':session.monthRows.length?months[session.monthRows.length-1]+'｜'+session.monthRows.length+'/12か月':'春の始まり / 0か月';
+  $('year-progress-fill').style.width=(session.monthRows.length/12*100)+'%';$('year-progress').setAttribute('aria-valuenow',String(session.monthRows.length));$('idle-runner').style.left= (session.monthRows.length/12*93)+'%';
+  $('time-track').replaceChildren();for(let i=0;i<12;i++){const el=document.createElement('span');if(i<session.monthRows.length)el.className='past';else if(i===session.monthRows.length)el.className='current';$('time-track').appendChild(el);}
+  $('play-hours').textContent=num(state.totalHours,1)+'h';$('play-skill').textContent=num(state.skill,1);$('play-energy').textContent=Math.round(state.energy);$('play-support').textContent=Math.round(state.support);
+  const complete=session.monthRows.length===12;renderPlanButtons();$('idle-start').disabled=complete||idleRunning;$('idle-pause').disabled=!idleRunning;$('idle-skip').disabled=complete;$('idle-speed').disabled=complete;$('finish-wrap').style.display=complete?'flex':'none';
+  $('idle-start').textContent=session.monthRows.length&&!complete?'▶ 再開する':'▶ 365日の放置を始める';$('idle-status').textContent=complete?'365日が終了':idleRunning?'自動進行中':session.monthRows.length?'一時停止中':'準備完了';
+  $('month-intro').textContent=complete?'一年が過ぎました。どんな結果になったでしょうか。':idleRunning?'方針「'+policies[session.plan||'steady'].name+'」で自動進行しています。操作せず見守ってください。':session.monthRows.length?'記録が途中まで残っています。「再開する」で続きから観察できます。':'方針を一つ決めたら「365日の放置を始める」を押してください。';
+  $('event-head').textContent=row?`${row.monthName}｜${row.eventName}`:'春の始まり';$('event-text').textContent=row?row.eventText+' '+row.eventTip:'新しい練習帳を開いた。まだ何も結果は決まっていない。';
+  $('event-numbers').textContent=row?`自動で選んだ行動：${row.methodLabel}。この月の努力 ${num(row.practiceHours,1)}時間／技能の変化 ${row.skill-row.skillBefore>=0?'+':''}${num(row.skill-row.skillBefore,2)}点／累積 ${num(row.cumulativeHours,1)}時間`:'最初の方針を決め、スタートしてください。';
+  const tab=$('play-log-rows');tab.replaceChildren();const recent=session.monthRows.slice(-6);if(!recent.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=4;td.textContent='まだ記録がありません。';tr.appendChild(td);tab.appendChild(tr);}for(const r of recent){const tr=document.createElement('tr');[r.month,r.methodLabel,num(r.practiceHours,1),num(r.skill,1)].forEach(v=>{const td=document.createElement('td');td.textContent=v;tr.appendChild(td)});tab.appendChild(tr);}
+  const pts=[{month:0,skill:h.skill,cumulativeHours:0}].concat(session.monthRows);const scaleHours=Math.max(1,20*12);drawLine($('journey-chart'),[{color:'#76e8c9',values:pts.map(r=>({x:r.month,y:r.skill}))},{color:'#f0cc87',values:pts.map(r=>({x:r.month,y:100*r.cumulativeHours/scaleHours}))}],{maxX:12,maxY:100,xUnit:'月'});
+ }
+ function renderOutcome(){if(!session.hero||!session.final)return;const f=session.final,initial=people[session.hero].skill;const pass=f.passed;
+  $('result-message').textContent=pass?'門が、開いた。':'門は、開かなかった。';$('result-message').className='resultword '+(pass?'pass':'fail');
+  $('result-story').textContent=pass?`${people[session.hero].name}は門をくぐった。けれど、その一年がいつも報われるとは限らない。別の一年なら、結果は違っていたかもしれない。`:`${people[session.hero].name}は丘の上に立った。しかし門は閉じたままだった。手元の練習帳には、この一年で得たものが残っている。`;
+  $('result-hours').textContent=num(f.hours,1)+'h';$('result-growth').textContent=(f.skill-initial>=0?'+':'')+num(f.skill-initial,1)+'点';$('result-skill').textContent=num(f.skill,1);$('result-probability').textContent=Math.round(f.probability*100)+'%';
+  const ready=!!session.comparison;$('compare-empty').classList.toggle('hidden',ready);$('compare-ready').classList.toggle('hidden',!ready);if(ready)renderComparison();
+  const old=session.trialHistory||[];$('past-trial-box').classList.toggle('hidden',!old.length);$('past-trial-list').replaceChildren();old.forEach((trial,i)=>{const p=document.createElement('p');p.className='small';p.textContent=`${i+1}回目：${policies[trial.plan]?.name||trial.plan}｜努力${num(trial.hours,1)}時間｜技能${num(trial.skill,1)}点｜${trial.passed?'通過':'不通過'}`;$('past-trial-list').appendChild(p);});
+ }
+ function createComparison(initial=false){if(!session.final)return;if(!initial)session.comparisonBatch=(session.comparisonBatch||0)+1;const batch=session.comparisonBatch||0,base=Array(12).fill('none'),data=[];
+  for(let i=0;i<100;i++){const seed=(session.seed+(batch*100+i)*9973)>>>0;const main=simulateAuto(session.hero,session.plan||'steady',seed),other=simulate(session.hero,base,seed);data.push({run:i+1,batch,seed,practiceSuccess:main.final.passed?1:0,noPracticeSuccess:other.final.passed?1:0,practiceProbability:round(main.final.probability),noPracticeProbability:round(other.final.probability),practiceSkill:round(main.final.skill),noPracticeSkill:round(other.final.skill),practiceHours:round(main.final.hours),noPracticeHours:round(other.final.hours)});}
+  session.comparison=data;persist();if(session.screen==='outcome')renderOutcome();}
+ $('rerun-100').addEventListener('click',()=>createComparison(false));
+ $('try-other-plan').addEventListener('click',()=>{if(!session.final||session.post)return;stopIdle();const f=session.final;session.trialHistory=session.trialHistory||[];session.trialHistory.push({plan:session.plan,seed:session.seed,skill:f.skill,hours:f.hours,passed:f.passed,probability:f.probability});session.monthRows=[];session.plan=null;session.final=null;session.lastEvent=null;session.comparison=null;session.comparisonBatch=0;persist();navigate('play');});
+ function renderComparison(){const arr=session.comparison||[],n=arr.reduce((a,r)=>a+r.practiceSuccess,0),b=arr.reduce((a,r)=>a+r.noPracticeSuccess,0),higher=arr.filter(r=>r.practiceSuccess>r.noPracticeSuccess).length,lower=arr.filter(r=>r.practiceSuccess<r.noPracticeSuccess).length;
+  $('repeat-success').textContent=n+' / 100';$('baseline-success').textContent=b+' / 100';$('paired-insight').textContent=`100組中、選んだ方針でだけ通過した世界は${higher}組、練習しなかった方だけ通過した世界は${lower}組でした。同じ初期条件と偶然でも、方針によって結果の確率が変わります。ただし成功は保証されません。`;
+  drawBars($('compare-chart'),[{name:'選んだ方針',n,color:'#76e8c9'},{name:'練習なし',n:b,color:'#f1a0a9'}]);}
+ $('go-post').addEventListener('click',()=>{unlock('post');navigate('post')});
+ $('post-save').addEventListener('click',()=>{if(session.post){renderPost();return}const a=$belief('post');if(!a){$('post-error').textContent='先にA〜Cのいずれかを選択してください。';return;}session.post={answer:a.value,impact:+$('post-impact').value,reason:$('post-reason').value.trim(),at:new Date().toISOString()};persist();renderPost();});
+ function renderPost(){const has=!!session.post;$('post-form').classList.toggle('hidden',has);$('post-report').classList.toggle('hidden',!has);if(!has)return;$('review-pre').textContent=(session.pre?.answer||'?')+'：'+(answers[session.pre?.answer]||'未回答');$('review-post').textContent=session.post.answer+'：'+answers[session.post.answer];$('review-pre-impact').textContent='努力の影響：'+session.pre.impact+'/100';$('review-post-impact').textContent='努力の影響：'+session.post.impact+'/100';const same=session.pre.answer===session.post.answer;const change=session.post.impact-session.pre.impact;$('review-note').textContent=(same?'選択肢は変わりませんでした。':'選択肢が変わりました。')+`「努力の影響」評価は${change===0?'変化なし':(change>0?'+'+change:String(change))+'ポイント'}。判断の理由がどう変化したかにも注目してください。`;unlock('lab');drawNavigation();}
+ $('go-lab').addEventListener('click',()=>navigate('lab'));
+ // Lightweight SVG charts. All labels are inserted as text, never as executable HTML.
+ const SVGNS='http://www.w3.org/2000/svg';function svg(name,attrs,text){const e=document.createElementNS(SVGNS,name);for(const [k,v] of Object.entries(attrs||{}))e.setAttribute(k,String(v));if(text!==undefined)e.textContent=text;return e;}
+ function drawLine(node,series,opts={}){if(!node)return;node.replaceChildren();const W=800,H=270,p={l:48,r:18,t:17,b:34};node.setAttribute('viewBox',`0 0 ${W} ${H}`);const maxX=opts.maxX||12,all=series.flatMap(s=>s.values.map(x=>x.y)).filter(Number.isFinite),maxY=opts.maxY||Math.max(10,...all),yTop=maxY*1.03;const x=v=>p.l+(W-p.l-p.r)*v/maxX,y=v=>p.t+(H-p.t-p.b)*(1-v/yTop);
+  for(let i=0;i<5;i++){const value=i/4*yTop,Y=y(value);node.append(svg('line',{x1:p.l,x2:W-p.r,y1:Y,y2:Y,stroke:'#35546d','stroke-opacity':'.65'}));node.append(svg('text',{x:p.l-7,y:Y+4,'text-anchor':'end','font-size':11,fill:'#acbfd3'},String(Math.round(value))));const day=maxX*i/4;node.append(svg('text',{x:x(day),y:H-8,'text-anchor':'middle','font-size':11,fill:'#acbfd3'},`${Math.round(day)}${opts.xUnit||''}`));}
+  for(const s of series){const arr=s.values.filter(v=>Number.isFinite(v.x)&&Number.isFinite(v.y));if(arr.length===1){node.append(svg('circle',{cx:x(arr[0].x),cy:y(arr[0].y),r:3,fill:s.color}));continue}node.append(svg('polyline',{points:arr.map(v=>x(v.x).toFixed(2)+','+y(v.y).toFixed(2)).join(' '),fill:'none',stroke:s.color,'stroke-width':3,'stroke-linecap':'round','stroke-linejoin':'round'}));}
+ }
+ function drawBars(node,bars){node.replaceChildren();node.setAttribute('viewBox','0 0 480 155');bars.forEach((v,i)=>{const y=20+i*70;node.append(svg('text',{x:9,y:y,'font-size':13,fill:'#c7d9e9'},v.name));node.append(svg('rect',{x:9,y:y+9,width:420,height:23,rx:8,fill:'#243a50'}));node.append(svg('rect',{x:9,y:y+9,width:4.2*v.n,height:23,rx:8,fill:v.color}));node.append(svg('text',{x:439,y:y+26,'font-size':13,'font-weight':800,fill:'#ecf5f9'},v.n));});}
+ function renderModels(){const arr=Array.from({length:74},(_,i)=>i*5).concat([365]);const pts=f=>arr.map(x=>({x,y:f(x)}));drawLine($('models-chart'),[{color:'#91b7ff',values:pts(d=>1+.055*d)},{color:'#76e8c9',values:pts(d=>1.01**d)},{color:'#f0cc87',values:pts(d=>1+19*(1-Math.exp(-d/70)))},{color:'#f1a0a9',values:pts(d=>1+3.4*Math.floor(d/63))}],{maxX:365,maxY:40,xUnit:'日'});}
+ function runLab(){const strength=+$('lab-coupling').value,quality=+$('lab-efficiency').value,duration=+$('lab-duration').value;const A=[],B=[],runs=[];const sumA=Array(duration+1).fill(0),sumB=Array(duration+1).fill(0);for(let i=0;i<100;i++){const rnd=rngFactory(19001+i*127),startSkill=25+15*rnd();let a=startSkill,b=startSkill;sumA[0]+=a;sumB[0]+=b;for(let m=1;m<=duration;m++){const noise=.90+.20*rnd(),hours=16*(.9+.2*rnd()),base=.20*hours*quality*noise;const growthA=base*(1-a/116);const growthB=base*(1+strength*b/100)*(1-b/116);a=cap(a+growthA,0,100);b=cap(b+growthB,0,100);sumA[m]+=a;sumB[m]+=b}runs.push({learner:i+1,seed:19001+i*127,initialSkill:round(startSkill),finalA:round(a),finalB:round(b),difference:round(b-a)})}labResult={strength,quality,duration,runs,meanA:sumA.map(v=>v/100),meanB:sumB.map(v=>v/100)};session.lab=labResult;persist();renderLab();}
+ function renderLab(){if(!labResult)runLab();if(!labResult)return;const x=labResult;$('lab-final-a').textContent=num(x.meanA[x.duration],1);$('lab-final-b').textContent=num(x.meanB[x.duration],1);$('lab-conclusion').textContent=`この仮想モデルでは、他の条件を揃えたとき、BはAより平均${num(x.meanB[x.duration]-x.meanA[x.duration],2)}点${x.meanB[x.duration]>=x.meanA[x.duration]?'高く':'低く'}なりました。これは数式で「既有技能の活用」を上乗せした結果であり、実際の心理学的効果量ではありません。`;
+  drawLine($('lab-chart'),[{color:'#91b7ff',values:x.meanA.map((v,i)=>({x:i,y:v}))},{color:'#76e8c9',values:x.meanB.map((v,i)=>({x:i,y:v}))}],{maxX:x.duration,maxY:100,xUnit:'月'});}
+ function syncLabText(){$('lab-coupling-text').textContent=num(+$('lab-coupling').value,2);$('lab-efficiency-text').textContent=num(+$('lab-efficiency').value,2)+'倍';}
+ for(const id of ['lab-coupling','lab-efficiency'])$(id).addEventListener('input',syncLabText);
+ $('lab-run').addEventListener('click',runLab);$('lab-reset').addEventListener('click',()=>{$('lab-coupling').value=.7;$('lab-efficiency').value=1;$('lab-duration').value='12';syncLabText();runLab();});
+ // Exports. UTF-8 BOM is included for Japanese CSV opening in spreadsheet apps.
+ function esc(v){let value=String(v??'');if(typeof v==='string'&&/^[\s]*[=+\-@]/.test(value))value="'"+value;return '"'+value.replaceAll('"','""')+'"';}
+ function saveText(filename,text,mime){const b=new Blob([text],{type:mime});const url=URL.createObjectURL(b);const link=document.createElement('a');link.href=url;link.download=filename;link.style.display='none';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+ function downloadCsv(filename,head,records){const csv='\ufeff'+head.map(esc).join(',')+'\r\n'+records.map(r=>head.map(k=>esc(r[k])).join(',')).join('\r\n');saveText(filename,csv,'text/csv;charset=utf-8');}
+ function rowMeta(){return {sessionId:session.id,version:VERSION,hero:session.hero,plan:session.plan,seed:session.seed};}
+ function exportMonths(){const rows=session.monthRows.map(r=>({...rowMeta(),...r}));downloadCsv('GrowthQuest_v03_monthly.csv',['sessionId','version','hero','plan','seed','month','monthName','method','methodLabel','event','eventName','practiceHours','cumulativeHours','gain','retentionLoss','skillBefore','skill','energy','support'],rows)}
+ $('download-months').addEventListener('click',exportMonths);$('download-all-months').addEventListener('click',exportMonths);
+ $('download-runs').addEventListener('click',()=>{if(!session.comparison)return;downloadCsv('GrowthQuest_v03_100runs.csv',['sessionId','hero','run','batch','seed','practiceSuccess','noPracticeSuccess','practiceProbability','noPracticeProbability','practiceSkill','noPracticeSkill','practiceHours','noPracticeHours'],session.comparison.map(r=>({sessionId:session.id,hero:session.hero,...r})))});
+ $('lab-csv').addEventListener('click',()=>{if(!labResult)return;downloadCsv('GrowthQuest_v03_lab.csv',['learner','seed','initialSkill','finalA','finalB','difference','strength','quality','duration'],labResult.runs.map(r=>({...r,strength:labResult.strength,quality:labResult.quality,duration:labResult.duration}))) });
+ $('download-summary').addEventListener('click',()=>{if(!session.post)return;const cmp=session.comparison||[];const record={...rowMeta(),createdAt:session.createdAt,plan:session.plan,numberOfTrials:(session.trialHistory||[]).length+1,preAnswer:session.pre?.answer,preImpact:session.pre?.impact,preReason:session.pre?.reason,preAt:session.pre?.at,postAnswer:session.post.answer,postImpact:session.post.impact,postReason:session.post.reason,postAt:session.post.at,totalHours:round(session.final.hours),startSkill:people[session.hero].skill,finalSkill:round(session.final.skill),gateSuccess:session.final.passed?1:0,gateProbability:round(session.final.probability),repetitions:cmp.length,repeatedSuccess:cmp.reduce((a,r)=>a+r.practiceSuccess,0),baselineSuccess:cmp.reduce((a,r)=>a+r.noPracticeSuccess,0)};downloadCsv('GrowthQuest_v03_summary.csv',Object.keys(record),[record]);});
+ $('download-full').addEventListener('click',()=>saveText('GrowthQuest_v03_all.json',JSON.stringify(session,null,2),'application/json;charset=utf-8'));
+ $('restart').addEventListener('click',()=>{if(!confirm('この端末に保存された回答・行動ログ・試行結果を消去し、最初から始めますか？ CSVなどに保存していない記録は復元できません。'))return;session=emptySession();heroChoice=null;labResult=null;for(const input of $$('input[name="pre-belief"],input[name="post-belief"]'))input.checked=false;$('pre-reason').value='';$('post-reason').value='';for(const p of ['pre','post']){$(p+'-impact').value=50;$(p+'-impact-value').textContent='50 / 100';}stopIdle();renderPreLock();persist();navigate('story');});
+ $$('#navigation [data-step]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.step)));
+ // Open the lab independently for instructors. Main narrative steps remain gated to protect pre/post answers.
+ syncLabText();if(!labResult)runLab();if(session.pre){const r=document.querySelector(`input[name="pre-belief"][value="${session.pre.answer}"]`);if(r)r.checked=true;$('pre-impact').value=session.pre.impact;$('pre-impact-value').textContent=session.pre.impact+' / 100';$('pre-reason').value=session.pre.reason||'';$('pre-save').textContent='記録済み。物語の続きを読む →';}if(session.post){const r=document.querySelector(`input[name="post-belief"][value="${session.post.answer}"]`);if(r)r.checked=true;$('post-impact').value=session.post.impact;$('post-impact-value').textContent=session.post.impact+' / 100';$('post-reason').value=session.post.reason||'';}
+ if(!teacherMode)$('apply-example').hidden=true;stopIdle();drawApp();
+})();
+</script>
+</body>
+</html>
